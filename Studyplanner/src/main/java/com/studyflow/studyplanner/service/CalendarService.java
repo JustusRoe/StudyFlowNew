@@ -32,7 +32,7 @@ public class CalendarService {
         eventRepository.deleteById(eventId);
 }
 
-    public List<CalendarEvent> getUserEventsByType(Long userId, String type) {
-        return eventRepository.findByUserIdAndTypeIgnoreCase(userId, type);
-    }
+
+
+
 }
