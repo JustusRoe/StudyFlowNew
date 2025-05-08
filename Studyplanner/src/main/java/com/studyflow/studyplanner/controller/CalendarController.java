@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 // accepts file uploads (.ics file), parses the file, and saves each event into the database
 
@@ -53,16 +54,21 @@ public class CalendarController {
     // upload ics file and parse it
     @PostMapping("/upload")
     public String uploadCalendar(@RequestParam("file") MultipartFile file, Model model, Principal principal) {
+        System.out.println("Upload triggered");
         try {
             InputStream inputStream = file.getInputStream();
             
             // gets currently logged-in user
             String email = principal.getName();
             User user = userRepository.findByEmail(email); // could change to userService.findById(...) if using ID
+            System.out.println("Current user: " + email + " (ID: " + user.getId() + ")");
 
             // parses and saves events
             List<CalendarEvent> events = IcsParser.parseIcs(inputStream, user.getId());
+            System.out.println("Parsed " + events.size() + " events");
+
             for (CalendarEvent event : events) {
+                System.out.println(" - Event: " + event.getTitle() + " @ " + event.getStartTime());
                 calendarService.saveEvent(event);
             }
 
@@ -80,21 +86,38 @@ public class CalendarController {
     public List<Map<String, Object>> getEventsForFrontend(
         Principal principal,
         @RequestParam(required = false) String course,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+        @RequestParam(required = false) String type,
+        @RequestParam(required = false) String start,
+        @RequestParam(required = false) String end
     ) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email);
-        List<CalendarEvent> events = calendarService.getUserEvents(user.getId());
+        List<CalendarEvent> events;
 
-        // convert to FullCalendar format
+        if (type != null && !type.isEmpty()) {
+            events = calendarService.getUserEventsByType(user.getId(), type);
+        } else {
+            events = calendarService.getUserEvents(user.getId());
+        }
+
+        OffsetDateTime startDateTime = null;
+        OffsetDateTime endDateTime = null;
+        try {
+            if (start != null) startDateTime = OffsetDateTime.parse(start);
+            if (end != null) endDateTime = OffsetDateTime.parse(end);
+        } catch (Exception e) {
+            System.out.println("Falied to parse date range: " + e.getMessage());
+        }
+
+
         List<Map<String, Object>> result = new ArrayList<>();
         for (CalendarEvent event : events) {
             boolean matchesCourse = (course == null || event.getTitle().toLowerCase().contains(course.toLowerCase()));
-            boolean matchesDate = (start == null || !event.getEndTime().isBefore(start)) && (end == null || !event.getStartTime().isAfter(end));
+            boolean matchesDate = (startDateTime == null || !event.getEndTime().isBefore(startDateTime.toLocalDateTime())) && (endDateTime == null || !event.getStartTime().isAfter(endDateTime.toLocalDateTime()));
             
             if (matchesCourse && matchesDate) {
                 Map<String, Object> jsonEvent = new HashMap<>();
+                jsonEvent.put("id", event.getId());
                 jsonEvent.put("title", event.getTitle());
                 jsonEvent.put("start", event.getStartTime().toString());
                 jsonEvent.put("end", event.getEndTime().toString());
@@ -120,7 +143,7 @@ public class CalendarController {
     @PostMapping("/update/{id}")
     @ResponseBody
     public CalendarEvent updateEvent(@PathVariable Long id, @RequestBody CalendarEvent updated, Principal principal) {
-        CalendarEvent existing = calendarEventRepository.findOneById(id); // this function is not implemented yet in the repository nor in the service
+        CalendarEvent existing = calendarEventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
         if (!existing.getUserId().equals(userRepository.findByEmail(principal.getName()).getId())) {
             throw new RuntimeException("Unauthorized");
         }
@@ -136,41 +159,41 @@ public class CalendarController {
     @DeleteMapping("/delete/{id}")
     @ResponseBody
     public void deleteEvent(@PathVariable Long id, Principal principal) {
-        CalendarEvent event = calendarEventRepository.findOneById(id);
+        CalendarEvent event = calendarEventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
         if (event.getUserId().equals(userRepository.findByEmail(principal.getName()).getId())) {
             calendarService.deleteEvent(id);
         }
     }
 
-        
-    // returns events in json format for FullCalendar with type filtering
-    @GetMapping("/events")
-    @ResponseBody
-    public List<Map<String, Object>> getEventsForFrontend(
-            Principal principal,
-            @RequestParam(required = false) String course,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
-    ) {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email);
-        List<CalendarEvent> events;
-        
-        if (type != null && !type.isEmpty()) {
-            events = calendarService.getUserEventsByType(user.getId(), type);
-        } else {
-            events = calendarService.getUserEvents(user.getId());
-        }
 
-        // ... existing filtering logic ...  <---- whats this?!?!?
 
-        return result; // ??????
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     private String getColorForEventType(String type) {
         return switch (type.toLowerCase()) {
-            case "lecture" -> "#4285F4";
+            case "lecture" -> "#4285F4"; 
             case "assignment" -> "#0F9D58";
             case "exam" -> "#DB4437";
             case "self-study" -> "#F4B400";

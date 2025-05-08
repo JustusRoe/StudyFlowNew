@@ -27,6 +27,8 @@ public class IcsParser {
 
         for (Component component :  components) {
             if (component instanceof VEvent vevent) {
+                System.out.println("Parsing event: " + vevent.getSummary());
+                
                 String title = vevent.getSummary() != null ? vevent.getSummary().getValue() : "Untitled";
                 String description = vevent.getDescription() != null ? vevent.getDescription().getValue() : "";
 
@@ -36,6 +38,7 @@ public class IcsParser {
 
                 RRule rruleProp = vevent.getProperty(Property.RRULE);
                 if (rruleProp != null) { // takes care of repeating events
+                    System.out.println("Repeating event detected with rule: " + rruleProp.getValue());
                     Recur recur = rruleProp.getRecur();
                     DateTime periodEnd = new DateTime(LocalDate.now().plusYears(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()); // repeat ends one year later by default
                     

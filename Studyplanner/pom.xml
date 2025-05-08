@@ -14,7 +14,7 @@
 
   <groupId>com.studyflow</groupId>
   <artifactId>Studyplanner</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <name>Studyflow</name>
   <description>Smart Studyplanner for Students</description>
 
@@ -60,7 +60,7 @@
     </dependency>
 
     <!-- ical4j -->
-    <dependency>E
+    <dependency>
       <groupId>org.mnode.ical4j</groupId>
       <artifactId>ical4j</artifactId>
       <version>3.2.5</version> 
