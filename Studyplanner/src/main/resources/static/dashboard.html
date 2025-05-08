@@ -1,0 +1,76 @@
+<html lang="en">
+<!-- FullCalendar CSS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+<!-- FullCalendar JS -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js'></script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studyflow Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; background-color: #2c3e50; padding: 1rem; color: white; }
+    .navbar a { color: white; text-decoration: none; margin-left: 1rem; }
+    .container { padding: 2rem; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand">Studyflow</span>
+    <div class="nav-links">
+      <a href="/user_settings">Profile</a>
+    </div>
+  </nav>
+  <div class="container">
+    <h1>Welcome to the Studyflow Dashboard</h1>
+    <!-- Filters -->
+    <div id="filter-controls" style="margin-bottom: 1rem;">
+      <label><input type="checkbox" value="lecture" checked> Lecture</label>
+      <label><input type="checkbox" value="assignment" checked> Assignment</label>
+      <label><input type="checkbox" value="exam" checked> Exam</label>
+      <label><input type="checkbox" value="self-study" checked> Self-Study</label>
+    </div>
+    <!-- Calendar container -->
+    <div id="calendar"></div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      let calendarEl = document.getElementById('calendar');
+  
+      // Initialize FullCalendar
+      let calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        height: 'auto',
+  
+        // Fetch events function
+        events: function(fetchInfo, successCallback, failureCallback) {
+          // Gather selected types
+          const selectedTypes = Array.from(
+            document.querySelectorAll('#filter-controls input[type=checkbox]:checked')
+          ).map(cb => cb.value);
+  
+          // Build query parameters
+          const params = new URLSearchParams();
+          if (selectedTypes.length > 0) {
+            params.append('type', selectedTypes);
+          }
+  
+          fetch('/calendar/events?' + params.toString())
+            .then(response => response.json())
+            .then(events => successCallback(events))
+            .catch(error => failureCallback(error));
+        }
+      });
+  
+      calendar.render();
+  
+      // Add event listeners for checkboxes
+      document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          calendar.refetchEvents(); // Corrected: invoke method with parentheses
+        });
+      });
+    });
+  </script>
+</body>
+</html>

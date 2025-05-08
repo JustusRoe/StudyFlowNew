@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile Settings</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; background-color: #2c3e50; padding: 1rem; color: white; }
+    .navbar a { color: white; text-decoration: none; margin-left: 1rem; }
+    .container { padding: 2rem; max-width: 600px; margin: auto; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; }
+    .form-group input { width: 100%; padding: 0.5rem; }
+    .form-group select { width: 100%; padding: 0.5rem; }
+    .button { padding: 0.75rem 1.5rem; background-color: #2980b9; color: white; border: none; cursor: pointer; }
+    .button:hover { background-color: #1c5980; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand">Studyflow</span>
+    <div class="nav-links">
+      <a th:href="@{/dashboard.html}">Dashboard</a>
+    </div>
+  </nav>
+  <div class="container">
+    <h1>Profile Settings</h1>
+
+    <form th:action="@{/user_settings}" th:object="${user}" method="post">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" th:field="*{email}" readonly />
+      </div>
+
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" th:field="*{password}" placeholder="Leave blank to keep current password" />
+      </div>
+
+      <h2>Preferred Study Time</h2>
+
+      <div class="form-group">
+        <label for="startTime">Start Time</label>
+        <input type="time" id="startTime" th:field="*{preferredStartTime}" />
+      </div>
+
+      <div class="form-group">
+        <label for="endTime">End Time</label>
+        <input type="time" id="endTime" th:field="*{preferredEndTime}" />
+      </div>
+
+      <h2>Preferred Study Days</h2>
+
+      <div class="form-group">
+        <label>Study Days</label>
+        <select th:field="*{studyDays}" multiple>
+          <option value="MONDAY">Monday</option>
+          <option value="TUESDAY">Tuesday</option>
+          <option value="WEDNESDAY">Wednesday</option>
+          <option value="THURSDAY">Thursday</option>
+          <option value="FRIDAY">Friday</option>
+          <option value="SATURDAY">Saturday</option>
+          <option value="SUNDAY">Sunday</option>
+        </select>
+        <small>Hold Ctrl (or Cmd on Mac) to select multiple days.</small>
+      </div>
+
+      <div class="form-group">
+        <button type="submit" class="button">Save Settings</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!-- uploadCalendar.html -->
+<!DOCTYPE html>
+<html>
+<head><title>Upload Calendar</title></head>
+<body>
+    <h1>Upload .ics Calendar</h1>
+
+    <form method="post" enctype="multipart/form-data" action="/calendar/upload">
+        <input type="file" name="file" accept=".ics" required />
+        <button type="submit">Upload</button>
+    </form>
+
+    <p style="color:green;">${message}</p>
+    <p style="color:red;">${error}</p>
+</body>
+</html>

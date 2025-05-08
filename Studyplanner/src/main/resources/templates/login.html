@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Study Planner</title>
+  <!-- Thymeleaf-URL for static CSS -->
+  <link rel="stylesheet" th:href="@{/css/login.css}" />
+</head>
+<body>
+  <div class="login-container">
+    <!-- Thymeleaf-FormAction (will send PostMapping to SecurityConfig, which loggs in User) -->
+    <form id="loginForm" th:action="@{/login}" method="post" class="login-form">
+      <h2>Welcome Back</h2>
+
+      <p th:if="${msg}" th:text="${msg}" class="msg"></p>
+      <p th:if="${error}" th:text="${error}" class="error"></p>
+
+      <div class="input-group">
+        <label for="username">E-mail</label>
+        <!-- Spring Security uses username and password method but in our case email and password -->
+        <input type="text" id="username" name="username" required />
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+      </div>
+      <button type="submit" class="btn">Log In</button>
+
+      <!-- Links to other pages -->
+      <p class="switch">
+        <a th:href="@{/index.html}">Home</a> |
+        <a th:href="@{/signup}">Sign Up</a>  |
+        <a th:href="@{/forgot-password}">Forgot Password</a>
+      </p>
+    </form>
+  </div>
+  <!-- Thymeleaf-URL for static JS -->
+  <script th:src="@{/js/login.js}"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!-- dashboard.html
+have to create Controller for the dashboard 
+-->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Studyflow Dashboard</title>
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+  <style>
+    body { font-family: Arial; margin: 0; padding: 0; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; background-color: #2c3e50; padding: 1rem; color: white; }
+    .navbar a { color: white; text-decoration: none; margin-left: 1rem; }
+    .container { padding: 2rem; max-width: 1200px; margin: auto; }
+    #filters { margin-bottom: 1rem; }
+    #filters label { margin-right: 1rem; }
+    #calendar { max-width: 900px; margin: auto; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand">Studyflow</span>
+    <div class="nav-links">
+      <a th:href="@{/user_settings}">Profile</a>
+      <a th:href="@{/calendar/upload}">Import Calendar</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>My Study Calendar</h1>
+    <div id="filters">
+      <span>Filter by event type:</span>
+      <label><input type="checkbox" value="lecture" checked /> Lecture</label>
+      <label><input type="checkbox" value="assignment" checked /> Assignment</label>
+      <label><input type="checkbox" value="exam" checked /> Exam</label>
+      <label><input type="checkbox" value="self-study" checked /> Self-Study</label>
+      <button id="applyFilter" class="button">Apply</button>
+    </div>
+    <div id="calendar"></div>
+  </div>
+
+  <!-- FullCalendar UMD Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const calendarEl = document.getElementById('calendar');
+      const applyBtn = document.getElementById('applyFilter');
+      function getSelectedTypes() {
+        return Array.from(document.querySelectorAll('#filters input[type=checkbox]:checked'))
+          .map(cb => cb.value);
+      }
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: (fetchInfo, successCallback, failureCallback) => {
+          const types = getSelectedTypes().join(',');
+          const url = `/calendar/events?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}&type=${encodeURIComponent(types)}`;
+          fetch(url, { credentials: 'include' })
+            .then(r => r.json())
+            .then(data => successCallback(data))
+            .catch(failureCallback);
+        }
+      });
+      calendar.render();
+      applyBtn.addEventListener('click', () => calendar.refetchEvents());
+    });
+  </script>
+</body>
+</html>
