@@ -1,0 +1,104 @@
+/* src/main/resources/static/css/signup.css */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background-color: #2e3a78; /* Frankfurt School blue */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  /* Container box */
+  .signup-container {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 350px;
+    text-align: center;
+  }
+  
+  /* StudyFlow Logo */
+  .logo {
+    width: 80px;
+    margin-bottom: 1rem;
+  }
+  
+  /* Form heading */
+  .signup-form h2 {
+    color: #2e3a78;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Input styling */
+  .input-group {
+    margin-bottom: 1.2rem;
+    text-align: left;
+  }
+  
+  .input-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: #555;
+    font-size: 0.9rem;
+  }
+  
+  .input-group input {
+    width: 100%;
+    padding: 0.65rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  
+  .input-group input:focus {
+    outline: none;
+    border-color: #2e3a78;
+  }
+  
+  /* Button styling */
+  .btn {
+    width: 100%;
+    padding: 0.8rem;
+    background: #2e3a78;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .btn:hover {
+    background: #1e2960;
+  }
+  
+  /* Error text */
+  .error {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+  
+  /* Page switch links */
+  .switch {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .switch a {
+    color: #2e3a78;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .switch a:hover {
+    text-decoration: underline;
+  }
+  
