@@ -71,6 +71,15 @@ public class IcsParser {
     private static LocalDateTime toLocalDateTime(Date date) {
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
+
+    private static CalendarEvent createEvent(String title, String description, LocalDateTime start, LocalDateTime end, Long userId) {
+        CalendarEvent event = new CalendarEvent(title, start, end, userId);
+        event.setDescription(description);
+        event.setType(classifyType(title, description));
+        event.setColor(getColorForType(event.getType()));
+        return event;
+    }
+
     private static String classifyType(String title, String description) {
         String lower = (title + " " + description).toLowerCase();
         if (lower.contains("assignment") || lower.contains("due") || lower.contains("deadline")) {
@@ -80,5 +89,15 @@ public class IcsParser {
         } else {
             return "custom";
         }
+    }
+
+    private static String getColorForType(String type) {
+        return switch (type.toLowerCase()) {
+            case "lecture" -> "#4285F4"; // sky blue
+            case "assignment" -> "#0F9D58"; // emerald
+            case "exam" -> "#DB4437"; // crimson
+            case "self-study" -> "#F4B400"; // amber
+            default -> "#aaaaaa"; // gray
+        };
     }
 }

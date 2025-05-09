@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 // accepts file uploads (.ics file), parses the file, and saves each event into the database
 
@@ -31,6 +30,7 @@ public class CalendarController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final CalendarEventRepository calendarEventRepository;
+    
     @Autowired
     public CalendarController(CalendarService calendarService, UserService userService, UserRepository userRepository, CalendarEventRepository calendarEventRepository) {
         this.calendarService = calendarService;
@@ -87,33 +87,19 @@ public class CalendarController {
         Principal principal,
         @RequestParam(required = false) String course,
         @RequestParam(required = false) String type,
-        @RequestParam(required = false) String start,
-        @RequestParam(required = false) String end
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
     ) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email);
-        List<CalendarEvent> events;
-
-        if (type != null && !type.isEmpty()) {
-            events = calendarService.getUserEventsByType(user.getId(), type);
-        } else {
-            events = calendarService.getUserEvents(user.getId());
-        }
-
-        OffsetDateTime startDateTime = null;
-        OffsetDateTime endDateTime = null;
-        try {
-            if (start != null) startDateTime = OffsetDateTime.parse(start);
-            if (end != null) endDateTime = OffsetDateTime.parse(end);
-        } catch (Exception e) {
-            System.out.println("Falied to parse date range: " + e.getMessage());
-        }
-
+        List<CalendarEvent> events = (type != null && !type.isEmpty())
+        ? calendarService.getUserEventsByType(user.getId(), type)
+        : calendarService.getUserEvents(user.getId());
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (CalendarEvent event : events) {
             boolean matchesCourse = (course == null || event.getTitle().toLowerCase().contains(course.toLowerCase()));
-            boolean matchesDate = (startDateTime == null || !event.getEndTime().isBefore(startDateTime.toLocalDateTime())) && (endDateTime == null || !event.getStartTime().isAfter(endDateTime.toLocalDateTime()));
+            boolean matchesDate = (start == null || !event.getEndTime().isBefore(start)) && (end == null || !event.getStartTime().isAfter(end));
             
             if (matchesCourse && matchesDate) {
                 Map<String, Object> jsonEvent = new HashMap<>();
@@ -164,32 +150,6 @@ public class CalendarController {
             calendarService.deleteEvent(id);
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private String getColorForEventType(String type) {
         return switch (type.toLowerCase()) {
