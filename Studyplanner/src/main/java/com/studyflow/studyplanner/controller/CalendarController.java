@@ -153,15 +153,11 @@ public class CalendarController {
 
     private String getColorForEventType(String type) {
         return switch (type.toLowerCase()) {
-            case "lecture" -> "#4285F4"; 
-            case "assignment" -> "#0F9D58";
-            case "exam" -> "#DB4437";
-            case "self-study" -> "#F4B400";
-            default -> "#9E9E9E";
-        }; // Blue
-        // Green
-        // Red
-        // Yellow
-        // Grey
+            case "lecture" -> "#4285F4"; // sky blue
+            case "assignment" -> "#0F9D58"; // emerald
+            case "exam" -> "#DB4437"; // crimson
+            case "self-study" -> "#F4B400"; // amber
+            default -> "#9E9E9E"; // gray
+        }; 
     }
 }
