@@ -8,7 +8,16 @@
   <link rel="stylesheet" th:href="@{/css/login.css}" />
 </head>
 <body>
+
+  <!-- Frankfurt School Logo in top left corner -->
+  <div style="position: absolute; top: 20px; left: 20px;">
+    <img src="/images/frankfurt-school-logo.png" alt="Frankfurt School Logo" style="height: 40px;" />
+  </div>
+
   <div class="login-container">
+    <!-- StudyFlow Logo above form -->
+    <img src="/images/studyflow-logo.png" alt="StudyFlow Logo" class="logo" />
+
     <!-- Thymeleaf-FormAction (will send PostMapping to SecurityConfig, which loggs in User) -->
     <form id="loginForm" th:action="@{/login}" method="post" class="login-form">
       <h2>Welcome Back</h2>
@@ -35,6 +44,7 @@
       </p>
     </form>
   </div>
+
   <!-- Thymeleaf-URL for static JS -->
   <script th:src="@{/js/login.js}"></script>
 </body>
