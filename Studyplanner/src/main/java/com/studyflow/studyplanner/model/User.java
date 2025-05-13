@@ -99,10 +99,13 @@ public class User {
     private String preferredStartTime = "09:00";
 
     @Column(name = "preferred_end_time")
-    private String preferredEndTime = "17:00";
+    private String preferredEndTime   = "17:00";
 
-    @Column(name = "preferred_studyDays")
-    private String preferredStudyDays = "Mon,Tue,Wed,Thu,Fri";
+    @Column(name = "preferred_break_time")
+    private String preferredBreakTime = "01:00";
+
+    @Column(name = "preferred_study_days")
+    private String preferredStudyDays = "MONDAY,TUESDAY, WEDNESDAY, THURSDAY, FRIDAY";
 
     public String getPreferredStartTime() {
         return preferredStartTime;
@@ -116,6 +119,10 @@ public class User {
         return preferredStudyDays;
     }
 
+    public String getPreferredBreakTime() {
+        return preferredBreakTime;
+    }
+
     public void setPreferredStartTime(String preferredStartTime) {
         this.preferredStartTime = preferredStartTime;
     }
@@ -126,5 +133,9 @@ public class User {
     
     public void setPreferredStudyDays(String preferredStudyDays) {
         this.preferredStudyDays = preferredStudyDays;
+    }
+    
+    public void setPreferredBreakTime(String preferredBreakTime) {
+        this.preferredBreakTime = preferredBreakTime;
     }
 }
