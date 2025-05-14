@@ -29,7 +29,7 @@ public class AuthController {
     ) {
         if (error     != null) model.addAttribute("error",      "Invalid Userdata.");
         if (logout    != null) model.addAttribute("msg",        "Logout successfull.");
-        if (registered!= null) model.addAttribute("msg",        "Registration comlpeted! Please log in!");
+        if (registered!= null) model.addAttribute("msg",        "Registration completed! Please log in!");
         return "login";
     }
 
