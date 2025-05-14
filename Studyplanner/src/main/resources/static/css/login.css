@@ -1,16 +1,14 @@
-/* src/main/resources/static/css/login.css */
-
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, sans-serif;
-  background-color: #2e3a78; /* Frankfurt School blue */
+  background-color: #2e3a78;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-/* Container for the login box */
+/* Container */
 .login-container {
   background: white;
   padding: 2.5rem;
@@ -20,7 +18,7 @@ body {
   text-align: center;
 }
 
-/* StudyFlow logo centered above the form */
+/* Logo */
 .logo {
   width: 190px;
   margin-bottom: 1rem;
@@ -33,13 +31,13 @@ body {
   margin-bottom: 1.5rem;
 }
 
-/* Input wrapper */
+/* Input group */
 .input-group {
   margin-bottom: 1.2rem;
   text-align: left;
 }
 
-/* Labels above input fields */
+/* Labels */
 .input-group label {
   display: block;
   margin-bottom: 0.4rem;
@@ -47,19 +45,38 @@ body {
   font-size: 0.9rem;
 }
 
+/* Wrapper to keep input and icon aligned */
+.input-wrapper,
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 /* Input fields */
-.input-group input {
+.input-wrapper input,
+.password-wrapper input {
   width: 100%;
   padding: 0.65rem;
+  padding-right: 2.5rem;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1rem;
+  box-sizing: border-box;
   transition: border-color 0.3s ease;
 }
 
 .input-group input:focus {
   outline: none;
   border-color: #2e3a78;
+}
+
+/* Eye icon */
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 38px;
+  cursor: pointer;
+  color: #888;
 }
 
 /* Submit button */
@@ -89,10 +106,11 @@ body {
   margin-top: 0.5rem;
 }
 
-/* Links under the form */
+/* Navigation links */
 .switch {
   margin-top: 1rem;
   font-size: 0.9rem;
+  text-align: center;
 }
 
 .switch a {
