@@ -16,7 +16,7 @@
 
   <div class="login-container">
     <!-- StudyFlow Logo above form -->
-    <img src="/images/studyflow-logo.png" alt="StudyFlow Logo" class="logo" />
+    <img th:src="@{/images/studyflow.png}" alt="StudyFlow Logo" class="logo" />
 
     <!-- Thymeleaf-FormAction (will send PostMapping to SecurityConfig, which loggs in User) -->
     <form id="loginForm" th:action="@{/login}" method="post" class="login-form">
