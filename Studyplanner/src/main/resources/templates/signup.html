@@ -20,7 +20,7 @@
 
   <div class="signup-container">
     <!-- StudyFlow Logo -->
-    <img src="/images/studyflow-logo.png" alt="StudyFlow Logo" class="logo" />
+    <img th:src="@{/images/studyflow.png}" alt="StudyFlow Logo" class="logo" />
 
     <!-- Thymeleaf form for sign-up -->
     <form th:action="@{/signup}" th:object="${form}" method="post" id="signupForm" class="signup-form">
