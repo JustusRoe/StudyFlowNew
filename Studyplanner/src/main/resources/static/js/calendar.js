@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 fetch('/calendar/delete/' + info.event.id, {
                     method: 'DELETE'
                 }).then(() => {
-                    info.event.remove(); // removes from calendar view
+                    info.event.remove();
                 });
             }
         }
@@ -73,4 +73,27 @@ document.addEventListener('DOMContentLoaded', function () {
         currentCourseFilter = input.value;
         calendar.refetchEvents();
     };
+
+    // ICS upload handler
+    const form = document.getElementById('icsUploadForm');
+    const fileInput = document.getElementById('file');
+
+    fileInput.addEventListener('change', () => {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        fetch('/calendar/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Upload failed');
+            return response.text();
+        })
+        .then(() => {
+            calendar.refetchEvents();
+            alert('Calendar imported successfully!');
+        })
+        .catch(err => alert(err.message));
+    });
 });

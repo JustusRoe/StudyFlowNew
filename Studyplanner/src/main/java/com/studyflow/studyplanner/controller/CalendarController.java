@@ -11,16 +11,13 @@ import com.studyflow.studyplanner.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.security.Principal;
-import java.util.*;
 import java.time.LocalDateTime;
-
-// accepts file uploads (.ics file), parses the file, and saves each event into the database
+import java.util.*;
 
 @Controller
 @RequestMapping("/calendar")
@@ -30,7 +27,7 @@ public class CalendarController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final CalendarEventRepository calendarEventRepository;
-    
+
     @Autowired
     public CalendarController(CalendarService calendarService, UserService userService, UserRepository userRepository, CalendarEventRepository calendarEventRepository) {
         this.calendarService = calendarService;
@@ -39,31 +36,17 @@ public class CalendarController {
         this.calendarEventRepository = calendarEventRepository;
     }
 
-    // shows calendar page
-    @GetMapping({"", "/"})
-    public String showCalendarPage() {
-        return "calendar";
-    }
-
-    // upload form
-    @GetMapping("/upload")
-    public String showUploadForm() {
-        return "upload-calendar"; //creates uploadCalendar.html
-    }
-
-    // upload ics file and parse it
+    // ics upload based on AJAX
     @PostMapping("/upload")
-    public String uploadCalendar(@RequestParam("file") MultipartFile file, Model model, Principal principal) {
+    @ResponseBody
+    public String uploadCalendar(@RequestParam("file") MultipartFile file, Principal principal) {
         System.out.println("Upload triggered");
         try {
             InputStream inputStream = file.getInputStream();
-            
-            // gets currently logged-in user
             String email = principal.getName();
-            User user = userRepository.findByEmail(email); // could change to userService.findById(...) if using ID
+            User user = userRepository.findByEmail(email);
             System.out.println("Current user: " + email + " (ID: " + user.getId() + ")");
 
-            // parses and saves events
             List<CalendarEvent> events = IcsParser.parseIcs(inputStream, user.getId());
             System.out.println("Parsed " + events.size() + " events");
 
@@ -72,51 +55,39 @@ public class CalendarController {
                 calendarService.saveEvent(event);
             }
 
-            model.addAttribute("message", "Upload successful! Imported " + events.size() + " events.");
+            return "success";
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("error", "Upload failed: " + e.getMessage());
+            return "error: " + e.getMessage();
         }
-        return "upload-calendar";
     }
 
-    // returns events in json format for FullCalendar
+    // FullCalendar fetch
     @GetMapping("/events")
     @ResponseBody
-    public List<Map<String, Object>> getEventsForFrontend(
-        Principal principal,
-        @RequestParam(required = false) String course,
-        @RequestParam(required = false) String type,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
-    ) {
+    public List<Map<String, Object>> getEventsForFrontend(Principal principal) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email);
-        List<CalendarEvent> events = (type != null && !type.isEmpty())
-        ? calendarService.getUserEventsByType(user.getId(), type)
-        : calendarService.getUserEvents(user.getId());
+
+        List<CalendarEvent> events = calendarService.getUserEvents(user.getId());
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (CalendarEvent event : events) {
-            boolean matchesCourse = (course == null || event.getTitle().toLowerCase().contains(course.toLowerCase()));
-            boolean matchesDate = (start == null || !event.getEndTime().isBefore(start)) && (end == null || !event.getStartTime().isAfter(end));
-            
-            if (matchesCourse && matchesDate) {
-                Map<String, Object> jsonEvent = new HashMap<>();
-                jsonEvent.put("id", event.getId());
-                jsonEvent.put("title", event.getTitle());
-                jsonEvent.put("start", event.getStartTime().toString());
-                jsonEvent.put("end", event.getEndTime().toString());
-                jsonEvent.put("color", event.getColor());
-                jsonEvent.put("description", event.getDescription());
-                result.add(jsonEvent);
-            }
+            Map<String, Object> jsonEvent = new HashMap<>();
+            jsonEvent.put("id", event.getId());
+            jsonEvent.put("title", event.getTitle());
+            jsonEvent.put("start", event.getStartTime().toString());
+            jsonEvent.put("end", event.getEndTime().toString());
+            jsonEvent.put("color", event.getColor());
+            jsonEvent.put("description", event.getDescription());
+            jsonEvent.put("type", event.getType()); 
+            result.add(jsonEvent);
         }
 
         return result;
     }
 
-    // Add event
+    // add event
     @PostMapping("/create")
     @ResponseBody
     public CalendarEvent createEvent(@RequestBody CalendarEvent event, Principal principal) {
@@ -125,39 +96,46 @@ public class CalendarController {
         return calendarService.saveEvent(event);
     }
 
-    // Edit event
+    // update event
     @PostMapping("/update/{id}")
     @ResponseBody
     public CalendarEvent updateEvent(@PathVariable Long id, @RequestBody CalendarEvent updated, Principal principal) {
-        CalendarEvent existing = calendarEventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
+        CalendarEvent existing = calendarEventRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
+
         if (!existing.getUserId().equals(userRepository.findByEmail(principal.getName()).getId())) {
             throw new RuntimeException("Unauthorized");
         }
+
         existing.setTitle(updated.getTitle());
         existing.setStartTime(updated.getStartTime());
         existing.setEndTime(updated.getEndTime());
         existing.setColor(updated.getColor());
         existing.setDescription(updated.getDescription());
+
         return calendarService.saveEvent(existing);
     }
 
-    // Delete event
+    // delete event
     @DeleteMapping("/delete/{id}")
     @ResponseBody
     public void deleteEvent(@PathVariable Long id, Principal principal) {
-        CalendarEvent event = calendarEventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
+        CalendarEvent event = calendarEventRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
+
         if (event.getUserId().equals(userRepository.findByEmail(principal.getName()).getId())) {
             calendarService.deleteEvent(id);
         }
     }
 
+    // filter
     private String getColorForEventType(String type) {
         return switch (type.toLowerCase()) {
-            case "lecture" -> "#4285F4"; // sky blue
-            case "assignment" -> "#0F9D58"; // emerald
-            case "exam" -> "#DB4437"; // crimson
-            case "self-study" -> "#F4B400"; // amber
-            default -> "#9E9E9E"; // gray
-        }; 
+            case "lecture" -> "#4285F4";
+            case "assignment" -> "#0F9D58";
+            case "exam" -> "#DB4437";
+            case "self-study" -> "#F4B400";
+            default -> "#9E9E9E";
+        };
     }
 }
