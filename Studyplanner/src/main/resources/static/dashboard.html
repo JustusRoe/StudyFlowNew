@@ -80,6 +80,7 @@
     }
   </style>
 </head>
+
 <body>
   <!-- Navigation bar -->
   <nav class="navbar">
@@ -112,93 +113,8 @@
     <div id="calendar"></div>
   </div>
 
-  <!-- FullCalendar JavaScript -->
+  <!-- FullCalendar & Custom Script -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const calendarEl = document.getElementById('calendar');
-
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        height: 'auto',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-
-        selectable: true,
-        select: function(info) {
-          const title = prompt('New event title:');
-          if (title) {
-            fetch('/calendar/create', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                title: title,
-                startTime: info.startStr,
-                endTime: info.endStr,
-                color: '#3a87ad',
-                description: 'No description'
-              })
-            }).then(() => calendar.refetchEvents());
-          }
-        },
-
-        eventClick: function(info) {
-          const title = info.event.title;
-          const desc = info.event.extendedProps.description || 'No description';
-          const confirmDelete = confirm(`Event: ${title}\n${desc}\n\nDelete this event?`);
-          if (confirmDelete) {
-            fetch(`/calendar/delete/${info.event.id}`, {
-              method: 'DELETE'
-            }).then(() => calendar.refetchEvents());
-          }
-        },
-
-        events: function (fetchInfo, successCallback, failureCallback) {
-          fetch('/calendar/events')
-            .then(response => response.json())
-            .then(allEvents => {
-              const selectedTypes = Array.from(
-                document.querySelectorAll('#filter-controls input[type=checkbox]:checked')
-              ).map(cb => cb.value);
-
-              const filtered = allEvents.filter(event => selectedTypes.includes(event.type));
-              successCallback(filtered);
-            })
-            .catch(error => failureCallback(error));
-        }
-      });
-
-      calendar.render();
-
-      document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
-        cb.addEventListener('change', () => calendar.refetchEvents());
-      });
-
-      const form = document.getElementById('icsUploadForm');
-      const fileInput = document.getElementById('file');
-
-      fileInput.addEventListener('change', () => {
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-
-        fetch('/calendar/upload', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Upload failed');
-          return response.text();
-        })
-        .then(() => {
-          calendar.refetchEvents();
-          alert('Calendar imported successfully!');
-        })
-        .catch(err => alert(err.message));
-      });
-    });
-  </script>
+  <script src="/js/calendar.js?v=20240515" defer></script>
 </body>
 </html>

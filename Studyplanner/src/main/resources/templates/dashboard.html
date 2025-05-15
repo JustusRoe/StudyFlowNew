@@ -80,8 +80,9 @@
     }
   </style>
 </head>
+
 <body>
-  <!-- Navigation -->
+  <!-- Navigation bar -->
   <nav class="navbar">
     <span class="brand">Studyflow</span>
     <div class="nav-links">
@@ -90,62 +91,30 @@
   </nav>
 
   <div class="container">
-    <!-- calendar title + upload button -->
+    <!-- Title and ICS upload button -->
     <div class="calendar-header">
       <h1>📚 My Study Calendar</h1>
-      <form id="icsUploadForm" action="/calendar/upload" method="post" enctype="multipart/form-data">
+      <form id="icsUploadForm" onsubmit="return false;" enctype="multipart/form-data">
         <label for="file" class="import-button">📅 Import Calendar</label>
-        <input type="file" id="file" name="file" onchange="this.form.submit()" hidden />
+        <input type="file" id="file" name="file" hidden />
       </form>
     </div>
 
-    <!-- filter -->
+    <!-- Filter checkboxes -->
     <div id="filter-controls">
       <label><input type="checkbox" value="lecture" checked> Lecture</label>
       <label><input type="checkbox" value="assignment" checked> Assignment</label>
       <label><input type="checkbox" value="exam" checked> Exam</label>
       <label><input type="checkbox" value="self-study" checked> Self-Study</label>
+      <label><input type="checkbox" value="custom" checked> Custom</label>
     </div>
 
-    <!-- calendar -->
+    <!-- Calendar container -->
     <div id="calendar"></div>
   </div>
 
-  <!-- FullCalendar JS -->
+  <!-- FullCalendar & Custom Script -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const calendarEl = document.getElementById('calendar');
-
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        height: 'auto',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        events: function (fetchInfo, successCallback, failureCallback) {
-          const selectedTypes = Array.from(
-            document.querySelectorAll('#filter-controls input[type=checkbox]:checked')
-          ).map(cb => cb.value);
-
-          const params = new URLSearchParams();
-          selectedTypes.forEach(type => params.append('type', type));
-
-          fetch('/calendar/events?' + params.toString())
-            .then(response => response.json())
-            .then(events => successCallback(events))
-            .catch(error => failureCallback(error));
-        }
-      });
-
-      calendar.render();
-
-      document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
-        cb.addEventListener('change', () => calendar.refetchEvents());
-      });
-    });
-  </script>
+  <script src="/js/calendar.js?v=20240515" defer></script>
 </body>
 </html>

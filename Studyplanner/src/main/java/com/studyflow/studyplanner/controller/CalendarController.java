@@ -10,6 +10,8 @@ import com.studyflow.studyplanner.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,10 +38,10 @@ public class CalendarController {
         this.calendarEventRepository = calendarEventRepository;
     }
 
-    // ics upload based on AJAX
+    // ICS upload (via AJAX)
     @PostMapping("/upload")
     @ResponseBody
-    public String uploadCalendar(@RequestParam("file") MultipartFile file, Principal principal) {
+    public ResponseEntity<String> uploadCalendar(@RequestParam("file") MultipartFile file, Principal principal) {
         System.out.println("Upload triggered");
         try {
             InputStream inputStream = file.getInputStream();
@@ -55,14 +57,19 @@ public class CalendarController {
                 calendarService.saveEvent(event);
             }
 
-            return "success";
+            return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("success");
+
         } catch (Exception e) {
             e.printStackTrace();
-            return "error: " + e.getMessage();
+            return ResponseEntity.status(500)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("error: " + e.getMessage());
         }
     }
 
-    // FullCalendar fetch
+    // Fetch all events for the current user
     @GetMapping("/events")
     @ResponseBody
     public List<Map<String, Object>> getEventsForFrontend(Principal principal) {
@@ -80,28 +87,34 @@ public class CalendarController {
             jsonEvent.put("end", event.getEndTime().toString());
             jsonEvent.put("color", event.getColor());
             jsonEvent.put("description", event.getDescription());
-            jsonEvent.put("type", event.getType()); 
+            jsonEvent.put("type", event.getType());
             result.add(jsonEvent);
         }
 
         return result;
     }
 
-    // add event
+    // Create new event
     @PostMapping("/create")
     @ResponseBody
     public CalendarEvent createEvent(@RequestBody CalendarEvent event, Principal principal) {
         User user = userRepository.findByEmail(principal.getName());
         event.setUserId(user.getId());
+
+        // Optional: if color not set, assign based on type
+        if (event.getColor() == null || event.getColor().isEmpty()) {
+            event.setColor(getColorForEventType(event.getType()));
+        }
+
         return calendarService.saveEvent(event);
     }
 
-    // update event
+    // Update existing event
     @PostMapping("/update/{id}")
     @ResponseBody
     public CalendarEvent updateEvent(@PathVariable Long id, @RequestBody CalendarEvent updated, Principal principal) {
         CalendarEvent existing = calendarEventRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
 
         if (!existing.getUserId().equals(userRepository.findByEmail(principal.getName()).getId())) {
             throw new RuntimeException("Unauthorized");
@@ -116,26 +129,26 @@ public class CalendarController {
         return calendarService.saveEvent(existing);
     }
 
-    // delete event
+    // Delete event
     @DeleteMapping("/delete/{id}")
     @ResponseBody
     public void deleteEvent(@PathVariable Long id, Principal principal) {
         CalendarEvent event = calendarEventRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
 
         if (event.getUserId().equals(userRepository.findByEmail(principal.getName()).getId())) {
             calendarService.deleteEvent(id);
         }
     }
 
-    // filter
+    // Color mapping by type
     private String getColorForEventType(String type) {
-        return switch (type.toLowerCase()) {
+        return switch (type == null ? "" : type.toLowerCase()) {
             case "lecture" -> "#4285F4";
             case "assignment" -> "#0F9D58";
             case "exam" -> "#DB4437";
             case "self-study" -> "#F4B400";
-            default -> "#9E9E9E";
+            default -> "#aaaaaa";
         };
     }
 }
