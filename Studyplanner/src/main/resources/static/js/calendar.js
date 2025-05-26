@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
     let currentCourseFilter = "";
 
+    /* --- Initialisierung von FullCalendar --- */
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         selectable: true,
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
 
+        /* --- Events laden --- */
         events: function (info, successCallback, failureCallback) {
             const url = `/calendar/events?start=${info.startStr}&end=${info.endStr}` +
                         (currentCourseFilter ? `&course=${encodeURIComponent(currentCourseFilter)}` : "");
@@ -31,9 +33,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
                     successCallback(filtered);
                 })
-                .catch(error => failureCallback(error));
+                .catch(failureCallback);
         },
 
+        /* --- Event erstellen --- */
         select: function (info) {
             const title = prompt('New event title:');
             if (!title) return;
@@ -43,9 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fetch('/calendar/create', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     title,
                     description,
@@ -55,12 +56,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     endTime: info.endStr
                 })
             })
-            .then(response => response.json())
-            .then(() => {
-                calendar.refetchEvents();
-            });
+            .then(res => res.json())
+            .then(() => calendar.refetchEvents());
         },
 
+        /* --- Event bearbeiten oder löschen --- */
         eventClick: function (info) {
             const title = info.event.title;
             const desc = info.event.extendedProps.description || 'No description';
@@ -93,22 +93,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     calendar.render();
 
-    // Course filter input (if applicable)
-    window.applyFilter = function () {
-        const input = document.getElementById('course');
-        currentCourseFilter = input.value;
-        calendar.refetchEvents();
-    };
-
-    // Type checkboxes
+    /* --- Typfilter Checkboxen --- */
     document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', () => {
             calendar.refetchEvents();
         });
     });
 
-    // ICS upload
+    /* --- Kursfilter (Text) --- */
+    window.applyFilter = function () {
+        const input = document.getElementById('course');
+        currentCourseFilter = input.value;
+        calendar.refetchEvents();
+    };
+
+    /* --- ICS Upload --- */
     const fileInput = document.getElementById('file');
+    const importButton = document.getElementById('import-button');
+
+    importButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+
     fileInput.addEventListener('change', () => {
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
@@ -117,9 +123,9 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Upload failed');
-            return response.text();
+        .then(res => {
+            if (!res.ok) throw new Error('Upload failed');
+            return res.text();
         })
         .then(() => {
             alert('Calendar imported successfully!');
@@ -128,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(err => alert(err.message));
     });
 
-    // Color helper
+    /* --- Farbe für Eventtypen --- */
     function getColorForEventType(type) {
         switch (type.toLowerCase()) {
             case 'lecture': return '#4285F4';
@@ -138,4 +144,45 @@ document.addEventListener('DOMContentLoaded', function () {
             default: return '#aaaaaa';
         }
     }
+
+    /* ---------------------------------------
+       📌 Sidebar für "Create Course"
+    ---------------------------------------- */
+
+    const sidebar = document.getElementById('courseSidebar');
+    const courseList = document.getElementById('course-list');
+
+    // Öffnen
+    document.getElementById('create-course-btn').addEventListener('click', () => {
+        sidebar.classList.add('open');
+    });
+
+    // Schließen
+    window.closeSidebar = function () {
+        sidebar.classList.remove('open');
+        document.getElementById('courseName').value = "";
+        document.getElementById('courseDescription').value = "";
+    };
+
+    // Speichern
+    window.saveCourse = function () {
+        const name = document.getElementById('courseName').value.trim();
+        const description = document.getElementById('courseDescription').value.trim();
+
+        if (!name) {
+            alert("Please enter a course name.");
+            return;
+        }
+
+        // 🔧 TO-DO: Backend POST /courses/create
+
+        // Simulierter Eintrag im Frontend
+        if (document.querySelector('.placeholder')) courseList.innerHTML = "";
+
+        const li = document.createElement('li');
+        li.textContent = name;
+        courseList.appendChild(li);
+
+        closeSidebar();
+    };
 });

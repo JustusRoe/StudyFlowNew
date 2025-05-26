@@ -2,119 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Studyflow Dashboard</title>
-
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-    }
-
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #2c3e50;
-      padding: 1rem;
-      color: white;
-    }
-
-    .navbar a {
-      color: white;
-      text-decoration: none;
-      margin-left: 1rem;
-    }
-
-    .container {
-      padding: 2rem;
-    }
-
-    .calendar-header {
-      max-width: 900px;
-      margin: 0 auto 1rem auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .import-button {
-      background-color: #2c3e50;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background-color 0.2s;
-      text-decoration: none;
-    }
-
-    .import-button:hover {
-      background-color: #1a252f;
-    }
-
-    #calendar {
-      max-width: 900px;
-      margin: 0 auto;
-      background-color: #fff;
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    #filter-controls {
-      max-width: 900px;
-      margin: 0 auto 1rem auto;
-      padding: 1rem;
-      background-color: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.08);
-    }
-
-    #filter-controls label {
-      margin-right: 1rem;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/dashboard.css">
 </head>
-
 <body>
-  <!-- Navigation bar -->
+
   <nav class="navbar">
     <span class="brand">Studyflow</span>
     <div class="nav-links">
       <a href="/user_settings">Profile</a>
+      <a href="/logout">Logout</a>
     </div>
   </nav>
 
-  <div class="container">
-    <!-- Title and ICS upload button -->
-    <div class="calendar-header">
-      <h1>📚 My Study Calendar</h1>
-      <form id="icsUploadForm" onsubmit="return false;" enctype="multipart/form-data">
-        <label for="file" class="import-button">📅 Import Calendar</label>
-        <input type="file" id="file" name="file" hidden />
-      </form>
+  <div class="main-container">
+    <div class="calendar-area">
+      <div class="calendar-header">
+        <h1>📚 My Study Calendar</h1>
+        <form id="icsUploadForm" onsubmit="return false;" enctype="multipart/form-data">
+  <button type="button" id="import-button">📅 Import Calendar</button>
+  <input type="file" id="file" name="file" hidden />
+</form>
+      </div>
+
+      <div id="filter-controls">
+        <label><input type="checkbox" value="lecture" checked> Lecture</label>
+        <label><input type="checkbox" value="assignment" checked> Assignment</label>
+        <label><input type="checkbox" value="exam" checked> Exam</label>
+        <label><input type="checkbox" value="self-study" checked> Self-Study</label>
+        <label><input type="checkbox" value="custom" checked> Custom</label>
+      </div>
+
+      <div id="calendar"></div>
     </div>
 
-    <!-- Filter checkboxes -->
-    <div id="filter-controls">
-      <label><input type="checkbox" value="lecture" checked> Lecture</label>
-      <label><input type="checkbox" value="assignment" checked> Assignment</label>
-      <label><input type="checkbox" value="exam" checked> Exam</label>
-      <label><input type="checkbox" value="self-study" checked> Self-Study</label>
-      <label><input type="checkbox" value="custom" checked> Custom</label>
-    </div>
+    <aside class="sidebar">
+      <div class="section">
+        <h2>Upcoming Events</h2>
+        <ul id="upcoming-events-list">
+          <li class="placeholder">No upcoming events.</li>
+        </ul>
+      </div>
 
-    <!-- Calendar container -->
-    <div id="calendar"></div>
+      <div class="section">
+        <h2>Courses</h2>
+        <ul id="course-list">
+          <li class="placeholder">No courses yet.</li>
+        </ul>
+        <button id="create-course-btn">+ Create Course</button>
+      </div>
+    </aside>
+
+    <div class="overlay" id="courseSidebar">
+      <div class="course-form">
+        <h2>Create New Course</h2>
+        <input type="text" id="courseName" placeholder="Course name" />
+        <textarea id="courseDescription" placeholder="Course description"></textarea>
+        <button onclick="saveCourse()">Save</button>
+        <button onclick="closeSidebar()">Cancel</button>
+      </div>
+    </div>
   </div>
 
-  <!-- FullCalendar & Custom Script -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-  <script src="/js/calendar.js?v=20240515" defer></script>
+  <script src="/js/calendar.js"></script>
+
 </body>
 </html>
