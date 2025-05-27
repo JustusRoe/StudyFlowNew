@@ -1,22 +1,47 @@
 package com.studyflow.studyplanner.model;
 
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Represents a Course composed of multiple CalendarEvent lecture entries.
- */
+@Entity
+@Table(name = "courses")
 public class Course {
-    private final String id;
-    private final String name;
-    private final List<CalendarEvent> events = new ArrayList<>();
 
-    public Course(String id, String name) {
-        this.id = id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    private String color;
+
+    // Event-IDs als einfache Liste (One-to-Many auf IDs)
+    @ElementCollection
+    @CollectionTable(name = "course_event_ids", joinColumns = @JoinColumn(name = "course_id"))
+    @Column(name = "event_id")
+    private List<Long> eventIds = new ArrayList<>();
+
+    // Verknüpfter Benutzer
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // Nicht persistente Events zur Laufzeit (für Progress-Berechnung)
+    @Transient
+    private List<CalendarEvent> resolvedEvents = new ArrayList<>();
+
+    public Course() {}
+
+    public Course(String name, String color, User user) {
         this.name = name;
+        this.color = color;
+        this.user = user;
     }
 
-    public String getId() {
+    /* --- Getter & Setter --- */
+
+    public Long getId() {
         return id;
     }
 
@@ -24,7 +49,51 @@ public class Course {
         return name;
     }
 
-    public List<CalendarEvent> getEvents() {
-        return events;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public List<Long> getEventIds() {
+        return eventIds;
+    }
+
+    public void setEventIds(List<Long> eventIds) {
+        this.eventIds = eventIds;
+    }
+
+    public void addEventId(Long eventId) {
+        this.eventIds.add(eventId);
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<CalendarEvent> getResolvedEvents() {
+        return resolvedEvents;
+    }
+
+    public void setResolvedEvents(List<CalendarEvent> resolvedEvents) {
+        this.resolvedEvents = resolvedEvents;
+    }
+
+    @Transient
+    public double getProgress() {
+        if (resolvedEvents == null || resolvedEvents.isEmpty()) return 0.0;
+
+        long completed = resolvedEvents.stream().filter(CalendarEvent::isCompleted).count();
+        return (double) completed / resolvedEvents.size();
     }
 }

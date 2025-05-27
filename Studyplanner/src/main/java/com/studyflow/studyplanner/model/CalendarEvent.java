@@ -22,6 +22,7 @@ public class CalendarEvent {
     private String description;
 
     private String type;
+    private boolean completed = false;
 
     public CalendarEvent() {}
 
@@ -96,5 +97,13 @@ public class CalendarEvent {
 
     public void setType(String type) {
         this.type = type;
+    }
+    
+    public boolean isCompleted() {
+    return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
 }
