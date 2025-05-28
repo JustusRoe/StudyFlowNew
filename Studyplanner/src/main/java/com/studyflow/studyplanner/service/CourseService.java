@@ -31,6 +31,7 @@ public class CourseService {
     /**
      * Erstellt einen neuen Kurs und speichert ihn in der Datenbank.
      */
+    @Transactional
     public Course createCourse(String name, String color, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
         if (user == null) throw new RuntimeException("User not found");
@@ -47,8 +48,18 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
+        CalendarEvent event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Setze Event-Farbe auf Kursfarbe
+        event.setColor(course.getColor());
+        eventRepository.save(event);
+
+        // Event-ID zum Kurs hinzufügen und alle Events einfärben
         course.addEventId(eventId);
-        return courseRepository.save(course);
+        Course updated = courseRepository.save(course);
+        applyCourseColorToEvents(updated);
+        return updated;
     }
 
     /**
@@ -84,5 +95,17 @@ public class CourseService {
 
     public void deleteCourse(Long id) {
         courseRepository.deleteById(id);
+    }
+
+    private void applyCourseColorToEvents(Course course) {
+        List<Long> eventIds = course.getEventIds();
+        if (eventIds == null || eventIds.isEmpty()) {
+            return;
+        }
+        List<CalendarEvent> events = eventRepository.findAllById(eventIds);
+        for (CalendarEvent event : events) {
+            event.setColor(course.getColor());
+        }
+        eventRepository.saveAll(events);
     }
 }

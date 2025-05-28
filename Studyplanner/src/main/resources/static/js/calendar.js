@@ -93,6 +93,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     calendar.render();
 
+    loadCourses();
+    loadUpcomingEvents();
+
     /* --- Typfilter Checkboxen --- */
     document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', () => {
@@ -166,23 +169,83 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Speichern
     window.saveCourse = function () {
-        const name = document.getElementById('courseName').value.trim();
-        const description = document.getElementById('courseDescription').value.trim();
+    const nameInput = document.getElementById('courseName');
+    const descInput = document.getElementById('courseDescription');
 
-        if (!name) {
-            alert("Please enter a course name.");
-            return;
-        }
+    const name = nameInput.value.trim();
+    const description = descInput.value.trim();
 
-        // 🔧 TO-DO: Backend POST /courses/create
+    if (!name) {
+        alert("Please enter a course name.");
+        return;
+    }
 
-        // Simulierter Eintrag im Frontend
-        if (document.querySelector('.placeholder')) courseList.innerHTML = "";
-
-        const li = document.createElement('li');
-        li.textContent = name;
-        courseList.appendChild(li);
-
+    // Kurs an Backend senden
+    fetch('/courses/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: name,
+            description: description,
+            color: '#4287f5' // feste Farbe – optional dynamisch machen
+        })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to create course");
+        return res.json();
+    })
+    .then(() => {
         closeSidebar();
-    };
+        loadCourses(); // 🔁 Liste komplett neu laden!
+    })
+    .catch(error => {
+        console.error("Error creating course:", error);
+        alert("Could not create course.");
+    });
+};
 });
+
+function loadCourses() {
+    fetch("/courses/user")
+        .then(response => response.json())
+        .then(courses => {
+            const courseList = document.getElementById("course-list");
+            courseList.innerHTML = "";
+
+            if (!Array.isArray(courses) || courses.length === 0) {
+                courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
+                return;
+            }
+
+            courses.forEach(course => {
+                const li = document.createElement("li");
+                li.textContent = course.name;
+                courseList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error("Error loading courses:", error);
+        });
+}
+
+function loadUpcomingEvents() {
+    fetch("/calendar/upcoming?limit=4")
+        .then(response => response.json())
+        .then(events => {
+            const upcomingList = document.getElementById("upcoming-events-list");
+            upcomingList.innerHTML = "";
+            if (!Array.isArray(events) || events.length === 0) {
+                upcomingList.innerHTML = "<li class='placeholder'>No upcoming events.</li>";
+                return;
+            }
+            events.forEach(event => {
+                const li = document.createElement("li");
+                const dateStr = new Date(event.startTime).toLocaleString();
+                li.textContent = `${event.title} (${dateStr})`;
+                upcomingList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error("Error loading upcoming events:", error);
+        });
+}

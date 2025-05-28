@@ -2,14 +2,13 @@ package com.studyflow.studyplanner.controller;
 
 import com.studyflow.studyplanner.model.CalendarEvent;
 import com.studyflow.studyplanner.model.User;
+import com.studyflow.studyplanner.repository.CalendarEventRepository;
+import com.studyflow.studyplanner.repository.UserRepository;
 import com.studyflow.studyplanner.service.CalendarService;
 import com.studyflow.studyplanner.service.IcsParser;
 import com.studyflow.studyplanner.service.UserService;
-import com.studyflow.studyplanner.repository.CalendarEventRepository;
-import com.studyflow.studyplanner.repository.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,97 +25,99 @@ import java.util.*;
 public class CalendarController {
 
     private final CalendarService calendarService;
-    private final UserService userService;
     private final UserRepository userRepository;
     private final CalendarEventRepository calendarEventRepository;
 
     @Autowired
-    public CalendarController(CalendarService calendarService, UserService userService, UserRepository userRepository, CalendarEventRepository calendarEventRepository) {
+    public CalendarController(CalendarService calendarService,
+                              UserRepository userRepository,
+                              CalendarEventRepository calendarEventRepository) {
         this.calendarService = calendarService;
-        this.userService = userService;
         this.userRepository = userRepository;
         this.calendarEventRepository = calendarEventRepository;
     }
 
-    // ICS upload (via AJAX)
     @PostMapping("/upload")
     @ResponseBody
     public ResponseEntity<String> uploadCalendar(@RequestParam("file") MultipartFile file, Principal principal) {
-        System.out.println("Upload triggered");
         try {
             InputStream inputStream = file.getInputStream();
             String email = principal.getName();
             User user = userRepository.findByEmail(email);
-            System.out.println("Current user: " + email + " (ID: " + user.getId() + ")");
 
             List<CalendarEvent> events = IcsParser.parseIcs(inputStream, user.getId());
-            System.out.println("Parsed " + events.size() + " events");
-
             for (CalendarEvent event : events) {
-                System.out.println(" - Event: " + event.getTitle() + " @ " + event.getStartTime());
                 calendarService.saveEvent(event);
             }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body("success");
-
+            return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body("success");
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500)
-                    .contentType(MediaType.TEXT_PLAIN)
+            return ResponseEntity.status(500).contentType(MediaType.TEXT_PLAIN)
                     .body("error: " + e.getMessage());
         }
     }
 
-    // Fetch all events for the current user
     @GetMapping("/events")
     @ResponseBody
     public List<Map<String, Object>> getEventsForFrontend(Principal principal) {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email);
-
+        User user = userRepository.findByEmail(principal.getName());
         List<CalendarEvent> events = calendarService.getUserEvents(user.getId());
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (CalendarEvent event : events) {
-            Map<String, Object> jsonEvent = new HashMap<>();
-            jsonEvent.put("id", event.getId());
-            jsonEvent.put("title", event.getTitle());
-            jsonEvent.put("start", event.getStartTime().toString());
-            jsonEvent.put("end", event.getEndTime().toString());
-            jsonEvent.put("color", event.getColor());
-            jsonEvent.put("description", event.getDescription());
-            jsonEvent.put("type", event.getType());
-            result.add(jsonEvent);
+            Map<String, Object> json = new HashMap<>();
+            json.put("id", event.getId());
+            json.put("title", event.getTitle());
+            json.put("start", event.getStartTime().toString());
+            json.put("end", event.getEndTime().toString());
+            json.put("color", event.getColor());
+            json.put("description", event.getDescription());
+            json.put("type", event.getType());
+            result.add(json);
         }
-
         return result;
     }
 
-    // Create new event
+    @GetMapping("/upcoming")
+    @ResponseBody
+    public List<Map<String, Object>> getUpcomingEvents(Principal principal,
+                                                       @RequestParam(defaultValue = "4") int limit) {
+        User user = userRepository.findByEmail(principal.getName());
+        LocalDateTime now = LocalDateTime.now();
+
+        List<CalendarEvent> events = calendarEventRepository
+                .findByUserIdAndStartTimeAfterOrderByStartTimeAsc(user.getId(), now, PageRequest.of(0, limit));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (CalendarEvent event : events) {
+            Map<String, Object> json = new HashMap<>();
+            json.put("title", event.getTitle());
+            json.put("startTime", event.getStartTime().toString());
+            result.add(json);
+        }
+        return result;
+    }
+
     @PostMapping("/create")
     @ResponseBody
     public CalendarEvent createEvent(@RequestBody CalendarEvent event, Principal principal) {
         User user = userRepository.findByEmail(principal.getName());
         event.setUserId(user.getId());
-
-        // Optional: if color not set, assign based on type
         if (event.getColor() == null || event.getColor().isEmpty()) {
             event.setColor(getColorForEventType(event.getType()));
         }
-
         return calendarService.saveEvent(event);
     }
 
-    // Update existing event
     @PostMapping("/update/{id}")
     @ResponseBody
-    public CalendarEvent updateEvent(@PathVariable Long id, @RequestBody CalendarEvent updated, Principal principal) {
+    public CalendarEvent updateEvent(@PathVariable Long id,
+                                     @RequestBody CalendarEvent updated,
+                                     Principal principal) {
         CalendarEvent existing = calendarEventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
 
-        if (!existing.getUserId().equals(userRepository.findByEmail(principal.getName()).getId())) {
+        Long userId = userRepository.findByEmail(principal.getName()).getId();
+        if (!existing.getUserId().equals(userId)) {
             throw new RuntimeException("Unauthorized");
         }
 
@@ -129,19 +130,18 @@ public class CalendarController {
         return calendarService.saveEvent(existing);
     }
 
-    // Delete event
     @DeleteMapping("/delete/{id}")
     @ResponseBody
     public void deleteEvent(@PathVariable Long id, Principal principal) {
         CalendarEvent event = calendarEventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
 
-        if (event.getUserId().equals(userRepository.findByEmail(principal.getName()).getId())) {
+        Long userId = userRepository.findByEmail(principal.getName()).getId();
+        if (event.getUserId().equals(userId)) {
             calendarService.deleteEvent(id);
         }
     }
 
-    // Color mapping by type
     private String getColorForEventType(String type) {
         return switch (type == null ? "" : type.toLowerCase()) {
             case "lecture" -> "#4285F4";
