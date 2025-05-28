@@ -6,7 +6,6 @@ import com.studyflow.studyplanner.repository.CalendarEventRepository;
 import com.studyflow.studyplanner.repository.UserRepository;
 import com.studyflow.studyplanner.service.CalendarService;
 import com.studyflow.studyplanner.service.IcsParser;
-import com.studyflow.studyplanner.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;

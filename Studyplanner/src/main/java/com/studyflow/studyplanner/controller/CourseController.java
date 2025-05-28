@@ -1,8 +1,6 @@
 package com.studyflow.studyplanner.controller;
 
 import com.studyflow.studyplanner.model.Course;
-import com.studyflow.studyplanner.model.User;
-import com.studyflow.studyplanner.repository.UserRepository;
 import com.studyflow.studyplanner.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +13,10 @@ import java.util.*;
 public class CourseController {
 
     private final CourseService courseService;
-    private final UserRepository userRepository;
 
     @Autowired
-    public CourseController(CourseService courseService, UserRepository userRepository) {
+    public CourseController(CourseService courseService) {
         this.courseService = courseService;
-        this.userRepository = userRepository;
     }
 
     /**
