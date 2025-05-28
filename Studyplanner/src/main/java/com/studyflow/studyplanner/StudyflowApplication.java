@@ -18,12 +18,5 @@ public class StudyflowApplication {
 	/// Name: test
 	/// Mail: test@test.com
 	/// password: test
-    @Bean
-    public CommandLineRunner seedTestUser(UserService userService, UserRepository userRepository) {
-        return args -> {
-            String email = "test@test.com";
-            userService.registerAndLogin("test", email, "test");
-            };
-        };
-    }
+}
 
