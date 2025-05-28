@@ -85,6 +85,9 @@ public class CourseService {
         for (Course course : courses) {
             List<CalendarEvent> events = eventRepository.findAllById(course.getEventIds());
             course.setResolvedEvents(events);
+            // Fortschritt in Prozent berechnen (Wert wird dynamisch über getProgressPercent() bereitgestellt)
+            double progressPercent = course.getProgressPercent();
+            // Optional: Wenn weitere Verarbeitung/Logging nötig ist, kann hier darauf zugegriffen werden.
         }
         return courses;
     }

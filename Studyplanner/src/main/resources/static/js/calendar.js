@@ -219,7 +219,8 @@ function loadCourses() {
 
             courses.forEach(course => {
                 const li = document.createElement("li");
-                li.textContent = course.name;
+                const progress = course.progressPercent ?? 0;
+                li.textContent = `${course.name} – ${progress}% complete`;
                 courseList.appendChild(li);
             });
         })

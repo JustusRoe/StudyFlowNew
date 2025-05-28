@@ -3,6 +3,7 @@ package com.studyflow.studyplanner.model;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "courses")
@@ -95,5 +96,10 @@ public class Course {
 
         long completed = resolvedEvents.stream().filter(CalendarEvent::isCompleted).count();
         return (double) completed / resolvedEvents.size();
+    }
+    
+    @JsonProperty("progressPercent")
+    public int getProgressPercent() {
+        return (int) Math.round(getProgress() * 100);
     }
 }
