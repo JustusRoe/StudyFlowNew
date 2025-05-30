@@ -113,4 +113,12 @@ public class AuthController {
             return "reset-password";
         }
     }
+    @Controller
+public class RootController {
+
+    @GetMapping("/")
+    public String index() {
+        return "redirect:/index.html";
+    }
+}
 }
