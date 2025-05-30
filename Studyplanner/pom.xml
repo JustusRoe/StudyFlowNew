@@ -110,7 +110,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
         <configuration>
-          <mainClass>com.studyflow.StudyplannerApplication</mainClass>
+          <mainClass>com.studyflow.studyplanner.StudyflowApplication</mainClass>
         </configuration>
       </plugin>
     </plugins>
