@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -201,4 +202,37 @@ public class CourseService {
 
         course.removeEventId(eventId);
         courseRepository.save(course);
-    }}
+    }
+@Transactional
+public void addEventToCourse(Long courseId, String title, String description, String type, String color,
+                             LocalDateTime startTime, LocalDateTime endTime, String userEmail) {
+    User user = userRepository.findByEmail(userEmail);
+    if (user == null) throw new RuntimeException("User not found");
+
+    Course course = courseRepository.findById(courseId)
+            .orElseThrow(() -> new RuntimeException("Course not found"));
+
+    if (!course.getUser().getId().equals(user.getId())) {
+        throw new RuntimeException("Access denied");
+    }
+
+    // Neues Event anlegen
+    CalendarEvent event = new CalendarEvent();
+    event.setTitle(title);
+    event.setDescription(description);
+    event.setType(type);
+    event.setColor(color);
+    event.setStartTime(startTime);
+    event.setEndTime(endTime);
+    event.setUserId(user.getId());
+
+    // Event speichern
+    CalendarEvent savedEvent = eventRepository.save(event);
+
+    // Event-ID zum Kurs hinzufügen
+    course.addEventId(savedEvent.getId());
+    courseRepository.save(course);
+
+    // Optional: Farbe auf alle Events des Kurses anwenden (kann man je nach Bedarf machen)
+    applyCourseColorToEvents(course);
+}}

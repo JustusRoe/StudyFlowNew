@@ -400,3 +400,50 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 });
+    // Add Calendar Event to Course button handler: prompt for title, start, end
+    const addEventToCourseBtn = document.getElementById("addEventToCourseBtn");
+    if (addEventToCourseBtn) {
+        addEventToCourseBtn.addEventListener("click", () => {
+            const courseId = window.currentCourseId;
+            if (!courseId) return;
+
+            const title = prompt("Event Title:", "New Course Event");
+            if (!title) return;
+
+            const now = new Date();
+            const startDefault = now.toISOString().slice(0, 16);
+            const endDefault = new Date(now.getTime() + 60 * 60 * 1000).toISOString().slice(0, 16);
+            const startInput = prompt("Start Time (YYYY-MM-DDTHH:MM)", startDefault);
+            if (!startInput) return;
+
+            const endInput = prompt("End Time (YYYY-MM-DDTHH:MM)", endDefault);
+            if (!endInput) return;
+
+            const newEvent = {
+                title: title,
+                description: "Course-linked event",
+                type: "custom",
+                color: document.getElementById("editCourseColor").value || "#aaaaaa",
+                startTime: startInput,
+                endTime: endInput,
+                courseId: courseId
+            };
+
+            fetch("/courses/events/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newEvent)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to add event to course");
+                return res.json();
+            })
+            .then(() => {
+                getCourseEvents(courseId);
+            })
+            .catch(err => {
+                console.error("Error adding course event:", err);
+                alert("Could not add event to course.");
+            });
+        });
+    }

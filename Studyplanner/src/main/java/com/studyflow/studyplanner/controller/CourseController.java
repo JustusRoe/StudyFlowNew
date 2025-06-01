@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.*;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/courses")
@@ -125,6 +126,30 @@ public class CourseController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Could not remove event: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Fügt einem Kurs ein neues Kalender-Event hinzu.
+     */
+    @PostMapping("/events/add")
+    public ResponseEntity<?> addEventToCourse(@RequestBody Map<String, String> request, Principal principal) {
+        try {
+            String title = request.get("title");
+            String description = request.get("description");
+            String type = request.get("type");
+            String color = request.get("color");
+            Long courseId = Long.parseLong(request.get("courseId"));
+
+            LocalDateTime startTime = LocalDateTime.parse(request.get("startTime"));
+            LocalDateTime endTime = LocalDateTime.parse(request.get("endTime"));
+
+            String email = principal.getName();
+            courseService.addEventToCourse(courseId, title, description, type, color, startTime, endTime, email);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Could not add event: " + e.getMessage());
         }
     }
 }
