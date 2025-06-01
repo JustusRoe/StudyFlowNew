@@ -17,6 +17,8 @@ public class Course {
 
     private String color;
 
+    private String description;
+
     // Event-IDs als einfache Liste (One-to-Many auf IDs)
     @ElementCollection
     @CollectionTable(name = "course_event_ids", joinColumns = @JoinColumn(name = "course_id"))
@@ -38,6 +40,7 @@ public class Course {
         this.name = name;
         this.color = color;
         this.user = user;
+        this.description = "";
     }
 
     /* --- Getter & Setter --- */
@@ -102,4 +105,12 @@ public class Course {
     public int getProgressPercent() {
         return (int) Math.round(getProgress() * 100);
     }
-}
+
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }}

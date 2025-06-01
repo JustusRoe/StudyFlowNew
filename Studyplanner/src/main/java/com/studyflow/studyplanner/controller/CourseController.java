@@ -29,19 +29,44 @@ public class CourseController {
     }
 
     /**
-     * Gibt nur die Kursnamen des eingeloggten Nutzers zurück.
+     * Aktualisiert einen bestehenden Kurs anhand der ID.
+     */
+    @PostMapping("/update/{id}")
+    public Course updateCourse(@PathVariable Long id, @RequestBody Map<String, String> updates, Principal principal) {
+        String email = principal.getName();
+        String name = updates.get("name");
+        String description = updates.get("description");
+        String color = updates.get("color");
+        return courseService.updateCourse(id, name, description, color, email);
+    }
+
+    /**
+     * Gibt für den eingeloggten Nutzer alle Kurse mit Details und Fortschritt zurück.
      */
     @GetMapping("/user")
-    public List<Map<String, String>> getUserCourseNames(Principal principal) {
+    public List<Map<String, Object>> getUserCourses(Principal principal) {
         String email = principal.getName();
         List<Course> courses = courseService.getCoursesWithProgress(email);
 
-        List<Map<String, String>> result = new ArrayList<>();
+        List<Map<String, Object>> result = new ArrayList<>();
         for (Course course : courses) {
-            Map<String, String> item = new HashMap<>();
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", course.getId());
             item.put("name", course.getName());
+            item.put("description", course.getDescription());
+            item.put("color", course.getColor());
+            item.put("progressPercent", course.getProgressPercent());
             result.add(item);
         }
         return result;
+    }
+
+    /**
+     * Gibt Kursdetails anhand der Kurs-ID zurück.
+     */
+    @GetMapping("/description/{id}")
+    public Course getDescription(@PathVariable Long id, Principal principal) {
+        String email = principal.getName();
+        return courseService.getCourseDetails(id, email);
     }
 }

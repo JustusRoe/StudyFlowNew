@@ -92,6 +92,28 @@ public class CourseService {
         return courses;
     }
 
+    /**
+     * Holt die Kursdetails inkl. Events für ein bestimmtes Course-Id und den zugehörigen Benutzer.
+     */
+    public Course getCourseDetails(Long courseId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (!course.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+
+        List<CalendarEvent> events = eventRepository.findAllById(course.getEventIds());
+        course.setResolvedEvents(events);
+
+        return course;
+    }
+
     public Optional<Course> getById(Long id) {
         return courseRepository.findById(id);
     }
@@ -110,5 +132,36 @@ public class CourseService {
             event.setColor(course.getColor());
         }
         eventRepository.saveAll(events);
+    }
+
+    /**
+     * Aktualisiert einen Kurs und seine Events, sofern er dem Benutzer gehört.
+     */
+    @Transactional
+    public Course updateCourse(Long id, String name, String description, String color, String userEmail) {
+        // Finde den Kurs
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // Prüfe, ob der Kurs dem Benutzer gehört
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        if (!course.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+
+        // Aktualisiere Felder
+        course.setName(name);
+        course.setDescription(description);
+        course.setColor(color);
+
+        // Speichere Kurs
+        Course savedCourse = courseRepository.save(course);
+
+        // Setze Kursfarbe auf alle Events
+        applyCourseColorToEvents(savedCourse);
+        return savedCourse;
     }
 }

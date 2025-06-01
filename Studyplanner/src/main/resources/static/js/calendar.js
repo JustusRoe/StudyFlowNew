@@ -221,6 +221,18 @@ function loadCourses() {
                 const li = document.createElement("li");
                 const progress = course.progressPercent ?? 0;
                 li.textContent = `${course.name} – ${progress}% complete`;
+                li.dataset.id = course.id;
+                li.addEventListener("click", () => {
+                    fetch(`/courses/description/${course.id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            document.getElementById("editCourseName").value = data.name;
+                            document.getElementById("editCourseDescription").value = data.description || "";
+                            document.getElementById("editCourseColor").value = data.color || "#000000";
+                            document.getElementById("editCourseSidebar").classList.add("open");
+                            window.currentCourseId = data.id;
+                        });
+                });
                 courseList.appendChild(li);
             });
         })
@@ -250,3 +262,33 @@ function loadUpcomingEvents() {
             console.error("Error loading upcoming events:", error);
         });
 }
+
+window.updateCourse = function () {
+    const id = window.currentCourseId;
+    const name = document.getElementById("editCourseName").value;
+    const description = document.getElementById("editCourseDescription").value;
+    const color = document.getElementById("editCourseColor").value;
+
+    fetch(`/courses/update/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, color })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to update course");
+        document.getElementById("editCourseSidebar").classList.remove("open");
+        loadCourses();
+    })
+    .catch(err => {
+        console.error("Error updating course:", err);
+        alert("Could not update course.");
+    });
+};
+
+window.closeEditSidebar = function () {
+    const sidebar = document.getElementById("editCourseSidebar");
+    sidebar.classList.remove("open");
+    document.getElementById("editCourseName").value = "";
+    document.getElementById("editCourseDescription").value = "";
+    document.getElementById("editCourseColor").value = "#000000";
+};

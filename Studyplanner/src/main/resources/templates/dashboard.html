@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Studyflow Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="/css/dashboard.css" />
 </head>
 <body>
@@ -49,6 +49,7 @@
       <div class="section">
         <h2>Courses</h2>
         <ul id="course-list">
+          <!-- JS should inject <li onclick="openEditSidebar(courseId)">Course Name</li> -->
           <li class="placeholder">No courses yet.</li>
         </ul>
         <button id="create-course-btn">+ Create Course</button>
@@ -62,6 +63,17 @@
         <textarea id="courseDescription" placeholder="Course description"></textarea>
         <button onclick="saveCourse()">Save</button>
         <button onclick="closeSidebar()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="editCourseSidebar">
+      <div class="course-form">
+        <h2>Edit Course</h2>
+        <input type="text" id="editCourseName" placeholder="Course name" />
+        <textarea id="editCourseDescription" placeholder="Course description"></textarea>
+        <input type="color" id="editCourseColor" />
+        <button onclick="updateCourse()">Update</button>
+        <button onclick="closeEditSidebar()">Cancel</button>
       </div>
     </div>
   </div>
