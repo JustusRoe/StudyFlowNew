@@ -169,126 +169,143 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Speichern
     window.saveCourse = function () {
-    const nameInput = document.getElementById('courseName');
-    const descInput = document.getElementById('courseDescription');
+        const nameInput = document.getElementById('courseName');
+        const descInput = document.getElementById('courseDescription');
 
-    const name = nameInput.value.trim();
-    const description = descInput.value.trim();
+        const name = nameInput.value.trim();
+        const description = descInput.value.trim();
 
-    if (!name) {
-        alert("Please enter a course name.");
-        return;
+        if (!name) {
+            alert("Please enter a course name.");
+            return;
+        }
+
+        // Kurs an Backend senden
+        fetch('/courses/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                description: description,
+                color: '#4287f5' // feste Farbe – optional dynamisch machen
+            })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to create course");
+            return res.json();
+        })
+        .then(() => {
+            closeSidebar();
+            loadCourses(); // 🔁 Liste komplett neu laden!
+        })
+        .catch(error => {
+            console.error("Error creating course:", error);
+            alert("Could not create course.");
+        });
+    };
+
+    /* ---------------------------------------
+       📌 Sidebar für "Edit Course"
+    ---------------------------------------- */
+
+    window.closeEditSidebar = function () {
+        const sidebar = document.getElementById("editCourseSidebar");
+        sidebar.classList.remove("open");
+        document.getElementById("editCourseName").value = "";
+        document.getElementById("editCourseDescription").value = "";
+        document.getElementById("editCourseColor").value = "#000000";
+    };
+
+    window.updateCourse = function () {
+        const id = window.currentCourseId;
+        const name = document.getElementById("editCourseName").value.trim();
+        const description = document.getElementById("editCourseDescription").value.trim();
+        const color = document.getElementById("editCourseColor").value;
+
+        if (!name) {
+            alert("Course name cannot be empty.");
+            return;
+        }
+
+        fetch(`/courses/update/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, color })
+        })
+        .finally(() => {
+            // Always close sidebar and reload course list
+            document.getElementById("editCourseSidebar").classList.remove("open");
+            loadCourses();
+        });
+    };
+
+    function loadCourses() {
+        fetch("/courses/user")
+            .then(response => response.json())
+            .then(courses => {
+                const courseList = document.getElementById("course-list");
+                courseList.innerHTML = "";
+
+                if (!Array.isArray(courses) || courses.length === 0) {
+                    courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
+                    return;
+                }
+
+                courses.forEach(course => {
+                    const li = document.createElement("li");
+                    const progress = course.progressPercent ?? 0;
+                    li.textContent = `${course.name} – ${progress}% complete`;
+                    li.dataset.id = course.id;
+                    li.style.cursor = "pointer";
+
+                    li.addEventListener("click", () => {
+                        fetch(`/courses/description/${course.id}`)
+                            .then(res => {
+                                if (!res.ok) throw new Error("Failed to fetch course details");
+                                return res.json();
+                            })
+                            .then(data => {
+                                document.getElementById("editCourseName").value = data.name;
+                                document.getElementById("editCourseDescription").value = data.description || "";
+                                document.getElementById("editCourseColor").value = data.color || "#000000";
+                                document.getElementById("editCourseSidebar").classList.add("open");
+                                window.currentCourseId = data.id;
+                            })
+                            .catch(err => {
+                                console.error("Error loading course details:", err);
+                                alert("Could not load course details.");
+                            });
+                    });
+
+                    courseList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error("Error loading courses:", error);
+                alert("Could not load courses.");
+            });
     }
 
-    // Kurs an Backend senden
-    fetch('/courses/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            name: name,
-            description: description,
-            color: '#4287f5' // feste Farbe – optional dynamisch machen
-        })
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Failed to create course");
-        return res.json();
-    })
-    .then(() => {
-        closeSidebar();
-        loadCourses(); // 🔁 Liste komplett neu laden!
-    })
-    .catch(error => {
-        console.error("Error creating course:", error);
-        alert("Could not create course.");
-    });
-};
-});
-
-function loadCourses() {
-    fetch("/courses/user")
-        .then(response => response.json())
-        .then(courses => {
-            const courseList = document.getElementById("course-list");
-            courseList.innerHTML = "";
-
-            if (!Array.isArray(courses) || courses.length === 0) {
-                courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
-                return;
-            }
-
-            courses.forEach(course => {
-                const li = document.createElement("li");
-                const progress = course.progressPercent ?? 0;
-                li.textContent = `${course.name} – ${progress}% complete`;
-                li.dataset.id = course.id;
-                li.addEventListener("click", () => {
-                    fetch(`/courses/description/${course.id}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            document.getElementById("editCourseName").value = data.name;
-                            document.getElementById("editCourseDescription").value = data.description || "";
-                            document.getElementById("editCourseColor").value = data.color || "#000000";
-                            document.getElementById("editCourseSidebar").classList.add("open");
-                            window.currentCourseId = data.id;
-                        });
+    function loadUpcomingEvents() {
+        fetch("/calendar/upcoming?limit=4")
+            .then(response => response.json())
+            .then(events => {
+                const upcomingList = document.getElementById("upcoming-events-list");
+                upcomingList.innerHTML = "";
+                if (!Array.isArray(events) || events.length === 0) {
+                    upcomingList.innerHTML = "<li class='placeholder'>No upcoming events.</li>";
+                    return;
+                }
+                events.forEach(event => {
+                    const li = document.createElement("li");
+                    const dateStr = new Date(event.startTime).toLocaleString();
+                    li.textContent = `${event.title} (${dateStr})`;
+                    upcomingList.appendChild(li);
                 });
-                courseList.appendChild(li);
+            })
+            .catch(error => {
+                console.error("Error loading upcoming events:", error);
+                alert("Could not load upcoming events.");
             });
-        })
-        .catch(error => {
-            console.error("Error loading courses:", error);
-        });
-}
-
-function loadUpcomingEvents() {
-    fetch("/calendar/upcoming?limit=4")
-        .then(response => response.json())
-        .then(events => {
-            const upcomingList = document.getElementById("upcoming-events-list");
-            upcomingList.innerHTML = "";
-            if (!Array.isArray(events) || events.length === 0) {
-                upcomingList.innerHTML = "<li class='placeholder'>No upcoming events.</li>";
-                return;
-            }
-            events.forEach(event => {
-                const li = document.createElement("li");
-                const dateStr = new Date(event.startTime).toLocaleString();
-                li.textContent = `${event.title} (${dateStr})`;
-                upcomingList.appendChild(li);
-            });
-        })
-        .catch(error => {
-            console.error("Error loading upcoming events:", error);
-        });
-}
-
-window.updateCourse = function () {
-    const id = window.currentCourseId;
-    const name = document.getElementById("editCourseName").value;
-    const description = document.getElementById("editCourseDescription").value;
-    const color = document.getElementById("editCourseColor").value;
-
-    fetch(`/courses/update/${id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, color })
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Failed to update course");
-        document.getElementById("editCourseSidebar").classList.remove("open");
-        loadCourses();
-    })
-    .catch(err => {
-        console.error("Error updating course:", err);
-        alert("Could not update course.");
-    });
-};
-
-window.closeEditSidebar = function () {
-    const sidebar = document.getElementById("editCourseSidebar");
-    sidebar.classList.remove("open");
-    document.getElementById("editCourseName").value = "";
-    document.getElementById("editCourseDescription").value = "";
-    document.getElementById("editCourseColor").value = "#000000";
-};
+    }
+});
