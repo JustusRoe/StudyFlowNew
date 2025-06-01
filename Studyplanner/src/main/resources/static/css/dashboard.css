@@ -269,6 +269,7 @@ ul {
   gap: 1rem;
 }
 
+
 .course-form input,
 .course-form textarea,
 .course-form input[type="color"] {
@@ -278,6 +279,17 @@ ul {
   border-radius: 5px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Modern color input styling for course form */
+.course-form input[type="color"] {
+  height: 2.5rem;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  width: 60px;
+  align-self: flex-start;
 }
 
 .course-form button {
@@ -293,4 +305,14 @@ ul {
 
 .course-form button:hover {
   background-color: #1a252f;
+}
+/* Kursfarbe im Kurs-Listen-Item */
+.sidebar ul li.course-item[data-color] {
+  background-color: var(--course-color, #ffffff);
+  color: var(--text-color, #000000);
+}
+
+/* Optional: dunkler Text auf hellen Farben */
+.dark-text {
+  color: #222 !important;
 }

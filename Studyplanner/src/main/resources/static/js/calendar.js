@@ -239,6 +239,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
+    function getContrastingTextColor(hexColor) {
+        const hex = hexColor.replace('#', '');
+        const r = parseInt(hex.substr(0,2),16);
+        const g = parseInt(hex.substr(2,2),16);
+        const b = parseInt(hex.substr(4,2),16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness > 125 ? '#000000' : '#ffffff';
+    }
+
     function loadCourses() {
         fetch("/courses/user")
             .then(response => response.json())
@@ -254,6 +263,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 courses.forEach(course => {
                     const li = document.createElement("li");
                     const progress = course.progressPercent ?? 0;
+                    // Set background and text color based on course color
+                    const textColor = getContrastingTextColor(course.color || '#ffffff');
+                    li.style.backgroundColor = course.color || '#eeeeee';
+                    li.style.color = textColor;
+                    li.classList.add('course-item');
                     li.textContent = `${course.name} – ${progress}% complete`;
                     li.dataset.id = course.id;
                     li.style.cursor = "pointer";
