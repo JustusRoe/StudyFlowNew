@@ -1,3 +1,45 @@
+function getCourseEvents(courseId) {
+    fetch(`/courses/events/${courseId}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to fetch course events");
+            return res.json();
+        })
+        .then(events => {
+            const list = document.getElementById("eventList");
+            list.innerHTML = "";
+            if (events.length === 0) {
+                list.innerHTML = "<li>No events assigned to this course.</li>";
+                return;
+            }
+            events.forEach(event => {
+                const li = document.createElement("li");
+                li.innerHTML = `<span>${event.title} (${event.type})</span> <span class="remove-event" title="Remove">❌</span>`;
+                li.querySelector(".remove-event").onclick = () => {
+                    removeEventFromCourse(courseId, event.id);
+                };
+                list.appendChild(li);
+            });
+        })
+        .catch(err => {
+            console.error("Error loading course events:", err);
+        });
+}
+
+function removeEventFromCourse(courseId, eventId) {
+    fetch(`/courses/events/remove`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId, eventId })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to remove event from course");
+        getCourseEvents(courseId);
+    })
+    .catch(err => {
+        console.error("Error removing event:", err);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     console.log("✅ calendar.js is loaded and running!");
 
@@ -219,6 +261,10 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteBtn.style.display = "none";
             deleteBtn.onclick = null;
         }
+        const eventList = document.getElementById("eventList");
+        if(eventList) {
+            eventList.innerHTML = "";
+        }
     };
 
     window.updateCourse = function () {
@@ -313,6 +359,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                     deleteBtn.style.display = "block";
                                     deleteBtn.onclick = deleteCourse;
                                 }
+
+                                getCourseEvents(data.id);
                             })
                             .catch(err => {
                                 console.error("Error loading course details:", err);

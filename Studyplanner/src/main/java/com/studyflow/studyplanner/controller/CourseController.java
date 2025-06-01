@@ -95,4 +95,36 @@ public class CourseController {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Delete failed: " + e.getMessage());
         }
-    }}
+    }
+
+    /**
+     * Gibt alle Kalender-Events zurück, die einem Kurs zugeordnet sind.
+     */
+    @GetMapping("/events/{courseId}")
+    public ResponseEntity<?> getCourseEvents(@PathVariable Long courseId, Principal principal) {
+        try {
+            String email = principal.getName();
+            return ResponseEntity.ok(courseService.getCourseEvents(courseId, email));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Could not load course events: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Entfernt ein Kalender-Event aus einem Kurs.
+     */
+    @PostMapping("/events/remove")
+    public ResponseEntity<?> removeEventFromCourse(@RequestBody Map<String, Long> request, Principal principal) {
+        try {
+            Long courseId = request.get("courseId");
+            Long eventId = request.get("eventId");
+            String email = principal.getName();
+            courseService.removeEventFromCourse(courseId, eventId, email);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Could not remove event: " + e.getMessage());
+        }
+    }
+}

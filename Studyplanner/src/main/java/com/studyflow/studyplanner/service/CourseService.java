@@ -166,4 +166,39 @@ public class CourseService {
         applyCourseColorToEvents(savedCourse);
         return savedCourse;
     }
-}
+
+    /**
+     * Gibt alle Events eines Kurses zurück, mit Benutzerüberprüfung.
+     */
+    public List<CalendarEvent> getCourseEvents(Long courseId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) throw new RuntimeException("User not found");
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (!course.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+
+        return eventRepository.findAllById(course.getEventIds());
+    }
+
+    /**
+     * Entfernt ein Event aus einem Kurs (mit Benutzerüberprüfung).
+     */
+    @Transactional
+    public void removeEventFromCourse(Long courseId, Long eventId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) throw new RuntimeException("User not found");
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (!course.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+
+        course.removeEventId(eventId);
+        courseRepository.save(course);
+    }}

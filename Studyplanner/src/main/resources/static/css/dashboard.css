@@ -316,3 +316,60 @@ ul {
 .dark-text {
   color: #222 !important;
 }
+/* Label styling for all form inputs */
+.course-form label {
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-bottom: -0.5rem;
+}
+
+/* Layout for the new course event overview inside the edit-course sidebar */
+.course-events {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+}
+
+.course-events h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.course-events ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.course-events li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f4f4f4;
+  padding: 0.5rem 0.75rem;
+  border-radius: 5px;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.course-events li .remove-event {
+  color: #e74c3c;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+#addEventToCourseBtn {
+  background-color: #2980b9;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#addEventToCourseBtn:hover {
+  background-color: #216a94;
+}

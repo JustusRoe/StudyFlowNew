@@ -58,9 +58,16 @@
 
     <div class="overlay" id="courseSidebar">
       <div class="course-form">
+        <span class="close-sidebar" onclick="closeSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
         <h2>Create New Course</h2>
-        <input type="text" id="courseName" placeholder="Course name" />
-        <textarea id="courseDescription" placeholder="Course description"></textarea>
+        <label for="courseName">Title</label>
+        <input type="text" id="courseName" />
+
+        <label for="courseDescription">Description</label>
+        <textarea id="courseDescription"></textarea>
+
+        <label for="courseColor">Color</label>
+        <input type="color" id="courseColor" />
         <button onclick="saveCourse()">Save</button>
         <button onclick="closeSidebar()">Cancel</button>
       </div>
@@ -68,10 +75,25 @@
 
     <div class="overlay" id="editCourseSidebar">
       <div class="course-form">
+        <span class="close-sidebar" onclick="closeEditSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
         <h2>Edit Course</h2>
-        <input type="text" id="editCourseName" placeholder="Course name" />
-        <textarea id="editCourseDescription" placeholder="Course description"></textarea>
+        <label for="editCourseName">Title</label>
+        <input type="text" id="editCourseName" />
+
+        <label for="editCourseDescription">Description</label>
+        <textarea id="editCourseDescription"></textarea>
+
+        <label for="editCourseColor">Color</label>
         <input type="color" id="editCourseColor" />
+
+        <div id="courseEventOverview" class="course-events">
+          <h3>Course Events</h3>
+          <ul id="eventList">
+            <!-- Filled via JS -->
+          </ul>
+          <button id="addEventToCourseBtn">+ Add Calendar Event to Course</button>
+        </div>
+
         <button onclick="updateCourse()">Update</button>
         <button onclick="closeEditSidebar()">Cancel</button>
         <button id="deleteCourseButton" style="background-color: #e74c3c; color: white; margin-top: auto; display: none;">
@@ -83,6 +105,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
-
+<script>
+  document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+      document.getElementById("editCourseSidebar").classList.remove("open");
+      document.getElementById("courseSidebar").classList.remove("open");
+    }
+  });
+</script>
 </body>
 </html>

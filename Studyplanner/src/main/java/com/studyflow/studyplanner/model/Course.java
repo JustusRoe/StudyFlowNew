@@ -77,6 +77,10 @@ public class Course {
         this.eventIds.add(eventId);
     }
 
+    public void removeEventId(Long eventId) {
+        this.eventIds.remove(eventId);
+    }
+
     public User getUser() {
         return user;
     }
