@@ -17,7 +17,7 @@ public class EmailService {
         message.setTo(to);
         message.setSubject("Password Reset Request");
         message.setText("To reset your password, click the link: "
-                + "localhost:8080/reset-password?token=" + token); // here change localhost
+                + "http://localhost:8080/reset-password?token=" + token); // here change localhost
         mailSender.send(message);
     }
 }
