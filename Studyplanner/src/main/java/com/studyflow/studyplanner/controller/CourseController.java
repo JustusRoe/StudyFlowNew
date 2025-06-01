@@ -82,4 +82,17 @@ public class CourseController {
         }
         return ResponseEntity.ok(course);
     }
-}
+
+    /**
+     * Löscht einen Kurs anhand der ID, wenn er dem eingeloggten Nutzer gehört.
+     */
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteCourse(@PathVariable Long id, Principal principal) {
+        try {
+            courseService.deleteCourse(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Delete failed: " + e.getMessage());
+        }
+    }}

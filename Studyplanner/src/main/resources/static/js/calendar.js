@@ -214,6 +214,11 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("editCourseName").value = "";
         document.getElementById("editCourseDescription").value = "";
         document.getElementById("editCourseColor").value = "#000000";
+        const deleteBtn = document.getElementById("deleteCourseButton");
+        if (deleteBtn) {
+            deleteBtn.style.display = "none";
+            deleteBtn.onclick = null;
+        }
     };
 
     window.updateCourse = function () {
@@ -236,6 +241,24 @@ document.addEventListener('DOMContentLoaded', function () {
             // Always close sidebar and reload course list
             document.getElementById("editCourseSidebar").classList.remove("open");
             loadCourses();
+        });
+    };
+
+    window.deleteCourse = function () {
+        if (!window.currentCourseId) return;
+        if (!confirm("Are you sure you want to delete this course? This cannot be undone.")) return;
+
+        fetch(`/courses/delete/${window.currentCourseId}`, {
+            method: 'DELETE'
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to delete course");
+            document.getElementById("editCourseSidebar").classList.remove("open");
+            loadCourses();
+        })
+        .catch(err => {
+            console.error("Error deleting course:", err);
+            alert("Could not delete course.");
         });
     };
 
@@ -284,6 +307,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 document.getElementById("editCourseColor").value = data.color || "#000000";
                                 document.getElementById("editCourseSidebar").classList.add("open");
                                 window.currentCourseId = data.id;
+
+                                const deleteBtn = document.getElementById("deleteCourseButton");
+                                if (deleteBtn) {
+                                    deleteBtn.style.display = "block";
+                                    deleteBtn.onclick = deleteCourse;
+                                }
                             })
                             .catch(err => {
                                 console.error("Error loading course details:", err);
