@@ -60,7 +60,7 @@ public class IcsParser {
                 if (optionalCourse.isPresent()) {
                     course = optionalCourse.get();
                 } else {
-                    course = courseService.createCourse(courseName, generateDefaultColor(courseId), userEmail);
+                    course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail);
                 }
 
                 // gets start/end date & duration
