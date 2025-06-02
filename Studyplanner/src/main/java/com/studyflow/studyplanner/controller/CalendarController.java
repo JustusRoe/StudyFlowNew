@@ -6,6 +6,9 @@ import com.studyflow.studyplanner.repository.CalendarEventRepository;
 import com.studyflow.studyplanner.repository.UserRepository;
 import com.studyflow.studyplanner.service.CalendarService;
 import com.studyflow.studyplanner.service.IcsParser;
+import com.studyflow.studyplanner.repository.CourseRepository;
+import com.studyflow.studyplanner.service.CourseService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -26,14 +29,20 @@ public class CalendarController {
     private final CalendarService calendarService;
     private final UserRepository userRepository;
     private final CalendarEventRepository calendarEventRepository;
+    private final CourseRepository courseRepository;
+    private final CourseService courseService;
 
     @Autowired
     public CalendarController(CalendarService calendarService,
                               UserRepository userRepository,
-                              CalendarEventRepository calendarEventRepository) {
+                              CalendarEventRepository calendarEventRepository,
+                              CourseRepository courseRepository,
+                              CourseService courseService) {
         this.calendarService = calendarService;
         this.userRepository = userRepository;
         this.calendarEventRepository = calendarEventRepository;
+        this.courseRepository = courseRepository;
+        this.courseService = courseService;
     }
 
     @PostMapping("/upload")
@@ -44,10 +53,13 @@ public class CalendarController {
             String email = principal.getName();
             User user = userRepository.findByEmail(email);
 
-            List<CalendarEvent> events = IcsParser.parseIcs(inputStream, user.getId());
+            List<CalendarEvent> events = IcsParser.parseIcs(inputStream, user.getId(),
+            userRepository, courseRepository, calendarEventRepository, courseService);
+            
             for (CalendarEvent event : events) {
                 calendarService.saveEvent(event);
             }
+            
             return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body("success");
         } catch (Exception e) {
             return ResponseEntity.status(500).contentType(MediaType.TEXT_PLAIN)

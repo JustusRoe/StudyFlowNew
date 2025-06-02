@@ -106,4 +106,14 @@ public class CalendarEvent {
     public void setCompleted(boolean completed) {
         this.completed = completed;
     }
+
+    private String courseId;
+
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
+    }
 }
