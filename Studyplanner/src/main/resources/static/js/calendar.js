@@ -442,8 +442,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 getCourseEvents(courseId);
             })
             .catch(err => {
-                console.error("Error adding course event:", err);
-                alert("Could not add event to course.");
+                
             });
         });
     }
