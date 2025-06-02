@@ -19,6 +19,9 @@ public class Course {
 
     private String description;
 
+    @Column(unique = true)
+    private String courseIdentifier; // stores the ICS courseId like [xxxxxx]
+
     // Event-IDs als einfache Liste (One-to-Many auf IDs)
     @ElementCollection
     @CollectionTable(name = "course_event_ids", joinColumns = @JoinColumn(name = "course_id"))
@@ -63,6 +66,14 @@ public class Course {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public String getCourseIdentifier() {
+        return courseIdentifier;
+    }
+
+    public void setCourseIdentifier(String courseIdentifier) {
+        this.courseIdentifier = courseIdentifier;
     }
 
     public List<Long> getEventIds() {

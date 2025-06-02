@@ -33,13 +33,13 @@ public class CourseService {
      * Erstellt einen neuen Kurs und speichert ihn in der Datenbank.
      */
     @Transactional
-    public Course createCourse(String name, String description, String color, String userEmail) {
+    public Course createCourse(String name, String description, String color, String userEmail, String courseIdentifier) {
         User user = userRepository.findByEmail(userEmail);
         if (user == null) throw new RuntimeException("User not found");
 
         Course course = new Course(name, color, user);
         course.setDescription(description); // Set description here
-
+        course.setCourseIdentifier(courseIdentifier);
         return courseRepository.save(course);
     }
 

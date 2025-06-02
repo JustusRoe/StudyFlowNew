@@ -54,13 +54,13 @@ public class IcsParser {
                 summary.substring(summary.indexOf("[") + 1, summary.indexOf("]")) : "unknown";
 
                 // find or creates the course in the DB
-                Optional<Course> optionalCourse = courseRepo.findByCourseId(courseId);
+                Optional<Course> optionalCourse = courseRepo.findByCourseIdentifier(courseId);
 
                 Course course;
                 if (optionalCourse.isPresent()) {
                     course = optionalCourse.get();
                 } else {
-                    course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail);
+                    course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail, courseId);
                 }
 
                 // gets start/end date & duration
