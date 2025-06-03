@@ -121,7 +121,18 @@ public class CourseService {
         return courseRepository.findById(id);
     }
 
+    @Transactional
     public void deleteCourse(Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // Alle zugehörigen Events löschen
+        List<Long> eventIds = course.getEventIds();
+        if (eventIds != null && !eventIds.isEmpty()) {
+            eventRepository.deleteAllById(eventIds);
+        }
+
+        // Danach den Kurs selbst löschen
         courseRepository.deleteById(id);
     }
 
