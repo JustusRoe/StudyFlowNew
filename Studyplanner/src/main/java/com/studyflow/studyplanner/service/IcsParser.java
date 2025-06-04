@@ -25,7 +25,7 @@ import java.util.Optional;
 // Import .ics files
 public class IcsParser {
     public static List<CalendarEvent> parseIcs(InputStream inputStream, Long userId, UserRepository userRepo, 
-    CourseRepository courseRepo, CalendarEventRepository eventRepo, CourseService courseService) throws Exception {
+    CourseRepository courseRepo, CalendarEventRepository eventRepo, CourseService courseService, String userEmail) throws Exception {
         CalendarBuilder builder = new CalendarBuilder();
         Calendar calendar = builder.build(inputStream);
 
@@ -33,8 +33,8 @@ public class IcsParser {
         List<CalendarComponent> components = calendar.getComponents(Component.VEVENT);
 
         // finds user by id so that the courses are assigned to the correct user
-        User user = userRepo.findById(userId).orElseThrow();
-        String userEmail = user.getEmail();
+        User user = userRepo.findByEmail(userEmail);
+        if (user == null) throw new RuntimeException("User not found");
 
         // goes through all events inside the .ics file
         for (Component component :  components) {
@@ -43,6 +43,13 @@ public class IcsParser {
                 
                 // extracts the summary, description, and location fields
                 String summary = vevent.getSummary() != null ? vevent.getSummary().getValue() : "Untitled";
+
+                // checks [xxxxxx]
+                if (!(summary.contains("[") && summary.contains("]"))) {
+                    System.out.println("Skipping event: no [xxxxxx] found in summary: " + summary);
+                    continue;
+                }
+                
                 String description = vevent.getDescription() != null ? vevent.getDescription().getValue() : "";
                 String location = vevent.getLocation() != null ? vevent.getLocation().getValue() : "";
 
@@ -50,8 +57,7 @@ public class IcsParser {
                 String[] parts = summary.split(",");
                 String courseName = parts[0].trim();
                 String instructor = parts.length > 1 ? parts[1].trim() : "";
-                String courseId = summary.contains("[") && summary.contains("]") ?
-                summary.substring(summary.indexOf("[") + 1, summary.indexOf("]")) : "unknown";
+                String courseId = summary.substring(summary.indexOf("[") + 1, summary.indexOf("]"));
 
                 // find or creates the course in the DB
                 Optional<Course> optionalCourse = courseRepo.findByCourseIdentifier(courseId);

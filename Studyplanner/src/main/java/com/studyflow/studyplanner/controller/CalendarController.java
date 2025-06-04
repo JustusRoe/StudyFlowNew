@@ -52,9 +52,10 @@ public class CalendarController {
             InputStream inputStream = file.getInputStream();
             String email = principal.getName();
             User user = userRepository.findByEmail(email);
-
-            List<CalendarEvent> events = IcsParser.parseIcs(inputStream, user.getId(),
-            userRepository, courseRepository, calendarEventRepository, courseService);
+            Long userId = user.getId();
+            
+            List<CalendarEvent> events = IcsParser.parseIcs(inputStream, userId,
+            userRepository, courseRepository, calendarEventRepository, courseService, email);
             
             for (CalendarEvent event : events) {
                 calendarService.saveEvent(event);
