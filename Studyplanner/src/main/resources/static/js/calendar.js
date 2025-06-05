@@ -164,6 +164,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
 
+        const loadingPopup = document.getElementById('loadingPopup');
+        loadingPopup.style.display = 'flex'; // shows loading popup
+
         fetch('/calendar/upload', {
             method: 'POST',
             body: formData
@@ -173,10 +176,17 @@ document.addEventListener('DOMContentLoaded', function () {
             return res.text();
         })
         .then(() => {
-            alert('Calendar imported successfully!');
             calendar.refetchEvents();
+            loadCourses();
+            loadUpcomingEvents();
+            alert('Calendar imported successfully!');
         })
-        .catch(err => alert(err.message));
+        .catch(err => {
+            alert(err.message);
+        })
+        .finally(() => {
+            loadingPopup.style.display = 'none'; // removes loading popup
+        });
     });
 
     /* --- Farbe für Eventtypen --- */

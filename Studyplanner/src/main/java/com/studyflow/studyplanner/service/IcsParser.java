@@ -19,7 +19,9 @@ import java.io.InputStream;
 import java.time.*;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 // Import .ics files
@@ -36,11 +38,13 @@ public class IcsParser {
         User user = userRepo.findByEmail(userEmail);
         if (user == null) throw new RuntimeException("User not found");
 
+        Map<String, Course> courseMap = new HashMap<>();
+        Map<String, List<CalendarEvent>> eventMap = new HashMap<>();
+        List<CalendarEvent> allEvents = new ArrayList<>();
+        
         // goes through all events inside the .ics file
         for (Component component :  components) {
-            if (component instanceof VEvent vevent) {
-                System.out.println("Parsing event: " + vevent.getSummary());
-                
+            if (component instanceof VEvent vevent) {              
                 // extracts the summary, description, and location fields
                 String summary = vevent.getSummary() != null ? vevent.getSummary().getValue() : "Untitled";
 
@@ -62,11 +66,15 @@ public class IcsParser {
                 // find or creates the course in the DB
                 Optional<Course> optionalCourse = courseRepo.findByCourseIdentifier(courseId);
 
-                Course course;
-                if (optionalCourse.isPresent()) {
-                    course = optionalCourse.get();
-                } else {
-                    course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail, courseId);
+                Course course = courseMap.get(courseId);
+                if (course == null) {
+                    if (optionalCourse.isPresent()) {
+                        course = optionalCourse.get();
+                    } else {
+                        course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail, courseId);
+                    }
+                    courseMap.put(courseId, course);
+                    eventMap.put(courseId, new ArrayList<>());
                 }
 
                 // gets start/end date & duration
@@ -87,9 +95,7 @@ public class IcsParser {
 
                         // create and save the event, and connect to course
                         CalendarEvent event = createEvent(courseName, description, start, end, userId, courseId, course.getColor());
-                        CalendarEvent saved = eventRepo.save(event);
-                        courseService.addEventToCourse(course.getId(), saved.getId());
-                        events.add(saved);
+                        eventMap.get(courseId).add(event);
                     }
                 } else { // takes care of singular events
                     LocalDateTime start = toLocalDateTime(startDate);
@@ -97,11 +103,23 @@ public class IcsParser {
 
                     // create and save the event, and connect to course
                     CalendarEvent event = createEvent(courseName, description, start, end, userId, courseId, course.getColor());
-                    CalendarEvent saved = eventRepo.save(event);
-                    courseService.addEventToCourse(course.getId(), saved.getId());
-                    events.add(saved);
+                    eventMap.get(courseId).add(event);
                 }
             }
+        }
+
+        for (Map.Entry<String, List<CalendarEvent>> entry : eventMap.entrySet()) {
+            String courseId = entry.getKey();
+            List<CalendarEvent> courseEvents = entry.getValue();
+
+            List<CalendarEvent> savedEvents = eventRepo.saveAll(courseEvents);
+            events.addAll(savedEvents);
+
+            Course course = courseMap.get(courseId);
+            for (CalendarEvent event : savedEvents) {
+                course.addEventId(event.getId());
+            }
+            courseRepo.save(course);
         }
         return events;
     }
