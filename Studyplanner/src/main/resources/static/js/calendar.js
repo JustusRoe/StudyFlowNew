@@ -161,11 +161,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     fileInput.addEventListener('change', () => {
+        const loadingPopup = document.getElementById('loadingPopup');
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+            console.warn("No file selected");
+            return;
+        }
+        
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
 
-        const loadingPopup = document.getElementById('loadingPopup');
-        loadingPopup.style.display = 'flex'; // shows loading popup
+        loadingPopup.style.display = 'flex';
 
         fetch('/calendar/upload', {
             method: 'POST',
