@@ -24,6 +24,7 @@ public class Course {
     @Column(unique = true)
     private String courseIdentifier; // stores the ICS courseId like [xxxxxx]
 
+    @Column(name = "difficulty")
     private int difficulty; // 1 = leicht, 2 = mittel, 3 = schwer
 
     // Event-IDs als einfache Liste (One-to-Many auf IDs)
@@ -149,4 +150,13 @@ public class Course {
             .mapToInt(CalendarEvent::getDurationInHours)
             .sum();
     }
-}
+
+    @Transient
+    public int getWorkloadTarget() {
+        return switch (difficulty) {
+            case 1 -> 120; // leicht
+            case 2 -> 150; // mittel
+            case 3 -> 180; // schwer
+            default -> 150; // fallback
+        };
+    }}

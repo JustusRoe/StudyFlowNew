@@ -84,6 +84,12 @@ public class CalendarController {
             json.put("color", event.getColor());
             json.put("description", event.getDescription());
             json.put("type", event.getType());
+            json.put("courseId", event.getCourseId());
+            json.put("completed", event.isCompleted());
+            json.put("isDeadline", event.isDeadline());
+            json.put("points", event.getPoints());
+            json.put("generatedByEngine", event.isGeneratedByEngine());
+            json.put("duration", event.getDurationInHours());
             result.add(json);
         }
         return result;
@@ -117,6 +123,11 @@ public class CalendarController {
         if (event.getColor() == null || event.getColor().isEmpty()) {
             event.setColor(getColorForEventType(event.getType()));
         }
+        event.setCourseId(event.getCourseId());
+        event.setCompleted(event.isCompleted());
+        event.setDeadline(event.isDeadline());
+        event.setPoints(event.getPoints());
+        event.setGeneratedByEngine(event.isGeneratedByEngine());
         return calendarService.saveEvent(event);
     }
 
@@ -138,6 +149,12 @@ public class CalendarController {
         existing.setEndTime(updated.getEndTime());
         existing.setColor(updated.getColor());
         existing.setDescription(updated.getDescription());
+        existing.setType(updated.getType());
+        existing.setCourseId(updated.getCourseId());
+        existing.setCompleted(updated.isCompleted());
+        existing.setDeadline(updated.isDeadline());
+        existing.setPoints(updated.getPoints());
+        existing.setGeneratedByEngine(updated.isGeneratedByEngine());
 
         return calendarService.saveEvent(existing);
     }

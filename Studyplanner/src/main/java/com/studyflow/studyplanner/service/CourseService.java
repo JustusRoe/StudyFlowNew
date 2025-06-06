@@ -11,7 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
+record TimeSlot(LocalDateTime start, LocalDateTime end) {}
 
 @Service
 public class CourseService {
@@ -29,17 +34,66 @@ public class CourseService {
         this.eventRepository = eventRepository;
     }
 
+    private List<TimeSlot> calculateFreeSlots(User user, List<CalendarEvent> existingEvents, LocalDateTime from, LocalDateTime to) {
+        List<TimeSlot> slots = new ArrayList<>();
+
+        Set<DayOfWeek> preferredDays = Arrays.stream(user.getPreferredStudyDays().split(","))
+            .map(String::trim)
+            .map(String::toUpperCase)
+            .map(DayOfWeek::valueOf)
+            .collect(Collectors.toSet());
+
+        LocalTime start = LocalTime.parse(user.getPreferredStartTime());
+        LocalTime end = LocalTime.parse(user.getPreferredEndTime());
+
+        LocalDateTime current = from.withHour(start.getHour()).withMinute(start.getMinute());
+
+        while (!current.isAfter(to)) {
+            if (preferredDays.contains(current.getDayOfWeek())) {
+                LocalDateTime dayStart = current.withHour(start.getHour()).withMinute(start.getMinute());
+                LocalDateTime dayEnd = current.withHour(end.getHour()).withMinute(end.getMinute());
+
+                List<CalendarEvent> dayEvents = existingEvents.stream()
+                    .filter(e -> !e.getEndTime().isBefore(dayStart) && !e.getStartTime().isAfter(dayEnd))
+                    .sorted(Comparator.comparing(CalendarEvent::getStartTime))
+                    .toList();
+
+                LocalDateTime slotStart = dayStart;
+
+                for (CalendarEvent e : dayEvents) {
+                    if (slotStart.isBefore(e.getStartTime())) {
+                        LocalDateTime slotEnd = e.getStartTime();
+                        if (java.time.Duration.between(slotStart, slotEnd).toMinutes() >= 30) {
+                            slots.add(new TimeSlot(slotStart, slotEnd));
+                        }
+                    }
+                    slotStart = e.getEndTime().isAfter(slotStart) ? e.getEndTime() : slotStart;
+                }
+
+                if (slotStart.isBefore(dayEnd)) {
+                    if (java.time.Duration.between(slotStart, dayEnd).toMinutes() >= 30) {
+                        slots.add(new TimeSlot(slotStart, dayEnd));
+                    }
+                }
+            }
+            current = current.plusDays(1);
+        }
+
+        return slots;
+    }
+
     /**
      * Erstellt einen neuen Kurs und speichert ihn in der Datenbank.
      */
     @Transactional
-    public Course createCourse(String name, String description, String color, String userEmail, String courseIdentifier) {
+    public Course createCourse(String name, String description, String color, String userEmail, String courseIdentifier, int difficulty) {
         User user = userRepository.findByEmail(userEmail);
         if (user == null) throw new RuntimeException("User not found");
 
         Course course = new Course(name, color, user);
         course.setDescription(description); // Set description here
         course.setCourseIdentifier(courseIdentifier);
+        course.setDifficulty(difficulty);
         return courseRepository.save(course);
     }
 
@@ -246,4 +300,120 @@ public void addEventToCourse(Long courseId, String title, String description, St
 
     // Optional: Farbe auf alle Events des Kurses anwenden (kann man je nach Bedarf machen)
     applyCourseColorToEvents(course);
-}}
+}
+
+    @Transactional
+    public void autoPlanSelfstudySessions(Long courseId, Long deadlineId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) throw new RuntimeException("User not found");
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (!course.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+
+        List<CalendarEvent> events = eventRepository.findAllById(course.getEventIds());
+        CalendarEvent deadline = eventRepository.findById(deadlineId)
+                .orElseThrow(() -> new RuntimeException("Deadline event not found"));
+
+        if (!deadline.isDeadline()) {
+            throw new RuntimeException("Event is not a deadline");
+        }
+
+        int workloadTotal = switch (course.getDifficulty()) {
+            case 1 -> 120;
+            case 2 -> 150;
+            case 3 -> 180;
+            default -> 150;
+        };
+
+        int lectureHours = 33;
+        int remainingWorkload = workloadTotal - lectureHours;
+
+        int totalPoints = events.stream()
+                .filter(CalendarEvent::isDeadline)
+                .mapToInt(CalendarEvent::getPoints)
+                .sum();
+
+        if (totalPoints == 0) {
+            throw new RuntimeException("No points found for deadlines");
+        }
+
+        double share = (double) deadline.getPoints() / totalPoints;
+        int targetHours = (int) Math.round(remainingWorkload * share);
+
+        List<CalendarEvent> allUserEvents = eventRepository.findByUserId(user.getId());
+
+        int planned = 0;
+        List<TimeSlot> freeSlots = calculateFreeSlots(user, allUserEvents, LocalDateTime.now(), deadline.getStartTime());
+
+        for (TimeSlot slot : freeSlots) {
+            if (planned >= targetHours) break;
+
+            int slotDuration = (int) java.time.Duration.between(slot.start(), slot.end()).toHours();
+            if (slotDuration < 1) continue;
+
+            int duration = Math.min(2, targetHours - planned); // max 2h per session
+
+            CalendarEvent session = new CalendarEvent();
+            session.setTitle("📖 Selfstudy for " + deadline.getTitle());
+            session.setStartTime(slot.start());
+            session.setEndTime(slot.start().plusHours(duration));
+            session.setUserId(user.getId());
+            session.setColor(course.getColor());
+            session.setType("self-study");
+            session.setDescription("Auto-planned session");
+            session.setCourseId(course.getId().toString());
+            session.setGeneratedByEngine(true);
+
+            CalendarEvent saved = eventRepository.save(session);
+            course.addEventId(saved.getId());
+
+            planned += duration;
+            allUserEvents.add(saved);
+        }
+
+        courseRepository.save(course);
+    }
+
+    public List<CalendarEvent> getDeadlines(Long courseId, String userEmail) {
+        Course course = getCourseDetails(courseId, userEmail);
+        return course.getResolvedEvents().stream()
+                .filter(CalendarEvent::isDeadline)
+                .toList();
+    }
+
+    public Map<String, Object> getProgressInfo(Long courseId, String userEmail) {
+        Course course = getCourseDetails(courseId, userEmail);
+        Map<String, Object> map = new HashMap<>();
+        map.put("progressPercent", course.getProgressPercent());
+        map.put("selfStudyHours", course.getSelfStudyHours());
+        map.put("workloadTarget", course.getWorkloadTarget());
+        return map;
+    }
+
+    @Transactional
+    public void addManualSelfstudySession(Long courseId, String title, String description, String color,
+                                          LocalDateTime startTime, LocalDateTime endTime, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+        if (!course.getUser().getId().equals(user.getId())) throw new RuntimeException("Access denied");
+
+        CalendarEvent event = new CalendarEvent();
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setType("self-study");
+        event.setColor(color);
+        event.setStartTime(startTime);
+        event.setEndTime(endTime);
+        event.setUserId(user.getId());
+        event.setCourseId(course.getId().toString());
+        event.setGeneratedByEngine(false);
+
+        CalendarEvent saved = eventRepository.save(event);
+        course.addEventId(saved.getId());
+        courseRepository.save(course);
+    }
+}

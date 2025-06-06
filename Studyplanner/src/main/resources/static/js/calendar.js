@@ -384,6 +384,28 @@ document.addEventListener('DOMContentLoaded', function () {
                             });
                     });
 
+                    // Add buttons for managing course
+                    const buttonContainer = document.createElement("div");
+                    buttonContainer.className = "course-action-buttons";
+
+                    const deadlineBtn = document.createElement("button");
+                    deadlineBtn.textContent = "📅 Manage Deadlines";
+                    deadlineBtn.className = "course-manage-btn";
+                    deadlineBtn.onclick = () => {
+                        window.location.href = `/courses/${course.id}/deadlines`;
+                    };
+
+                    const planBtn = document.createElement("button");
+                    planBtn.textContent = "🧠 Plan Selfstudy";
+                    planBtn.className = "course-plan-btn";
+                    planBtn.onclick = () => {
+                        window.location.href = `/courses/${course.id}/selfstudy`;
+                    };
+
+                    buttonContainer.appendChild(deadlineBtn);
+                    buttonContainer.appendChild(planBtn);
+                    li.appendChild(buttonContainer);
+
                     courseList.appendChild(li);
                 });
             })

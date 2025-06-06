@@ -27,7 +27,14 @@ public class CourseController {
     @PostMapping("/create")
     public ResponseEntity<Course> createCourse(@RequestBody Course course, Principal principal) {
         String email = principal.getName();
-        Course created = courseService.createCourse(course.getName(), course.getDescription(), course.getColor(), email, null);
+        Course created = courseService.createCourse(
+            course.getName(),
+            course.getDescription(),
+            course.getColor(),
+            email,
+            course.getCourseIdentifier(),
+            course.getDifficulty()
+        );
         return ResponseEntity.ok(created);
     }
 
@@ -66,6 +73,8 @@ public class CourseController {
             item.put("description", course.getDescription());
             item.put("color", course.getColor());
             item.put("progressPercent", course.getProgressPercent());
+            item.put("courseIdentifier", course.getCourseIdentifier());
+            item.put("difficulty", course.getDifficulty());
             result.add(item);
         }
         return ResponseEntity.ok(result);
@@ -152,4 +161,74 @@ public class CourseController {
             return ResponseEntity.status(500).body("Could not add event: " + e.getMessage());
         }
     }
-}
+
+    /**
+     * Führt die automatische Planung von Selfstudy-Sessions für eine Deadline durch.
+     */
+    @PostMapping("/{id}/autoplan")
+    public ResponseEntity<?> autoPlanSelfstudy(@PathVariable Long id,
+                                               @RequestParam Long deadlineId,
+                                               Principal principal) {
+        try {
+            String email = principal.getName();
+            courseService.autoPlanSelfstudySessions(id, deadlineId, email);
+            return ResponseEntity.ok("Planning complete");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Auto planning failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Gibt alle Deadline-Events eines Kurses zurück.
+     */
+    @GetMapping("/{id}/deadlines")
+    public ResponseEntity<?> getDeadlines(@PathVariable Long id, Principal principal) {
+        try {
+            String email = principal.getName();
+            return ResponseEntity.ok(courseService.getDeadlines(id, email));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Could not load deadlines: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Fügt eine manuelle Selfstudy-Session zu einem Kurs hinzu.
+     */
+    @PostMapping("/{id}/add-selfstudy")
+    public ResponseEntity<?> addSelfstudy(@PathVariable Long id,
+                                          @RequestBody Map<String, String> body,
+                                          Principal principal) {
+        try {
+            String email = principal.getName();
+            String title = body.get("title");
+            String description = body.get("description");
+            String color = body.get("color");
+            String startTimeStr = body.get("startTime");
+            String endTimeStr = body.get("endTime");
+
+            LocalDateTime startTime = LocalDateTime.parse(startTimeStr);
+            LocalDateTime endTime = LocalDateTime.parse(endTimeStr);
+
+            courseService.addManualSelfstudySession(id, title, description, color, startTime, endTime, email);
+            return ResponseEntity.ok("Selfstudy session added.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Could not add selfstudy session: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Gibt Fortschrittsinformationen zu einem Kurs zurück.
+     */
+    @GetMapping("/{id}/progress")
+    public ResponseEntity<?> getProgress(@PathVariable Long id, Principal principal) {
+        try {
+            String email = principal.getName();
+            return ResponseEntity.ok(courseService.getProgressInfo(id, email));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Could not load progress: " + e.getMessage());
+        }
+    }}

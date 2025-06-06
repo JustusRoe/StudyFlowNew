@@ -86,7 +86,26 @@
           <li class="placeholder">No courses yet.</li>
         </ul>
         <button id="create-course-btn">+ Create Course</button>
+        <div class="course-actions">
+          <button id="manage-deadlines-btn" style="margin-top: 10px;">📅 Manage Deadlines</button>
+          <button id="plan-selfstudy-btn" style="margin-top: 5px;">🧠 Plan Selfstudy</button>
+        </div>
       </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .course-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .course-actions button {
+        padding: 0.4rem;
+        font-size: 0.9rem;
+      }
+    </style>
     </aside>
 
     <div class="overlay" id="courseSidebar">

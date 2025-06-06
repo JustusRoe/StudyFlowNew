@@ -71,7 +71,7 @@ public class IcsParser {
                     if (optionalCourse.isPresent()) {
                         course = optionalCourse.get();
                     } else {
-                        course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail, courseId);
+                        course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail, courseId, 2);
                     }
                     courseMap.put(courseId, course);
                     eventMap.put(courseId, new ArrayList<>());
