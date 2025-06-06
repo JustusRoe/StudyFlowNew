@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(() => {
             alert('Calendar imported successfully!');
             calendar.refetchEvents();
+            loadCourses(); // reloads any new courses
         })
         .catch(err => alert(err.message));
     });
