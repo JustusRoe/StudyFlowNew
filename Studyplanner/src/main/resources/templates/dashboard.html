@@ -175,6 +175,7 @@
   <!-- Modal for Adding Event -->
     <div id="addEventModal" class="overlay">
       <div class="course-form">
+        <span class="close-sidebar" onclick="closeAddEventModal()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
         <h2>Add New Event</h2>
         <label>Title</label><input type="text" id="addEventTitle" />
         <label>Start Time</label><input type="datetime-local" id="addEventStart" />
@@ -232,13 +233,20 @@
   </div>
 
   <!-- Scripts -->
+</script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
-<script>
+  <script>
+  function closeAddEventModal() {
+    const modal = document.getElementById("addEventModal");
+    if (modal) modal.style.display = "none";
+  }
+
   document.addEventListener("keydown", function(event) {
     if (event.key === "Escape") {
-      document.getElementById("editCourseSidebar").classList.remove("open");
-      document.getElementById("courseSidebar").classList.remove("open");
+      closeAddEventModal();
+      document.getElementById("editCourseSidebar").style.display = "none";
+      document.getElementById("courseSidebar").style.display = "none";
     }
   });
 </script>

@@ -102,47 +102,10 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
         // clicking empty calendar cell to add new event
-        select: function (info) {
-        const modal = document.getElementById("addEventModal");
-        modal.classList.add("open");
-
-        document.getElementById("addEventTitle").value = "";
-        document.getElementById("addEventStart").value = info.startStr.slice(0, 16);
-        document.getElementById("addEventEnd").value = info.endStr.slice(0, 16);
-        document.getElementById("addEventLocation").value = "";
-        document.getElementById("addEventColor").value = "#4285F4";
-        document.getElementById("addEventType").value = "custom";
-
-        loadCoursesForDropdown("addEventCourse");
-
-        document.getElementById("saveNewEvent").onclick = () => {
-            const newEvent = {
-            title: document.getElementById("addEventTitle").value,
-            startTime: document.getElementById("addEventStart").value,
-            endTime: document.getElementById("addEventEnd").value,
-            location: document.getElementById("addEventLocation").value,
-            type: document.getElementById("addEventType").value,
-            color: document.getElementById("addEventColor").value,
-            courseId: document.getElementById("addEventCourse").value || null
-            };
-
-            fetch("/calendar/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newEvent)
-            }).then(() => {
-            modal.classList.remove("open");
-            calendar.refetchEvents();
-            });
-        };
-
-        document.getElementById("cancelNewEvent").onclick = () => {
-            modal.classList.remove("open");
-        };
-        },
+        select: openAddEventModal,
 
         // click existing event to open edit/delete modal
-        eventClick: function (info) {
+        eventClick: function(info) {
         const event = info.event;
         const modal = document.getElementById("editEventModal");
         modal.classList.add("open");
@@ -191,6 +154,66 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     calendar.render();
+
+    function openAddEventModal(info) {
+        const modal = document.getElementById("addEventModal");
+        modal.classList.add("open");
+
+        document.getElementById("addEventTitle").value = "";
+        document.getElementById("addEventStart").value = info.startStr.slice(0, 16);
+        document.getElementById("addEventEnd").value = info.endStr.slice(0, 16);
+        document.getElementById("addEventLocation").value = "";
+        document.getElementById("addEventColor").value = "#4285F4";
+        document.getElementById("addEventType").value = "custom";
+
+        loadCoursesForDropdown("addEventCourse");
+
+        function escHandler(e) {
+            if (e.key === "Escape") {
+                modal.classList.remove("open");
+                document.removeEventListener("keydown", escHandler);
+                calendar.refetchEvents();
+            }
+        }
+        document.addEventListener("keydown", escHandler);
+
+        document.getElementById("saveNewEvent").onclick = function () {
+            const newEvent = {
+                title: document.getElementById("addEventTitle").value,
+                startTime: document.getElementById("addEventStart").value,
+                endTime: document.getElementById("addEventEnd").value,
+                location: document.getElementById("addEventLocation").value,
+                type: document.getElementById("addEventType").value,
+                color: document.getElementById("addEventColor").value,
+                courseId: document.getElementById("addEventCourse").value || null
+            };
+
+            fetch("/calendar/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newEvent)
+            }).then(() => {
+                modal.classList.remove("open");
+                document.removeEventListener("keydown", escHandler);
+                calendar.refetchEvents();
+            });
+        };
+
+        document.getElementById("cancelNewEvent").onclick = function () {
+            modal.classList.remove("open");
+            document.removeEventListener("keydown", escHandler);
+            calendar.refetchEvents();
+        };
+
+        const closeBtn = modal.querySelector(".close-add-modal");
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                modal.classList.remove("open");
+                document.removeEventListener("keydown", escHandler);
+                calendar.refetchEvents();
+            };
+        }
+    }
 
     /* --- Event Type Checkboxes --- */
     document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
