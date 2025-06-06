@@ -28,6 +28,7 @@ import java.util.Optional;
 public class IcsParser {
     public static List<CalendarEvent> parseIcs(InputStream inputStream, Long userId, UserRepository userRepo, 
     CourseRepository courseRepo, CalendarEventRepository eventRepo, CourseService courseService, String userEmail) throws Exception {
+        System.out.println("Starting ICS import for userEmail: " + userEmail);
         CalendarBuilder builder = new CalendarBuilder();
         Calendar calendar = builder.build(inputStream);
 
@@ -44,7 +45,8 @@ public class IcsParser {
         
         // goes through all events inside the .ics file
         for (Component component :  components) {
-            if (component instanceof VEvent vevent) {              
+            if (component instanceof VEvent vevent) {
+                System.out.println("Processing event: " + vevent.getSummary());              
                 // extracts the summary, description, and location fields
                 String summary = vevent.getSummary() != null ? vevent.getSummary().getValue() : "Untitled";
 
@@ -71,7 +73,9 @@ public class IcsParser {
                     if (optionalCourse.isPresent()) {
                         course = optionalCourse.get();
                     } else {
+                        System.out.println("Creating new course: " + courseName + " with ID: " + courseId + " for user: " + userEmail);
                         course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail, courseId, 2);
+                        System.out.println("Created course: " + course);
                     }
                     courseMap.put(courseId, course);
                     eventMap.put(courseId, new ArrayList<>());
