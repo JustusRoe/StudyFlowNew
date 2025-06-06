@@ -1,5 +1,7 @@
 package com.studyflow.studyplanner.model;
 
+import com.studyflow.studyplanner.model.CalendarEvent;
+
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,8 @@ public class Course {
 
     @Column(unique = true)
     private String courseIdentifier; // stores the ICS courseId like [xxxxxx]
+
+    private int difficulty; // 1 = leicht, 2 = mittel, 3 = schwer
 
     // Event-IDs als einfache Liste (One-to-Many auf IDs)
     @ElementCollection
@@ -128,4 +132,21 @@ public class Course {
 
     public void setDescription(String description) {
         this.description = description;
-    }}
+    }
+
+    public int getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(int difficulty) {
+        this.difficulty = difficulty;
+    }
+
+    @Transient
+    public int getSelfStudyHours() {
+        return resolvedEvents.stream()
+            .filter(e -> "self-study".equalsIgnoreCase(e.getType()))
+            .mapToInt(CalendarEvent::getDurationInHours)
+            .sum();
+    }
+}

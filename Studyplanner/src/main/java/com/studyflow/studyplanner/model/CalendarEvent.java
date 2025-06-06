@@ -24,6 +24,12 @@ public class CalendarEvent {
     private String type;
     private boolean completed = false;
 
+    private String courseId;
+
+    private boolean isDeadline = false;
+    private int points = 0;
+    private boolean generatedByEngine = false;
+
     public CalendarEvent() {}
 
     public CalendarEvent(String title, LocalDateTime start, LocalDateTime end, Long userId) {
@@ -107,8 +113,6 @@ public class CalendarEvent {
         this.completed = completed;
     }
 
-    private String courseId;
-
     public String getCourseId() {
         return courseId;
     }
@@ -116,4 +120,34 @@ public class CalendarEvent {
     public void setCourseId(String courseId) {
         this.courseId = courseId;
     }
-}
+
+    public boolean isDeadline() {
+        return isDeadline;
+    }
+
+    public void setDeadline(boolean isDeadline) {
+        this.isDeadline = isDeadline;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
+    public boolean isGeneratedByEngine() {
+        return generatedByEngine;
+    }
+
+    public void setGeneratedByEngine(boolean generatedByEngine) {
+        this.generatedByEngine = generatedByEngine;
+    }
+
+    public int getDurationInHours() {
+        if (startTime != null && endTime != null) {
+            return (int) java.time.Duration.between(startTime, endTime).toHours();
+        }
+        return 0;
+    }}
