@@ -342,6 +342,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (!Array.isArray(courses) || courses.length === 0) {
                     courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
+                    // Auch Dropdown leeren, falls keine Kurse da sind
+                    const dropdown = document.getElementById("courseSelectForActions");
+                    if (dropdown) {
+                        dropdown.innerHTML = "";
+                    }
                     return;
                 }
 
@@ -384,30 +389,20 @@ document.addEventListener('DOMContentLoaded', function () {
                             });
                     });
 
-                    // Add buttons for managing course
-                    const buttonContainer = document.createElement("div");
-                    buttonContainer.className = "course-action-buttons";
-
-                    const deadlineBtn = document.createElement("button");
-                    deadlineBtn.textContent = "📅 Manage Deadlines";
-                    deadlineBtn.className = "course-manage-btn";
-                    deadlineBtn.onclick = () => {
-                        window.location.href = `/courses/${course.id}/deadlines`;
-                    };
-
-                    const planBtn = document.createElement("button");
-                    planBtn.textContent = "🧠 Plan Selfstudy";
-                    planBtn.className = "course-plan-btn";
-                    planBtn.onclick = () => {
-                        window.location.href = `/courses/${course.id}/selfstudy`;
-                    };
-
-                    buttonContainer.appendChild(deadlineBtn);
-                    buttonContainer.appendChild(planBtn);
-                    li.appendChild(buttonContainer);
-
                     courseList.appendChild(li);
                 });
+
+                // Dropdown für zentrale Kursaktionen aktualisieren
+                const dropdown = document.getElementById("courseSelectForActions");
+                if (dropdown) {
+                    dropdown.innerHTML = "";
+                    courses.forEach(course => {
+                        const option = document.createElement("option");
+                        option.value = course.id;
+                        option.textContent = course.name;
+                        dropdown.appendChild(option);
+                    });
+                }
             })
             .catch(error => {
                 console.error("Error loading courses:", error);

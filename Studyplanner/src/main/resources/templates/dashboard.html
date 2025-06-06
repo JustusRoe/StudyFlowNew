@@ -81,14 +81,21 @@
 
       <div class="section">
         <h2>Courses</h2>
-        <ul id="course-list">
-          <!-- JS should inject <li onclick="openEditSidebar(courseId)">Course Name</li> -->
-          <li class="placeholder">No courses yet.</li>
-        </ul>
+        <ul id="course-list"></ul>
         <button id="create-course-btn">+ Create Course</button>
+      </div>
+
+      <div class="section">
+        <h2>Course Tools</h2>
+        <label for="courseSelectForActions">Select Course:</label>
+        <select id="courseSelectForActions">
+          <option value="" disabled selected>Select a course</option>
+          <!-- dynamically filled -->
+        </select>
+
         <div class="course-actions">
-          <button id="manage-deadlines-btn" style="margin-top: 10px;">📅 Manage Deadlines</button>
-          <button id="plan-selfstudy-btn" style="margin-top: 5px;">🧠 Plan Selfstudy</button>
+          <button id="manage-deadlines-btn" style="margin-top: 10px;" disabled>📅 Manage Deadlines</button>
+          <button id="plan-selfstudy-btn" style="margin-top: 5px;" disabled>🧠 Plan Selfstudy</button>
         </div>
       </div>
     <style>
