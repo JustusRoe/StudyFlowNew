@@ -161,13 +161,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     fileInput.addEventListener('change', () => {
-        const loadingPopup = document.getElementById('loadingPopup');
-        
-        if (!fileInput.files || fileInput.files.length === 0) {
-            console.warn("No file selected");
-            return;
-        }
-        
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
 
@@ -177,22 +170,11 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             body: formData
         })
-        .then(res => {
-            if (!res.ok) throw new Error('Upload failed');
-            return res.text();
-        })
         .then(() => {
-            calendar.refetchEvents();
-            loadCourses();
-            loadUpcomingEvents();
             alert('Calendar imported successfully!');
+            calendar.refetchEvents();
         })
-        .catch(err => {
-            alert(err.message);
-        })
-        .finally(() => {
-            loadingPopup.style.display = 'none'; // removes loading popup
-        });
+        .catch(err => alert(err.message));
     });
 
     /* --- Farbe für Eventtypen --- */
