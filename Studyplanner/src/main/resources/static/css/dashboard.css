@@ -281,6 +281,15 @@ ul {
   box-sizing: border-box;
 }
 
+.course-form select {
+  padding: 0.6rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Modern color input styling for course form */
 .course-form input[type="color"] {
   height: 2.5rem;

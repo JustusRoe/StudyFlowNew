@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
     let currentCourseFilter = "";
 
-    /* --- Initialisierung von FullCalendar --- */
+    /* --- Initialize FullCalendar --- */
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         selectable: true,
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
 
-        /* --- Events laden --- */
+        /* --- Load and filter events --- */
         events: function (info, successCallback, failureCallback) {
             const url = `/calendar/events?start=${info.startStr}&end=${info.endStr}` +
                         (currentCourseFilter ? `&course=${encodeURIComponent(currentCourseFilter)}` : "");
@@ -78,79 +78,150 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(failureCallback);
         },
 
-        /* --- Event erstellen --- */
-        select: function (info) {
-            const title = prompt('New event title:');
-            if (!title) return;
+        // lecture events show color dot + time + title only
+        eventContent: function (arg) {
+        const { event } = arg;
+        if (event.extendedProps.type === "lecture") {
+            const dot = document.createElement("span");
+            dot.style.backgroundColor = event.backgroundColor;
+            dot.style.borderRadius = "50%";
+            dot.style.width = "10px";
+            dot.style.height = "10px";
+            dot.style.display = "inline-block";
+            dot.style.marginRight = "6px";
 
-            const description = prompt('Description?') || 'No description';
-            const type = prompt('Type? (lecture, assignment, exam, self-study, custom)') || 'custom';
+            const time = document.createElement("strong");
+            time.innerText = event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            fetch('/calendar/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title,
-                    description,
-                    type,
-                    color: getColorForEventType(type),
-                    startTime: info.startStr,
-                    endTime: info.endStr
-                })
-            })
-            .then(res => res.json())
-            .then(() => calendar.refetchEvents());
+            const title = document.createElement("span");
+            title.innerText = ` ${event.title}`;
+
+            return { domNodes: [dot, time, title] };
+        }
+        return true; // default rendering
         },
 
-        /* --- Event bearbeiten oder löschen --- */
-        eventClick: function (info) {
-            const title = info.event.title;
-            const desc = info.event.extendedProps.description || 'No description';
-            const edit = confirm(`Event: ${title}\n${desc}\n\nEdit this event? (Cancel to delete)`);
+        // clicking empty calendar cell to add new event
+        select: function (info) {
+        const modal = document.getElementById("addEventModal");
+        modal.classList.add("open");
 
-            if (edit) {
-                const newTitle = prompt("New title:", title);
-                if (newTitle) {
-                    fetch(`/calendar/update/${info.event.id}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: newTitle,
-                            startTime: info.event.startStr,
-                            endTime: info.event.endStr,
-                            color: info.event.backgroundColor,
-                            description: desc
-                        })
-                    }).then(() => calendar.refetchEvents());
-                }
-            } else {
-                if (confirm("Are you sure to delete this event?")) {
-                    fetch(`/calendar/delete/${info.event.id}`, {
-                        method: 'DELETE'
-                    }).then(() => calendar.refetchEvents());
-                }
+        document.getElementById("addEventTitle").value = "";
+        document.getElementById("addEventStart").value = info.startStr.slice(0, 16);
+        document.getElementById("addEventEnd").value = info.endStr.slice(0, 16);
+        document.getElementById("addEventLocation").value = "";
+        document.getElementById("addEventColor").value = "#4285F4";
+        document.getElementById("addEventType").value = "custom";
+
+        loadCoursesForDropdown("addEventCourse");
+
+        document.getElementById("saveNewEvent").onclick = () => {
+            const newEvent = {
+            title: document.getElementById("addEventTitle").value,
+            startTime: document.getElementById("addEventStart").value,
+            endTime: document.getElementById("addEventEnd").value,
+            location: document.getElementById("addEventLocation").value,
+            type: document.getElementById("addEventType").value,
+            color: document.getElementById("addEventColor").value,
+            courseId: document.getElementById("addEventCourse").value || null
+            };
+
+            fetch("/calendar/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newEvent)
+            }).then(() => {
+            modal.classList.remove("open");
+            calendar.refetchEvents();
+            });
+        };
+
+        document.getElementById("cancelNewEvent").onclick = () => {
+            modal.classList.remove("open");
+        };
+        },
+
+        // click existing event to open edit/delete modal
+        eventClick: function (info) {
+        const event = info.event;
+        const modal = document.getElementById("editEventModal");
+        modal.classList.add("open");
+
+        document.getElementById("editEventId").value = event.id;
+        document.getElementById("editEventTitle").value = event.title;
+        document.getElementById("editEventStart").value = event.startStr.slice(0, 16);
+        document.getElementById("editEventEnd").value = event.endStr.slice(0, 16);
+        document.getElementById("editEventLocation").value = event.extendedProps.location || "";
+        document.getElementById("editEventColor").value = event.backgroundColor;
+        document.getElementById("editEventType").value = event.extendedProps.type || "custom";
+
+        loadCoursesForDropdown("editEventCourse");
+
+        document.getElementById("saveEditedEvent").onclick = () => {
+            fetch(`/calendar/update/${event.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: document.getElementById("editEventTitle").value,
+                startTime: document.getElementById("editEventStart").value,
+                endTime: document.getElementById("editEventEnd").value,
+                location: document.getElementById("editEventLocation").value,
+                color: document.getElementById("editEventColor").value,
+                type: document.getElementById("editEventType").value
+            })
+            }).then(() => {
+            modal.classList.remove("open");
+            calendar.refetchEvents();
+            });
+        };
+
+        document.getElementById("deleteEvent").onclick = () => {
+            if (confirm("Delete this event?")) {
+            fetch(`/calendar/delete/${event.id}`, { method: "DELETE" }).then(() => {
+                modal.classList.remove("open");
+                calendar.refetchEvents();
+            });
             }
+        };
+
+        document.getElementById("cancelEditEvent").onclick = () => {
+            modal.classList.remove("open");
+        };
         }
     });
 
     calendar.render();
 
-    loadCourses();
-    loadUpcomingEvents();
-
-    /* --- Typfilter Checkboxen --- */
+    /* --- Event Type Checkboxes --- */
     document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', () => {
             calendar.refetchEvents();
         });
     });
 
-    /* --- Kursfilter (Text) --- */
+    /* --- Course Name Filter (text input) --- */
     window.applyFilter = function () {
         const input = document.getElementById('course');
         currentCourseFilter = input.value;
         calendar.refetchEvents();
     };
+
+    // Load course list for dropdown (add/edit modal)
+    function loadCoursesForDropdown(selectId) {
+        fetch("/courses/user")
+        .then(res => res.json())
+        .then(courses => {
+            const dropdown = document.getElementById(selectId);
+            if (!dropdown) return;
+            dropdown.innerHTML = '<option value="">None</option>';
+            courses.forEach(course => {
+            const opt = document.createElement("option");
+            opt.value = course.id;
+            opt.textContent = course.name;
+            dropdown.appendChild(opt);
+            });
+        });
+    }
 
     /* --- ICS Upload --- */
     const fileInput = document.getElementById('file');
@@ -178,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(err => alert(err.message));
     });
 
-    /* --- Farbe für Eventtypen --- */
+    /* --- Color for Event Types --- */
     function getColorForEventType(type) {
         switch (type.toLowerCase()) {
             case 'lecture': return '#4285F4';

@@ -9,6 +9,7 @@
 </head>
 <body>
 
+  <!-- Navigation Bar -->
   <nav class="navbar">
     <span class="brand">Studyflow</span>
     <div class="nav-links">
@@ -17,6 +18,7 @@
     </div>
   </nav>
 
+  <!-- Calendar -->
   <div class="main-container">
     <div class="calendar-area">
       <div class="calendar-header">
@@ -27,6 +29,7 @@
         </form>
       </div>
 
+  <!-- Type Filter -->
       <div id="filter-controls">
         <label><input type="checkbox" value="lecture" checked> Lecture</label>
         <label><input type="checkbox" value="assignment" checked> Assignment</label>
@@ -71,7 +74,10 @@
       }
     </style>
   -->
+  
+  <!-- Sidebar -->
     <aside class="sidebar">
+      <!-- Upcoming Events -->
       <div class="section">
         <h2>Upcoming Events</h2>
         <ul id="upcoming-events-list">
@@ -79,12 +85,14 @@
         </ul>
       </div>
 
+      <!-- Course Management -->
       <div class="section">
         <h2>Courses</h2>
         <ul id="course-list"></ul>
         <button id="create-course-btn">+ Create Course</button>
       </div>
 
+      <!-- Course Tools -->
       <div class="section">
         <h2>Course Tools</h2>
         <label for="courseSelectForActions">Select Course:</label>
@@ -115,6 +123,7 @@
     </style>
     </aside>
 
+    <!-- Course Creation Sidebar -->
     <div class="overlay" id="courseSidebar">
       <div class="course-form">
         <span class="close-sidebar" onclick="closeSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
@@ -132,6 +141,7 @@
       </div>
     </div>
 
+    <!-- Course Editing Sidebar -->
     <div class="overlay" id="editCourseSidebar">
       <div class="course-form">
         <span class="close-sidebar" onclick="closeEditSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
@@ -162,6 +172,66 @@
     </div>
   </div>
 
+  <!-- Modal for Adding Event -->
+    <div id="addEventModal" class="overlay">
+      <div class="course-form">
+        <h2>Add New Event</h2>
+        <label>Title</label><input type="text" id="addEventTitle" />
+        <label>Start Time</label><input type="datetime-local" id="addEventStart" />
+        <label>End Time</label><input type="datetime-local" id="addEventEnd" />
+        <label>Location (optional)</label><input type="text" id="addEventLocation" />
+        <label>Type</label>
+        <select id="addEventType">
+          <option value="lecture">Lecture</option>
+          <option value="assignment">Assignment</option>
+          <option value="exam">Exam</option>
+          <option value="event">Event</option>
+          <option value="custom" selected>Custom</option>
+        </select>
+
+        <label>Course (optional)</label>
+        <select id="addEventCourse"></select>
+        
+        <label>Color</label><input type="color" id="editEventColor" value="#aaaaaa" />
+        <div style="display:flex; justify-content:space-between;">
+          <button id="deleteEvent" style="background-color: #e74c3c; color: white;">Delete</button>
+          <div>
+          <button id="cancelNewEvent">Cancel</button>
+          <button id="saveNewEvent">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Editing Existing Event -->
+    <div id="editEventModal" class="overlay">
+      <div class="course-form">
+        <h2>Edit Event</h2>
+        <input type="hidden" id="editEventId" />
+        <label>Title</label><input type="text" id="editEventTitle" />
+        <label>Start Time</label><input type="datetime-local" id="editEventStart" />
+        <label>End Time</label><input type="datetime-local" id="editEventEnd" />
+        <label>Location (optional)</label><input type="text" id="editEventLocation" />
+        <label>Type</label>
+        <select id="editEventType">
+          <option value="lecture">Lecture</option>
+          <option value="assignment">Assignment</option>
+          <option value="exam">Exam</option>
+          <option value="event">Event</option>
+          <option value="custom">Custom</option>
+        </select>
+        <label>Color</label><input type="color" id="editEventColor" value="#aaaaaa" />
+        <div style="display:flex; justify-content:space-between;">
+          <button id="deleteEvent" style="background-color: #e74c3c; color: white;">Delete</button>
+          <div>
+            <button id="cancelEditEvent">Cancel</button>
+            <button id="saveEditedEvent">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
 <script>
