@@ -232,21 +232,43 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     fileInput.addEventListener('change', () => {
+        const loadingPopup = document.getElementById('loadingPopup');
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+            console.warn("No file selected");
+            return;
+        }
+        
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
 
-        loadingPopup.style.display = 'flex';
+        if (loadingPopup) {
+            loadingPopup.style.display = 'flex';
+        } else {
+            console.warn("Loading popup element not found.");
+        }
 
         fetch('/calendar/upload', {
             method: 'POST',
             body: formData
         })
-        .then(() => {
-            alert('Calendar imported successfully!');
-            calendar.refetchEvents();
-            loadCourses(); // reloads any new courses
+        .then(res => {
+            if (!res.ok) throw new Error('Upload failed');
+            return res.text();
         })
-        .catch(err => alert(err.message));
+        .then(() => {
+            calendar.refetchEvents();
+            loadCourses();
+            loadUpcomingEvents();
+            alert('Calendar imported successfully!');
+
+        })
+        .catch(err => {
+            alert(err.message);
+        })
+        .finally(() => {
+            loadingPopup.style.display = 'none'; // removes loading popup
+        });
     });
 
     /* --- Color for Event Types --- */
@@ -486,6 +508,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert("Could not load upcoming events.");
             });
     }
+    // Load all
+    loadCourses();
+    loadUpcomingEvents();
 });
     // Add Calendar Event to Course button handler: prompt for title, start, end
     const addEventToCourseBtn = document.getElementById("addEventToCourseBtn");
@@ -532,4 +557,5 @@ document.addEventListener('DOMContentLoaded', function () {
                 
             });
         });
+        
     }
