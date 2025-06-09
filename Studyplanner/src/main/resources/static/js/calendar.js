@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         document.getElementById("deleteEvent").onclick = () => {
-            if (confirm("Delete this event?")) {
+            if (confirm("Delete this event? This action cannot be undone.")) {
             fetch(`/calendar/delete/${event.id}`, { method: "DELETE" }).then(() => {
                 modal.classList.remove("open");
                 calendar.refetchEvents();
