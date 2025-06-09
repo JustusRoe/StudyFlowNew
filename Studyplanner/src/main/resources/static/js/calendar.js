@@ -168,14 +168,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
         loadCoursesForDropdown("addEventCourse");
 
-        function escHandler(e) {
-            if (e.key === "Escape") {
-                modal.classList.remove("open");
-                document.removeEventListener("keydown", escHandler);
-                calendar.refetchEvents();
-            }
+        const saveBtn = document.getElementById("saveNewEvent");
+        const cancelBtn = document.getElementById("cancelNewEvent");
+        const closeBtn = modal.querySelector(".close-add-modal");
+        
+        const newSaveBtn = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn); 
+
+        if (closeBtn) {
+            const newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
         }
-        document.addEventListener("keydown", escHandler);
 
         document.getElementById("saveNewEvent").onclick = function () {
             const newEvent = {
@@ -194,18 +200,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify(newEvent)
             }).then(() => {
                 modal.classList.remove("open");
-                document.removeEventListener("keydown", escHandler);
                 calendar.refetchEvents();
             });
         };
 
         document.getElementById("cancelNewEvent").onclick = function () {
             modal.classList.remove("open");
-            document.removeEventListener("keydown", escHandler);
             calendar.refetchEvents();
         };
 
-        const closeBtn = modal.querySelector(".close-add-modal");
+        const newcloseBtn = modal.querySelector(".close-add-modal");
         if (closeBtn) {
             closeBtn.onclick = () => {
                 modal.classList.remove("open");
@@ -213,6 +217,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 calendar.refetchEvents();
             };
         }
+
+        function escHandler(e) {
+            if (e.key === "Escape") {
+                modal.classList.remove("open");
+                document.removeEventListener("keydown", escHandler);
+                calendar.refetchEvents();
+            }
+        }
+        document.addEventListener("keydown", escHandler);
     }
 
     /* --- Event Type Checkboxes --- */
@@ -283,6 +296,9 @@ document.addEventListener('DOMContentLoaded', function () {
             calendar.refetchEvents();
             loadCourses();
             loadUpcomingEvents();
+            loadCoursesForDropdown("addEventCourse");
+            loadCoursesForDropdown("editEventCourse");
+            loadCoursesForDropdown("courseSelectForActions");
             alert('Calendar imported successfully!');
 
         })
