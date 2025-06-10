@@ -21,7 +21,7 @@ public class Course {
 
     private String description;
 
-    @Column(unique = true)
+    @Column(unique = false)
     private String courseIdentifier; // stores the ICS courseId like [xxxxxx]
 
     @Column(name = "difficulty")
