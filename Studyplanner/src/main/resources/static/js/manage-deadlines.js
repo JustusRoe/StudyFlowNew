@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- Deadlines ---
     function loadDeadlines() {
-        fetch(`/courses/${courseId}/deadlines`)
+        fetch(`/api/courses/${courseId}/deadlines`)
             .then(res => {
                 if (!res.ok) {
                     throw new Error("Failed to fetch deadlines");

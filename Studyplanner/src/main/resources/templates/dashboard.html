@@ -103,7 +103,7 @@
 
         <div class="course-actions">
           <button id="manage-deadlines-btn" style="margin-top: 10px;" disabled>📅 Manage Deadlines</button>
-          <button id="plan-selfstudy-btn" style="margin-top: 5px;" disabled>🧠 Plan Self-Study</button>
+          <!-- Removed Plan Self-Study button -->
         </div>
       </div>
     <style>
@@ -230,23 +230,39 @@
   </div>
 </div>
 
+    <!-- Add Course Detail Sidebar (functional) -->
+    <div class="overlay" id="courseDetailSidebar" style="display: block;">
+      <div class="course-form" style="max-width: 400px;">
+        <span class="close-sidebar" onclick="closeCourseDetailSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+        <h2 class="course-title"></h2>
+        <div class="course-desc"></div>
+        <div class="course-progress-bar" style="background:#eee; border-radius:8px; overflow:hidden; height:18px; margin:1rem 0;">
+          <div class="course-progress-bar-inner" style="background:#33e1ed; height:100%; width:0%; transition:width 0.5s;"></div>
+          <span class="course-progress-label" style="position:absolute; left:50%; transform:translateX(-50%); color:#222; font-weight:bold; font-size:0.95em;"></span>
+        </div>
+        <img src="/images/fish-mascot.png" alt="Fish Mascot" class="mascot-fish" style="width:60px; height:60px; margin:0.5rem auto 1rem auto; display:block; transition:transform 0.3s;">
+        <div>
+          <h3>Deadlines</h3>
+          <ul class="course-deadlines-list" style="padding-left:1.2em;"></ul>
+        </div>
+      </div>
+    </div>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
   <script>
-    // Enable/disable and handle Manage Deadlines / Plan Self-Study buttons
+    // Enable/disable and handle Manage Deadlines button
     document.addEventListener('DOMContentLoaded', function () {
       const courseSelect = document.getElementById("courseSelectForActions");
       const manageDeadlinesBtn = document.getElementById("manage-deadlines-btn");
-      const planSelfstudyBtn = document.getElementById("plan-selfstudy-btn");
 
       function updateCourseActionButtons() {
         const selected = !!courseSelect.value;
         manageDeadlinesBtn.disabled = !selected;
-        planSelfstudyBtn.disabled = !selected;
       }
 
-      if (courseSelect && manageDeadlinesBtn && planSelfstudyBtn) {
+      if (courseSelect && manageDeadlinesBtn) {
         courseSelect.addEventListener("change", updateCourseActionButtons);
         updateCourseActionButtons();
 
@@ -254,13 +270,6 @@
           const courseId = courseSelect.value;
           if (courseId) {
             window.location.href = `/manage-deadlines?courseId=${courseId}`;
-          }
-        });
-
-        planSelfstudyBtn.addEventListener("click", function () {
-          const courseId = courseSelect.value;
-          if (courseId) {
-            window.location.href = `/plan-selfstudy?courseId=${courseId}`;
           }
         });
       }

@@ -2,10 +2,9 @@ package com.studyflow.studyplanner.controller;
 
 import com.studyflow.studyplanner.model.CalendarEvent;
 import com.studyflow.studyplanner.model.Course;
-import com.studyflow.studyplanner.model.User;
+import com.studyflow.studyplanner.repository.UserRepository;
 import com.studyflow.studyplanner.service.CalendarService;
 import com.studyflow.studyplanner.service.CourseService;
-import com.studyflow.studyplanner.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -46,34 +45,10 @@ public class DeadlineController {
         return "manage-deadlines";
     }
 
-    // Serve the plan-selfstudy page (HTML)
-    @GetMapping("/plan-selfstudy")
-    public String showPlanSelfstudyPage(@RequestParam(value = "courseId", required = false) Long courseId, Principal principal, Model model) {
-        if (courseId == null) {
-            model.addAttribute("error", "Please select a course first.");
-            return "redirect:/dashboard";
-        }
-        String email = principal.getName();
-        Course course = courseService.getCourseDetails(courseId, email);
-        List<CalendarEvent> selfstudyEvents = calendarService.getUserEventsByType(course.getUser().getId(), "selfstudy");
-
-        model.addAttribute("course", course);
-        model.addAttribute("selfstudyEvents", selfstudyEvents);
-        return "plan-selfstudy";
-    }
-
     @GetMapping("/api/courses/{id}/deadlines")
     @ResponseBody
     public List<CalendarEvent> getCourseDeadlines(@PathVariable Long id, Principal principal) {
         String email = principal.getName();
         return courseService.getDeadlines(id, email);
-    }
-
-    @GetMapping("/api/courses/{id}/selfstudy")
-    @ResponseBody
-    public List<CalendarEvent> getSelfstudyEvents(@PathVariable Long id, Principal principal) {
-        String email = principal.getName();
-        Course course = courseService.getCourseDetails(id, email);
-        return calendarService.getUserEventsByType(course.getUser().getId(), "selfstudy");
     }
 }

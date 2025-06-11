@@ -595,72 +595,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div style="margin-bottom:0.5rem;"><strong>Difficulty:</strong> ${["Easy", "Medium", "Hard"][course.difficulty - 1] || "Unknown"}</div>
                     <div style="margin-bottom:0.5rem;"><strong>Self-study:</strong> ${course.selfStudyHours || 0}h of ${course.workloadTarget || 0}h</div>
                 `;
-                sidebar.querySelector(".course-difficulty").style.display = "none";
-                sidebar.querySelector(".course-selfstudy").style.display = "none";
                 sidebar.querySelector(".course-progress-bar-inner").style.width = `${course.progressPercent || 0}%`;
                 sidebar.querySelector(".course-progress-label").textContent = `${course.progressPercent || 0}%`;
                 const fish = sidebar.querySelector(".mascot-fish");
                 fish.style.transform = `scale(${0.7 + (course.progressPercent || 0) / 100 * 1.3})`;
-                sidebar.querySelector(".manage-deadlines-btn").onclick = () => {
-                    window.location.href = `/manage-deadlines?courseId=${courseId}`;
-                };
-                sidebar.querySelector(".plan-selfstudy-btn").onclick = () => {
-                    window.location.href = `/plan-selfstudy?courseId=${courseId}`;
-                };
+
+                // Fetch and display deadlines
+                fetch(`/courses/${courseId}/deadlines`)
+                    .then(res => res.json())
+                    .then(deadlines => {
+                        const list = sidebar.querySelector(".course-deadlines-list");
+                        list.innerHTML = "";
+                        if (!Array.isArray(deadlines) || deadlines.length === 0) {
+                            list.innerHTML = "<li>No deadlines.</li>";
+                            return;
+                        }
+                        deadlines.forEach(dl => {
+                            const li = document.createElement("li");
+                            li.textContent = `${dl.title} (${(dl.startTime || "").slice(0,16).replace("T", " ")}) – ${dl.points ?? ""} pts`;
+                            list.appendChild(li);
+                        });
+                    });
+
                 sidebar.classList.add("open");
-            });
-    }
-
-    // Attach click handler to course list items after loading courses
-    function loadCourses() {
-        fetch("/courses/user")
-            .then(response => response.json())
-            .then(courses => {
-                const courseList = document.getElementById("course-list");
-                courseList.innerHTML = "";
-
-                if (!Array.isArray(courses) || courses.length === 0) {
-                    courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
-                    const dropdown = document.getElementById("courseSelectForActions");
-                    if (dropdown) {
-                        dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
-                    }
-                    return;
-                }
-
-                courses.forEach(course => {
-                    const li = document.createElement("li");
-                    const progress = course.progressPercent ?? 0;
-                    const textColor = getContrastingTextColor(course.color || '#ffffff');
-                    li.style.backgroundColor = course.color || '#eeeeee';
-                    li.style.color = textColor;
-                    li.classList.add('course-item');
-                    li.textContent = `${course.name} – ${progress}% complete`;
-                    li.dataset.id = course.id;
-                    li.style.cursor = "pointer";
-
-                    li.addEventListener("click", () => {
-                        openCourseDetailSidebar(course.id);
-                    });
-
-                    courseList.appendChild(li);
-                });
-
-                // Dropdown für zentrale Kursaktionen aktualisieren
-                const dropdown = document.getElementById("courseSelectForActions");
-                if (dropdown) {
-                    dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
-                    courses.forEach(course => {
-                        const option = document.createElement("option");
-                        option.value = course.id;
-                        option.textContent = course.name;
-                        dropdown.appendChild(option);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error("Error loading courses:", error);
-                alert("Could not load courses.");
             });
     }
 
