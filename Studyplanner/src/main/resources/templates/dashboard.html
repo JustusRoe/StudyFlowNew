@@ -172,83 +172,66 @@
     </div>
   </div>
 
-  <!-- Modal for Adding Event -->
-    <div id="addEventModal" class="overlay">
-      <div class="course-form">
-        <span class="close-sidebar" onclick="closeAddEventModal()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-        <h2>Add New Event</h2>
-        <label>Title</label><input type="text" id="addEventTitle" />
-        <label>Start Time</label><input type="datetime-local" id="addEventStart" />
-        <label>End Time</label><input type="datetime-local" id="addEventEnd" />
-        <label>Location (optional)</label><input type="text" id="addEventLocation" />
-        <label>Type</label>
-        <select id="addEventType">
-          <option value="lecture">Lecture</option>
-          <option value="assignment">Assignment</option>
-          <option value="exam">Exam</option>
-          <option value="self-study">Self-Study</option>
-          <option value="custom" selected>Custom</option>
-        </select>
-
-        <label>Course (optional)</label>
-        <select id="addEventCourse"></select>
-        
-        <label>Color</label><input type="color" id="editEventColor" value="#aaaaaa" />
-        <div style="display:flex; justify-content:space-between;">
-          <button id="deleteEvent" style="background-color: #e74c3c; color: white;">Delete</button>
-          <div>
-          <button id="cancelNewEvent">Cancel</button>
-          <button id="saveNewEvent">Save</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal for Editing Existing Event -->
-    <div id="editEventModal" class="overlay">
-      <div class="course-form">
-        <h2>Edit Event</h2>
-        <input type="hidden" id="editEventId" />
-        <label>Title</label><input type="text" id="editEventTitle" />
-        <label>Start Time</label><input type="datetime-local" id="editEventStart" />
-        <label>End Time</label><input type="datetime-local" id="editEventEnd" />
-        <label>Location (optional)</label><input type="text" id="editEventLocation" />
-        <label>Type</label>
-        <select id="editEventType">
-          <option value="lecture">Lecture</option>
-          <option value="assignment">Assignment</option>
-          <option value="exam">Exam</option>
-          <option value="self-study">Self-Study</option>
-          <option value="custom">Custom</option>
-        </select>
-        <label>Color</label><input type="color" id="editEventColor" value="#aaaaaa" />
-        <div style="display:flex; justify-content:space-between;">
-          <button id="deleteEvent" style="background-color: #e74c3c; color: white;">Delete</button>
-          <div>
-            <button id="cancelEditEvent">Cancel</button>
-            <button id="saveEditedEvent">Save</button>
-          </div>
-        </div>
+  <!-- Sidebar for Adding Event -->
+<div class="overlay" id="addEventSidebar">
+  <div class="course-form">
+    <span class="close-sidebar" onclick="closeAddEventSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+    <h2>Add New Event</h2>
+    <label>Title</label><input type="text" id="addEventTitle" />
+    <label>Start Time</label><input type="datetime-local" id="addEventStart" />
+    <label>End Time</label><input type="datetime-local" id="addEventEnd" />
+    <label>Location (optional)</label><input type="text" id="addEventLocation" />
+    <label>Type</label>
+    <select id="addEventType">
+      <option value="lecture">Lecture</option>
+      <option value="assignment">Assignment</option>
+      <option value="exam">Exam</option>
+      <option value="self-study">Self-Study</option>
+      <option value="custom" selected>Custom</option>
+    </select>
+    <label>Course (optional)</label>
+    <select id="addEventCourse"></select>
+    <label>Color</label><input type="color" id="addEventColor" value="#aaaaaa" />
+    <div style="display:flex; justify-content:space-between;">
+      <div>
+        <button id="cancelNewEvent">Cancel</button>
+        <button id="saveNewEvent">Save</button>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Sidebar for Editing Event -->
+<div class="overlay" id="editEventSidebar">
+  <div class="course-form">
+    <span class="close-sidebar" onclick="closeEditEventSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+    <h2>Edit Event</h2>
+    <input type="hidden" id="editEventId" />
+    <label>Title</label><input type="text" id="editEventTitle" />
+    <label>Start Time</label><input type="datetime-local" id="editEventStart" />
+    <label>End Time</label><input type="datetime-local" id="editEventEnd" />
+    <label>Location (optional)</label><input type="text" id="editEventLocation" />
+    <label>Type</label>
+    <select id="editEventType">
+      <option value="lecture">Lecture</option>
+      <option value="assignment">Assignment</option>
+      <option value="exam">Exam</option>
+      <option value="self-study">Self-Study</option>
+      <option value="custom">Custom</option>
+    </select>
+    <label>Color</label><input type="color" id="editEventColor" value="#aaaaaa" />
+    <div style="display:flex; justify-content:space-between;">
+      <button id="deleteEvent" style="background-color: #e74c3c; color: white;">Delete</button>
+      <div>
+        <button id="cancelEditEvent">Cancel</button>
+        <button id="saveEditedEvent">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- Scripts -->
-</script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
-  <script>
-  function closeAddEventModal() {
-    const modal = document.getElementById("addEventModal");
-    if (modal) modal.style.display = "none";
-  }
-
-  document.addEventListener("keydown", function(event) {
-    if (event.key === "Escape") {
-      closeAddEventModal();
-      document.getElementById("editCourseSidebar").style.display = "none";
-      document.getElementById("courseSidebar").style.display = "none";
-    }
-  });
-</script>
 </body>
 </html>

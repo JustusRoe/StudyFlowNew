@@ -12,8 +12,9 @@ public class CalendarEvent {
     private Long id;
 
     private String title;
-
+    @Column(nullable = false)
     private LocalDateTime startTime;
+    @Column(nullable = false)
     private LocalDateTime endTime;
 
     private Long userId;

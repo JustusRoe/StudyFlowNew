@@ -46,6 +46,33 @@ document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
     let currentCourseFilter = "";
 
+    // Enable Manage Deadlines and Plan Self-Study buttons when a course is selected
+    const courseSelect = document.getElementById("courseSelectForActions");
+    const manageDeadlinesBtn = document.getElementById("manage-deadlines-btn");
+    const planSelfstudyBtn = document.getElementById("plan-selfstudy-btn");
+
+    if (courseSelect && manageDeadlinesBtn && planSelfstudyBtn) {
+        courseSelect.addEventListener("change", function () {
+            const selected = !!courseSelect.value;
+            manageDeadlinesBtn.disabled = !selected;
+            planSelfstudyBtn.disabled = !selected;
+        });
+
+        manageDeadlinesBtn.addEventListener("click", function () {
+            const courseId = courseSelect.value;
+            if (courseId) {
+                window.location.href = `/manage-deadlines?courseId=${courseId}`;
+            }
+        });
+
+        planSelfstudyBtn.addEventListener("click", function () {
+            const courseId = courseSelect.value;
+            if (courseId) {
+                window.location.href = `/plan-selfstudy?courseId=${courseId}`;
+            }
+        });
+    }
+
     /* --- Initialize FullCalendar --- */
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -60,12 +87,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         /* --- Load and filter events --- */
         events: function (info, successCallback, failureCallback) {
-            const url = `/calendar/events?start=${info.startStr}&end=${info.endStr}` +
-                        (currentCourseFilter ? `&course=${encodeURIComponent(currentCourseFilter)}` : "");
-
-            fetch(url)
-                .then(response => response.json())
+            fetch('/calendar/events')
+                .then(response => {
+                    if (!response.ok) {
+                        // Try to parse error message if possible
+                        return response.text().then(text => {
+                            console.error("calendar/events error:", text);
+                            failureCallback && failureCallback("Server error: could not load events.");
+                            return [];
+                        });
+                    }
+                    return response.json();
+                })
                 .then(allEvents => {
+                    // Defensive: Only filter if allEvents is an array
+                    if (!Array.isArray(allEvents)) {
+                        console.error("calendar/events did not return an array:", allEvents);
+                        failureCallback && failureCallback("Server error: could not load events.");
+                        return;
+                    }
                     const selectedTypes = Array.from(
                         document.querySelectorAll('#filter-controls input[type=checkbox]:checked')
                     ).map(cb => cb.value.toLowerCase());
@@ -75,7 +115,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
                     successCallback(filtered);
                 })
-                .catch(failureCallback);
+                .catch(err => {
+                    console.error("Error loading events:", err);
+                    failureCallback && failureCallback(err);
+                });
         },
 
         // lecture events show color dot + time + title only
@@ -102,64 +145,24 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
         // clicking empty calendar cell to add new event
-        select: openAddEventModal,
+        select: openAddEventSidebar,
 
         // click existing event to open edit/delete modal
         eventClick: function(info) {
-        const event = info.event;
-        const modal = document.getElementById("editEventModal");
-        modal.classList.add("open");
-
-        document.getElementById("editEventId").value = event.id;
-        document.getElementById("editEventTitle").value = event.title;
-        document.getElementById("editEventStart").value = event.startStr.slice(0, 16);
-        document.getElementById("editEventEnd").value = event.endStr.slice(0, 16);
-        document.getElementById("editEventLocation").value = event.extendedProps.location || "";
-        document.getElementById("editEventColor").value = event.backgroundColor;
-        document.getElementById("editEventType").value = event.extendedProps.type || "custom";
-
-        loadCoursesForDropdown("editEventCourse");
-
-        document.getElementById("saveEditedEvent").onclick = () => {
-            fetch(`/calendar/update/${event.id}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                title: document.getElementById("editEventTitle").value,
-                startTime: document.getElementById("editEventStart").value,
-                endTime: document.getElementById("editEventEnd").value,
-                location: document.getElementById("editEventLocation").value,
-                color: document.getElementById("editEventColor").value,
-                type: document.getElementById("editEventType").value
-            })
-            }).then(() => {
-            modal.classList.remove("open");
-            calendar.refetchEvents();
-            });
-        };
-
-        document.getElementById("deleteEvent").onclick = () => {
-            if (confirm("Delete this event? This action cannot be undone.")) {
-            fetch(`/calendar/delete/${event.id}`, { method: "DELETE" }).then(() => {
-                modal.classList.remove("open");
-                calendar.refetchEvents();
-            });
-            }
-        };
-
-        document.getElementById("cancelEditEvent").onclick = () => {
-            modal.classList.remove("open");
-        };
+            openEditEventSidebar(info.event);
         }
     });
 
     calendar.render();
+    window.calendar = calendar;
 
-    function openAddEventModal(info) {
-        const modal = document.getElementById("addEventModal");
-        modal.classList.add("open");
+    // --- Add Event Sidebar ---
+    function openAddEventSidebar(info) {
+        const sidebar = document.getElementById("addEventSidebar");
+        sidebar.classList.add("open");
 
         document.getElementById("addEventTitle").value = "";
+        // Fix: Use correct format for datetime-local input
         document.getElementById("addEventStart").value = info.startStr.slice(0, 16);
         document.getElementById("addEventEnd").value = info.endStr.slice(0, 16);
         document.getElementById("addEventLocation").value = "";
@@ -170,20 +173,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const saveBtn = document.getElementById("saveNewEvent");
         const cancelBtn = document.getElementById("cancelNewEvent");
-        const closeBtn = modal.querySelector(".close-add-modal");
-        
-        const newSaveBtn = saveBtn.cloneNode(true);
-        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+        const closeBtn = sidebar.querySelector(".close-sidebar");
 
-        const newCancelBtn = cancelBtn.cloneNode(true);
-        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn); 
+        saveBtn.onclick = null;
+        cancelBtn.onclick = null;
+        if (closeBtn) closeBtn.onclick = null;
 
-        if (closeBtn) {
-            const newCloseBtn = closeBtn.cloneNode(true);
-            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+        function closeSidebarAndUnselect() {
+            sidebar.classList.remove("open");
+            calendar.unselect();
+            calendar.refetchEvents();
         }
 
-        document.getElementById("saveNewEvent").onclick = function () {
+        saveBtn.onclick = function () {
             const newEvent = {
                 title: document.getElementById("addEventTitle").value,
                 startTime: document.getElementById("addEventStart").value,
@@ -199,34 +201,111 @@ document.addEventListener('DOMContentLoaded', function () {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newEvent)
             }).then(() => {
-                modal.classList.remove("open");
-                calendar.refetchEvents();
+                closeSidebarAndUnselect();
             });
         };
 
-        document.getElementById("cancelNewEvent").onclick = function () {
-            modal.classList.remove("open");
+        cancelBtn.onclick = closeSidebarAndUnselect;
+        if (closeBtn) closeBtn.onclick = closeSidebarAndUnselect;
+    }
+
+    // --- Edit Event Sidebar ---
+    function openEditEventSidebar(event) {
+        const sidebar = document.getElementById("editEventSidebar");
+        sidebar.classList.add("open");
+
+        document.getElementById("editEventId").value = event.id;
+        document.getElementById("editEventTitle").value = event.title;
+        document.getElementById("editEventStart").value = event.startStr.slice(0, 16);
+        document.getElementById("editEventEnd").value = event.endStr.slice(0, 16);
+        document.getElementById("editEventLocation").value = event.extendedProps.location || "";
+        document.getElementById("editEventColor").value = event.backgroundColor;
+        document.getElementById("editEventType").value = event.extendedProps.type || "custom";
+
+        loadCoursesForDropdown("editEventCourse");
+
+        const saveBtn = document.getElementById("saveEditedEvent");
+        const deleteBtn = document.getElementById("deleteEvent");
+        const cancelBtn = document.getElementById("cancelEditEvent");
+        const closeBtn = sidebar.querySelector(".close-sidebar");
+
+        saveBtn.onclick = null;
+        deleteBtn.onclick = null;
+        cancelBtn.onclick = null;
+        if (closeBtn) closeBtn.onclick = null;
+
+        function closeSidebarAndUnselect() {
+            sidebar.classList.remove("open");
+            calendar.unselect();
             calendar.refetchEvents();
+        }
+
+        saveBtn.onclick = () => {
+            fetch(`/calendar/update/${event.id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: document.getElementById("editEventTitle").value,
+                    startTime: document.getElementById("editEventStart").value,
+                    endTime: document.getElementById("editEventEnd").value,
+                    location: document.getElementById("editEventLocation").value,
+                    color: document.getElementById("editEventColor").value,
+                    type: document.getElementById("editEventType").value
+                })
+            }).then(() => {
+                closeSidebarAndUnselect();
+            });
         };
 
-        const newcloseBtn = modal.querySelector(".close-add-modal");
-        if (closeBtn) {
-            closeBtn.onclick = () => {
-                modal.classList.remove("open");
-                document.removeEventListener("keydown", escHandler);
-                calendar.refetchEvents();
-            };
-        }
+        deleteBtn.onclick = () => {
+            if (confirm("Delete this event? This action cannot be undone.")) {
+                fetch(`/calendar/delete/${event.id}`, { method: "DELETE" }).then(() => {
+                    closeSidebarAndUnselect();
+                });
+            }
+        };
 
-        function escHandler(e) {
-            if (e.key === "Escape") {
-                modal.classList.remove("open");
-                document.removeEventListener("keydown", escHandler);
+        cancelBtn.onclick = closeSidebarAndUnselect;
+        if (closeBtn) closeBtn.onclick = closeSidebarAndUnselect;
+    }
+
+    // Sidebar close helpers for HTML close buttons
+    window.closeAddEventSidebar = function() {
+        document.getElementById("addEventSidebar").classList.remove("open");
+        calendar.unselect();
+        calendar.refetchEvents();
+    };
+    window.closeEditEventSidebar = function() {
+        document.getElementById("editEventSidebar").classList.remove("open");
+        calendar.unselect();
+        calendar.refetchEvents();
+    };
+
+    // --- ESC handler for all sidebars ---
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+            const addEventSidebar = document.getElementById("addEventSidebar");
+            if (addEventSidebar && addEventSidebar.classList.contains("open")) {
+                addEventSidebar.classList.remove("open");
+                calendar.unselect();
                 calendar.refetchEvents();
             }
+            const editEventSidebar = document.getElementById("editEventSidebar");
+            if (editEventSidebar && editEventSidebar.classList.contains("open")) {
+                editEventSidebar.classList.remove("open");
+                calendar.unselect();
+                calendar.refetchEvents();
+            }
+            const editCourseSidebar = document.getElementById("editCourseSidebar");
+            if (editCourseSidebar && editCourseSidebar.classList.contains("open")) {
+                editCourseSidebar.classList.remove("open");
+            }
+            const courseSidebar = document.getElementById("courseSidebar");
+            if (courseSidebar && courseSidebar.classList.contains("open")) {
+                courseSidebar.classList.remove("open");
+            }
         }
-        document.addEventListener("keydown", escHandler);
-    }
+    });
 
     /* --- Event Type Checkboxes --- */
     document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
