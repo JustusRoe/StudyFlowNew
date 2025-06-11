@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const urlParams = new URLSearchParams(window.location.search);
     const courseId = urlParams.get("courseId");
     if (!courseId) {
-        document.getElementById("deadlineCourseInfo").textContent = "No course selected.";
+        // Don't run the rest of the code if no course is selected
         return;
     }
 
