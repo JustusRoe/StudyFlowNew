@@ -168,6 +168,9 @@ public class CourseService {
         List<CalendarEvent> events = eventRepository.findAllById(course.getEventIds());
         course.setResolvedEvents(events);
 
+        // These are now available via getters for the sidebar/modal:
+        // course.getProgressPercent(), course.getSelfStudyHours(), course.getWorkloadTarget(), etc.
+
         return course;
     }
 
@@ -415,5 +418,29 @@ public void addEventToCourse(Long courseId, String title, String description, St
         CalendarEvent saved = eventRepository.save(event);
         course.addEventId(saved.getId());
         courseRepository.save(course);
+    }
+
+    /**
+     * Gibt alle Deadlines eines Kurses als reduzierte Map-Liste für die Tabelle zurück.
+     * Filters by courseId (as String) and isDeadline == true.
+     */
+    public List<Map<String, Object>> getDeadlinesForTable(Long courseId, String userEmail) {
+        Course course = getCourseDetails(courseId, userEmail);
+        String courseIdStr = String.valueOf(courseId);
+        return course.getResolvedEvents().stream()
+            .filter(e -> e.isDeadline() && (
+                // Accept both numeric and string courseId for robustness
+                courseIdStr.equals(e.getCourseId()) || 
+                (e.getCourseId() != null && e.getCourseId().equals(course.getCourseIdentifier()))
+            ))
+            .map(e -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", e.getId());
+                map.put("title", e.getTitle());
+                map.put("startTime", e.getStartTime() != null ? e.getStartTime().toString() : "");
+                map.put("points", e.getPoints());
+                return map;
+            })
+            .toList();
     }
 }

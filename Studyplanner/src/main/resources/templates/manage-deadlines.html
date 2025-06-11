@@ -1,9 +1,121 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Deadlines</title>
+  <title>Manage Deadlines & Plan Self-Study</title>
   <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .section-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .form-row label {
+      min-width: 90px;
+      font-weight: 500;
+    }
+    .form-row input, .form-row select {
+      flex: 1;
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      font-size: 1rem;
+    }
+    .btn {
+      background: #2e3a78;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1.2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #1e2960;
+    }
+    .btn-danger {
+      background: #e74c3c;
+    }
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+    .table-fancy {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: #f9f9f9;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .table-fancy th, .table-fancy td {
+      padding: 0.7rem 0.5rem;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+    }
+    .table-fancy th {
+      background: #f0f4fa;
+      font-weight: 600;
+    }
+    .progress-bar {
+      background: #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 18px;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+    .progress-bar-inner {
+      background: #33e1ed;
+      height: 100%;
+      width: 0%;
+      transition: width 0.5s;
+    }
+    .progress-label {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #222;
+      font-weight: bold;
+      font-size: 0.95em;
+    }
+    .mascot-fish {
+      width: 60px;
+      height: 60px;
+      margin: 0.5rem auto 1rem auto;
+      display: block;
+      transition: transform 0.3s;
+    }
+    .flex-row {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .flex-col {
+      flex: 1;
+      min-width: 320px;
+    }
+    .section-title {
+      margin-bottom: 0.7rem;
+      font-size: 1.2em;
+      font-weight: 600;
+      color: #2e3a78;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
@@ -12,24 +124,92 @@
       <a href="/dashboard">Back to Dashboard</a>
     </div>
   </nav>
-  <main class="content-container">
-    <h1>📅 Manage Deadlines</h1>
-    <div id="deadlineCourseInfo"></div>
-    <button id="addDeadlineBtn">+ Add Deadline</button>
-    <table id="deadlineTable">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Date</th>
-          <th>Points</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Deadlines will be dynamically loaded here -->
-      </tbody>
-    </table>
-  </main>
+  <div class="main-container">
+    <!-- Restore old sidebar layout -->
+    <aside class="sidebar" style="min-width:260px;">
+      <div class="section">
+        <h2>Course Info</h2>
+        <div id="deadlineCourseInfo"></div>
+        <img src="/images/fish-mascot.png" alt="Fish Mascot" class="mascot-fish" id="mascotFish" />
+        <div class="progress-bar">
+          <div class="progress-bar-inner" id="progressBarInner"></div>
+          <span class="progress-label" id="progressLabel"></span>
+        </div>
+      </div>
+      <div class="section">
+        <h2>Actions</h2>
+        <button id="dashboardBtn" class="btn" style="width:100%;margin-bottom:10px;">🏠 Dashboard</button>
+      </div>
+    </aside>
+    <main class="content-container" style="flex:1;">
+      <div class="flex-row">
+        <div class="flex-col section-card">
+          <div class="section-title">Deadlines</div>
+          <form id="deadlineForm" autocomplete="off">
+            <div class="form-row">
+              <label for="deadlineTitle">Title</label>
+              <input type="text" id="deadlineTitle" required autocomplete="off">
+            </div>
+            <div class="form-row">
+              <label for="deadlineDate">Date</label>
+              <input type="datetime-local" id="deadlineDate" required autocomplete="off">
+            </div>
+            <div class="form-row">
+              <label for="deadlinePoints">Points</label>
+              <input type="number" id="deadlinePoints" min="1" value="10" required autocomplete="off">
+            </div>
+            <button type="submit" class="btn">Add Deadline</button>
+            <input type="hidden" id="editingDeadlineId" value="">
+          </form>
+          <table class="table-fancy" id="deadlineTable">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Points</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Deadlines will be dynamically loaded here -->
+            </tbody>
+          </table>
+        </div>
+        <div class="flex-col section-card">
+          <div class="section-title">Plan Self-Study</div>
+          <form id="selfstudyForm" autocomplete="off">
+            <div class="form-row">
+              <label for="selfstudyTitle">Title</label>
+              <input type="text" id="selfstudyTitle" placeholder="Session title" required autocomplete="off">
+            </div>
+            <div class="form-row">
+              <label for="selfstudyDate">Date</label>
+              <input type="datetime-local" id="selfstudyDate" required autocomplete="off">
+            </div>
+            <div class="form-row">
+              <label for="selfstudyDuration">Duration (h)</label>
+              <input type="number" id="selfstudyDuration" min="1" max="8" value="1" required autocomplete="off">
+            </div>
+            <button type="submit" class="btn">Add Session</button>
+          </form>
+          <div style="margin:1rem 0;text-align:center;">
+            <label for="autoDeadlineSelector">Auto Plan for Deadline:</label>
+            <select id="autoDeadlineSelector"></select>
+            <button id="autoPlanBtn" class="btn">⚙️ Auto Plan</button>
+          </div>
+          <div>
+            <div class="section-title" style="margin-top:1.5rem;">Planned Sessions</div>
+            <ul id="sessionList"></ul>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.getElementById("dashboardBtn").onclick = function() {
+      window.location.href = "/dashboard";
+    };
+  </script>
   <script src="/js/manage-deadlines.js"></script>
 </body>
 </html>

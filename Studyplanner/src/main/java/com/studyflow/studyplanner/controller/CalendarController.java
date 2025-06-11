@@ -125,7 +125,15 @@ public class CalendarController {
         }
         event.setCourseId(event.getCourseId());
         event.setCompleted(event.isCompleted());
-        event.setDeadline(event.isDeadline());
+        // Fix: Ensure isDeadline is set correctly from the request (not default false)
+        // If the JSON contains "isDeadline", it will be set by Jackson. But if not, check type:
+        if ("exam".equalsIgnoreCase(event.getType()) || "assignment".equalsIgnoreCase(event.getType())) {
+            // Only override if not explicitly set
+            // If isDeadline is not set (default false), set to true for exam/assignment
+            if (!event.isDeadline()) {
+                event.setDeadline(true);
+            }
+        }
         event.setPoints(event.getPoints());
         event.setGeneratedByEngine(event.isGeneratedByEngine());
         return calendarService.saveEvent(event);

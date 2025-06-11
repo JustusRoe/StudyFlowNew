@@ -502,79 +502,59 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function loadCourses() {
         fetch("/courses/user")
-            .then(response => response.json())
-            .then(courses => {
-                const courseList = document.getElementById("course-list");
-                courseList.innerHTML = "";
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to fetch courses");
+            }
+            return response.json();
+        })
+        .then(courses => {
+            const courseList = document.getElementById("course-list");
+            courseList.innerHTML = "";
 
-                if (!Array.isArray(courses) || courses.length === 0) {
-                    courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
-                    // Auch Dropdown leeren, falls keine Kurse da sind
-                    const dropdown = document.getElementById("courseSelectForActions");
-                    if (dropdown) {
-                        dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
-                    }
-                    return;
-                }
-
-                courses.forEach(course => {
-                    const li = document.createElement("li");
-                    const progress = course.progressPercent ?? 0;
-                    // Set background and text color based on course color
-                    const textColor = getContrastingTextColor(course.color || '#ffffff');
-                    li.style.backgroundColor = course.color || '#eeeeee';
-                    li.style.color = textColor;
-                    li.classList.add('course-item');
-                    li.textContent = `${course.name} – ${progress}% complete`;
-                    li.dataset.id = course.id;
-                    li.style.cursor = "pointer";
-
-                    li.addEventListener("click", () => {
-                        fetch(`/courses/description/${course.id}`)
-                            .then(res => {
-                                if (!res.ok) throw new Error("Failed to fetch course details");
-                                return res.json();
-                            })
-                            .then(data => {
-                                document.getElementById("editCourseName").value = data.name;
-                                document.getElementById("editCourseDescription").value = data.description || "";
-                                document.getElementById("editCourseColor").value = data.color || "#000000";
-                                document.getElementById("editCourseSidebar").classList.add("open");
-                                window.currentCourseId = data.id;
-
-                                const deleteBtn = document.getElementById("deleteCourseButton");
-                                if (deleteBtn) {
-                                    deleteBtn.style.display = "block";
-                                    deleteBtn.onclick = deleteCourse;
-                                }
-
-                                getCourseEvents(data.id);
-                            })
-                            .catch(err => {
-                                console.error("Error loading course details:", err);
-                                alert("Could not load course details.");
-                            });
-                    });
-
-                    courseList.appendChild(li);
-                });
-
-                // Dropdown für zentrale Kursaktionen aktualisieren
+            if (!Array.isArray(courses) || courses.length === 0) {
+                courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
                 const dropdown = document.getElementById("courseSelectForActions");
                 if (dropdown) {
                     dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
-                    courses.forEach(course => {
-                        const option = document.createElement("option");
-                        option.value = course.id;
-                        option.textContent = course.name;
-                        dropdown.appendChild(option);
-                    });
                 }
-            })
-            .catch(error => {
-                console.error("Error loading courses:", error);
-                alert("Could not load courses.");
+                return;
+            }
+
+            courses.forEach(course => {
+                const li = document.createElement("li");
+                const progress = course.progressPercent ?? 0;
+                const textColor = getContrastingTextColor(course.color || '#ffffff');
+                li.style.backgroundColor = course.color || '#eeeeee';
+                li.style.color = textColor;
+                li.classList.add('course-item');
+                li.textContent = `${course.name} – ${progress}% complete`;
+                li.dataset.id = course.id;
+                li.style.cursor = "pointer";
+
+                li.addEventListener("click", () => {
+                    openCourseDetailSidebar(course.id);
+                });
+
+                courseList.appendChild(li);
             });
+
+            // Dropdown für zentrale Kursaktionen aktualisieren
+            const dropdown = document.getElementById("courseSelectForActions");
+            if (dropdown) {
+                dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
+                courses.forEach(course => {
+                    const option = document.createElement("option");
+                    option.value = course.id;
+                    option.textContent = course.name;
+                    dropdown.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error loading courses:", error);
+            alert("Could not load courses.");
+        });
     }
 
     function loadUpcomingEvents() {
@@ -602,51 +582,108 @@ document.addEventListener('DOMContentLoaded', function () {
     // Load all
     loadCourses();
     loadUpcomingEvents();
-});
-    // Add Calendar Event to Course button handler: prompt for title, start, end
-    const addEventToCourseBtn = document.getElementById("addEventToCourseBtn");
-    if (addEventToCourseBtn) {
-        addEventToCourseBtn.addEventListener("click", () => {
-            const courseId = window.currentCourseId;
-            if (!courseId) return;
 
-            const title = prompt("Event Title:", "New Course Event");
-            if (!title) return;
-
-            const now = new Date();
-            const startDefault = now.toISOString().slice(0, 16);
-            const endDefault = new Date(now.getTime() + 60 * 60 * 1000).toISOString().slice(0, 16);
-            const startInput = prompt("Start Time (YYYY-MM-DDTHH:MM)", startDefault);
-            if (!startInput) return;
-
-            const endInput = prompt("End Time (YYYY-MM-DDTHH:MM)", endDefault);
-            if (!endInput) return;
-
-            const newEvent = {
-                title: title,
-                description: "Course-linked event",
-                type: "custom",
-                color: document.getElementById("editCourseColor").value || "#aaaaaa",
-                startTime: startInput,
-                endTime: endInput,
-                courseId: courseId
-            };
-
-            fetch("/courses/events/add", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newEvent)
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to add event to course");
-                return res.json();
-            })
-            .then(() => {
-                getCourseEvents(courseId);
-            })
-            .catch(err => {
-                
+    // --- Course Sidebar/Modal logic ---
+    function openCourseDetailSidebar(courseId) {
+        fetch(`/courses/details/${courseId}`)
+            .then(res => res.json())
+            .then(course => {
+                const sidebar = document.getElementById("courseDetailSidebar");
+                sidebar.querySelector(".course-title").textContent = course.name;
+                sidebar.querySelector(".course-desc").innerHTML = `
+                    <div style="margin-bottom:0.5rem;"><strong>Description:</strong> ${course.description || "-"}</div>
+                    <div style="margin-bottom:0.5rem;"><strong>Difficulty:</strong> ${["Easy", "Medium", "Hard"][course.difficulty - 1] || "Unknown"}</div>
+                    <div style="margin-bottom:0.5rem;"><strong>Self-study:</strong> ${course.selfStudyHours || 0}h of ${course.workloadTarget || 0}h</div>
+                `;
+                sidebar.querySelector(".course-difficulty").style.display = "none";
+                sidebar.querySelector(".course-selfstudy").style.display = "none";
+                sidebar.querySelector(".course-progress-bar-inner").style.width = `${course.progressPercent || 0}%`;
+                sidebar.querySelector(".course-progress-label").textContent = `${course.progressPercent || 0}%`;
+                const fish = sidebar.querySelector(".mascot-fish");
+                fish.style.transform = `scale(${0.7 + (course.progressPercent || 0) / 100 * 1.3})`;
+                sidebar.querySelector(".manage-deadlines-btn").onclick = () => {
+                    window.location.href = `/manage-deadlines?courseId=${courseId}`;
+                };
+                sidebar.querySelector(".plan-selfstudy-btn").onclick = () => {
+                    window.location.href = `/plan-selfstudy?courseId=${courseId}`;
+                };
+                sidebar.classList.add("open");
             });
-        });
-        
     }
+
+    // Attach click handler to course list items after loading courses
+    function loadCourses() {
+        fetch("/courses/user")
+            .then(response => response.json())
+            .then(courses => {
+                const courseList = document.getElementById("course-list");
+                courseList.innerHTML = "";
+
+                if (!Array.isArray(courses) || courses.length === 0) {
+                    courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
+                    const dropdown = document.getElementById("courseSelectForActions");
+                    if (dropdown) {
+                        dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
+                    }
+                    return;
+                }
+
+                courses.forEach(course => {
+                    const li = document.createElement("li");
+                    const progress = course.progressPercent ?? 0;
+                    const textColor = getContrastingTextColor(course.color || '#ffffff');
+                    li.style.backgroundColor = course.color || '#eeeeee';
+                    li.style.color = textColor;
+                    li.classList.add('course-item');
+                    li.textContent = `${course.name} – ${progress}% complete`;
+                    li.dataset.id = course.id;
+                    li.style.cursor = "pointer";
+
+                    li.addEventListener("click", () => {
+                        openCourseDetailSidebar(course.id);
+                    });
+
+                    courseList.appendChild(li);
+                });
+
+                // Dropdown für zentrale Kursaktionen aktualisieren
+                const dropdown = document.getElementById("courseSelectForActions");
+                if (dropdown) {
+                    dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
+                    courses.forEach(course => {
+                        const option = document.createElement("option");
+                        option.value = course.id;
+                        option.textContent = course.name;
+                        dropdown.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error("Error loading courses:", error);
+                alert("Could not load courses.");
+            });
+    }
+
+    // --- Course Detail Sidebar close logic ---
+    window.closeCourseDetailSidebar = function() {
+        document.getElementById("courseDetailSidebar").classList.remove("open");
+    };
+
+    // Optional: Close course detail sidebar on ESC or click outside
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+            const sidebar = document.getElementById("courseDetailSidebar");
+            if (sidebar && sidebar.classList.contains("open")) {
+                sidebar.classList.remove("open");
+            }
+        }
+    });
+    document.addEventListener("mousedown", function(event) {
+        const sidebar = document.getElementById("courseDetailSidebar");
+        if (sidebar && sidebar.classList.contains("open")) {
+            if (event.target === sidebar) {
+                sidebar.classList.remove("open");
+            }
+        }
+    });
+});
