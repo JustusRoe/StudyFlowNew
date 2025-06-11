@@ -53,7 +53,7 @@ public class DeadlineController {
         return courseService.getDeadlines(id, email);
     }
 
-    @PostMapping("/calendar/create")
+    @PostMapping("/deadlines/create")
     @ResponseBody
     public CalendarEvent createDeadline(@RequestBody CalendarEvent event, Principal principal) {
         String email = principal.getName();
@@ -66,7 +66,7 @@ event.setUserId(user.getId());
         return calendarService.saveEvent(event);
     }
 
-    @PostMapping("/calendar/update/{id}")
+    @PostMapping("/deadlines/update/{id}")
     @ResponseBody
     public CalendarEvent updateDeadline(@PathVariable Long id, @RequestBody CalendarEvent updated, Principal principal) {
         CalendarEvent existing = calendarService.findById(id);
@@ -80,7 +80,7 @@ event.setUserId(user.getId());
         return calendarService.saveEvent(existing);
     }
 
-    @DeleteMapping("/calendar/delete/{id}")
+    @DeleteMapping("/deadlines/delete/{id}")
     @ResponseBody
     public ResponseEntity<?> deleteDeadline(@PathVariable Long id) {
         calendarService.deleteEvent(id);
