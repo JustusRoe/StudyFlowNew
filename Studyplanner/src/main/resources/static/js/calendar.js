@@ -131,6 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Add Event Sidebar ---
     function openAddEventSidebar(info) {
+        console.log("Opening add sidebar", info);
         const sidebar = document.getElementById("addEventSidebar");
         sidebar.classList.add("open");
 
@@ -156,6 +157,9 @@ document.addEventListener('DOMContentLoaded', function () {
             sidebar.classList.remove("open");
             calendar.unselect();
             calendar.refetchEvents();
+
+            calendar.setOption('selectable', false);
+            setTimeout(() => calendar.setOption('selectable', true), 0);
         }
 
         saveBtn.onclick = function () {
