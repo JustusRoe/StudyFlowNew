@@ -66,7 +66,7 @@ public class IcsParser {
                 String courseId = summary.substring(summary.indexOf("[") + 1, summary.indexOf("]"));
 
                 // find or creates the course in the DB
-                Optional<Course> optionalCourse = courseRepo.findByCourseIdentifier(courseId);
+                Optional<Course> optionalCourse = courseRepo.findByCourseIDnUser(courseId, user);
 
                 Course course = courseMap.get(courseId);
                 if (course == null) {
@@ -145,10 +145,6 @@ public class IcsParser {
 
     // automatically generates a color from the courseId string
     private static String generateDefaultColor(String input) {
-        int hash = input.hashCode();
-        int r = (hash & 0xFF0000) >> 16;
-        int g = (hash & 0x00FF00) >> 8;
-        int b = hash & 0x0000FF;
-        return String.format("#%02X%02X%02X", r, g, b);
+        return "#AAAAAA";
     }
 }
