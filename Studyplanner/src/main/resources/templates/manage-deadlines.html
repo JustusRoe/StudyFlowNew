@@ -1,0 +1,35 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Deadlines</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand">Studyflow</span>
+    <div class="nav-links">
+      <a href="/dashboard">Back to Dashboard</a>
+    </div>
+  </nav>
+  <main class="content-container">
+    <h1>📅 Manage Deadlines</h1>
+    <div id="deadlineCourseInfo"></div>
+    <button id="addDeadlineBtn">+ Add Deadline</button>
+    <table id="deadlineTable">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Date</th>
+          <th>Points</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Deadlines will be dynamically loaded here -->
+      </tbody>
+    </table>
+  </main>
+  <script src="/js/manage-deadlines.js"></script>
+</body>
+</html>
