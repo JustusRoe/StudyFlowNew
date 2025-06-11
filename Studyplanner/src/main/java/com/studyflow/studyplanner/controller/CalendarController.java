@@ -85,7 +85,7 @@ public class CalendarController {
             json.put("description", event.getDescription());
             json.put("type", event.getType());
             json.put("courseId", event.getCourseId());
-            json.put("completed", event.isCompleted());
+            json.put("completed", event.isCompleted()); // always dynamic
             json.put("isDeadline", event.isDeadline());
             json.put("points", event.getPoints());
             json.put("generatedByEngine", event.isGeneratedByEngine());
@@ -124,7 +124,7 @@ public class CalendarController {
             event.setColor(getColorForEventType(event.getType()));
         }
         event.setCourseId(event.getCourseId());
-        event.setCompleted(event.isCompleted());
+        // Removed: event.setCompleted(event.isCompleted());
         // Fix: Ensure isDeadline is set correctly from the request (not default false)
         // If the JSON contains "isDeadline", it will be set by Jackson. But if not, check type:
         if ("exam".equalsIgnoreCase(event.getType()) || "assignment".equalsIgnoreCase(event.getType())) {
@@ -159,7 +159,7 @@ public class CalendarController {
         existing.setDescription(updated.getDescription());
         existing.setType(updated.getType());
         existing.setCourseId(updated.getCourseId());
-        existing.setCompleted(updated.isCompleted());
+        // Removed: existing.setCompleted(updated.isCompleted());
         existing.setDeadline(updated.isDeadline());
         existing.setPoints(updated.getPoints());
         existing.setGeneratedByEngine(updated.isGeneratedByEngine());

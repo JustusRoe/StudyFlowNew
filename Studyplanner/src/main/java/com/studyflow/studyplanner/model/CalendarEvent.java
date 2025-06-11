@@ -23,7 +23,6 @@ public class CalendarEvent {
     private String description;
 
     private String type;
-    private boolean completed = false;
 
     private String courseId;
 
@@ -106,12 +105,9 @@ public class CalendarEvent {
         this.type = type;
     }
     
+    @Transient
     public boolean isCompleted() {
-    return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
+        return endTime != null && endTime.isBefore(java.time.LocalDateTime.now());
     }
 
     public String getCourseId() {

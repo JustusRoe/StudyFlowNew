@@ -522,8 +522,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             courses.forEach(course => {
+                // Always use backend value for progressPercent
+                const progress = typeof course.progressPercent === "number" ? course.progressPercent : 0;
                 const li = document.createElement("li");
-                const progress = course.progressPercent ?? 0;
                 const textColor = getContrastingTextColor(course.color || '#ffffff');
                 li.style.backgroundColor = course.color || '#eeeeee';
                 li.style.color = textColor;
