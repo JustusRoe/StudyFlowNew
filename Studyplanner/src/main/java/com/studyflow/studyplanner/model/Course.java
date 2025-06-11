@@ -126,6 +126,32 @@ public class Course {
         return (int) Math.round(getProgress() * 100);
     }
 
+    @JsonProperty("selfStudyHours")
+    @Transient
+    public int getSelfStudyHours() {
+        return resolvedEvents.stream()
+            .filter(e -> "self-study".equalsIgnoreCase(e.getType()))
+            .mapToInt(CalendarEvent::getDurationInHours)
+            .sum();
+    }
+
+    @JsonProperty("workloadTarget")
+    @Transient
+    public int getWorkloadTarget() {
+        return switch (difficulty) {
+            case 1 -> 120; // leicht
+            case 2 -> 150; // mittel
+            case 3 -> 180; // schwer
+            default -> 150; // fallback
+        };
+    }
+
+    // Optional: For gamification/fish mascot scaling
+    @JsonProperty("progressFraction")
+    @Transient
+    public double getProgressFraction() {
+        return getProgress();
+    }
 
     public String getDescription() {
         return description;
@@ -142,21 +168,4 @@ public class Course {
     public void setDifficulty(int difficulty) {
         this.difficulty = difficulty;
     }
-
-    @Transient
-    public int getSelfStudyHours() {
-        return resolvedEvents.stream()
-            .filter(e -> "self-study".equalsIgnoreCase(e.getType()))
-            .mapToInt(CalendarEvent::getDurationInHours)
-            .sum();
-    }
-
-    @Transient
-    public int getWorkloadTarget() {
-        return switch (difficulty) {
-            case 1 -> 120; // leicht
-            case 2 -> 150; // mittel
-            case 3 -> 180; // schwer
-            default -> 150; // fallback
-        };
-    }}
+}
