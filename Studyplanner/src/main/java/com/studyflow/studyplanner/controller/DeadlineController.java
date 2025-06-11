@@ -29,26 +29,37 @@ public class DeadlineController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("/deadlines")
-    public String showDeadlinesPage(@RequestParam("courseId") Long courseId, Principal principal, Model model) {
+    // Serve the manage-deadlines page (HTML)
+    @GetMapping("/manage-deadlines")
+    public String showManageDeadlinesPage(@RequestParam(value = "courseId", required = false) Long courseId, Principal principal, Model model) {
+        if (courseId == null) {
+            // No course selected, redirect to dashboard or show a message
+            model.addAttribute("error", "Please select a course first.");
+            return "redirect:/dashboard";
+        }
         String email = principal.getName();
         Course course = courseService.getCourseDetails(courseId, email);
         List<CalendarEvent> deadlines = courseService.getDeadlines(courseId, email);
 
         model.addAttribute("course", course);
         model.addAttribute("deadlines", deadlines);
-        return "deadlines";
+        return "manage-deadlines";
     }
 
-    @GetMapping("/selfstudy")
-    public String showSelfstudyPage(@RequestParam("courseId") Long courseId, Principal principal, Model model) {
+    // Serve the plan-selfstudy page (HTML)
+    @GetMapping("/plan-selfstudy")
+    public String showPlanSelfstudyPage(@RequestParam(value = "courseId", required = false) Long courseId, Principal principal, Model model) {
+        if (courseId == null) {
+            model.addAttribute("error", "Please select a course first.");
+            return "redirect:/dashboard";
+        }
         String email = principal.getName();
         Course course = courseService.getCourseDetails(courseId, email);
         List<CalendarEvent> selfstudyEvents = calendarService.getUserEventsByType(course.getUser().getId(), "selfstudy");
 
         model.addAttribute("course", course);
         model.addAttribute("selfstudyEvents", selfstudyEvents);
-        return "selfstudy";
+        return "plan-selfstudy";
     }
 
     @GetMapping("/api/courses/{id}/deadlines")

@@ -97,7 +97,7 @@
         <h2>Course Tools</h2>
         <label for="courseSelectForActions">Select Course:</label>
         <select id="courseSelectForActions">
-          <option value="" disabled selected>Select a course</option>
+          <option value="" disabled selected>Select course</option>
           <!-- dynamically filled -->
         </select>
 
@@ -233,5 +233,38 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
+  <script>
+    // Enable/disable and handle Manage Deadlines / Plan Self-Study buttons
+    document.addEventListener('DOMContentLoaded', function () {
+      const courseSelect = document.getElementById("courseSelectForActions");
+      const manageDeadlinesBtn = document.getElementById("manage-deadlines-btn");
+      const planSelfstudyBtn = document.getElementById("plan-selfstudy-btn");
+
+      function updateCourseActionButtons() {
+        const selected = !!courseSelect.value;
+        manageDeadlinesBtn.disabled = !selected;
+        planSelfstudyBtn.disabled = !selected;
+      }
+
+      if (courseSelect && manageDeadlinesBtn && planSelfstudyBtn) {
+        courseSelect.addEventListener("change", updateCourseActionButtons);
+        updateCourseActionButtons();
+
+        manageDeadlinesBtn.addEventListener("click", function () {
+          const courseId = courseSelect.value;
+          if (courseId) {
+            window.location.href = `/manage-deadlines?courseId=${courseId}`;
+          }
+        });
+
+        planSelfstudyBtn.addEventListener("click", function () {
+          const courseId = courseSelect.value;
+          if (courseId) {
+            window.location.href = `/plan-selfstudy?courseId=${courseId}`;
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

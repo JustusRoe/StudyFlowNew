@@ -46,33 +46,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
     let currentCourseFilter = "";
 
-    // Enable Manage Deadlines and Plan Self-Study buttons when a course is selected
-    const courseSelect = document.getElementById("courseSelectForActions");
-    const manageDeadlinesBtn = document.getElementById("manage-deadlines-btn");
-    const planSelfstudyBtn = document.getElementById("plan-selfstudy-btn");
-
-    if (courseSelect && manageDeadlinesBtn && planSelfstudyBtn) {
-        courseSelect.addEventListener("change", function () {
-            const selected = !!courseSelect.value;
-            manageDeadlinesBtn.disabled = !selected;
-            planSelfstudyBtn.disabled = !selected;
-        });
-
-        manageDeadlinesBtn.addEventListener("click", function () {
-            const courseId = courseSelect.value;
-            if (courseId) {
-                window.location.href = `/manage-deadlines?courseId=${courseId}`;
-            }
-        });
-
-        planSelfstudyBtn.addEventListener("click", function () {
-            const courseId = courseSelect.value;
-            if (courseId) {
-                window.location.href = `/plan-selfstudy?courseId=${courseId}`;
-            }
-        });
-    }
-
     /* --- Initialize FullCalendar --- */
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -539,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Auch Dropdown leeren, falls keine Kurse da sind
                     const dropdown = document.getElementById("courseSelectForActions");
                     if (dropdown) {
-                        dropdown.innerHTML = "";
+                        dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
                     }
                     return;
                 }
@@ -589,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Dropdown für zentrale Kursaktionen aktualisieren
                 const dropdown = document.getElementById("courseSelectForActions");
                 if (dropdown) {
-                    dropdown.innerHTML = "";
+                    dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
                     courses.forEach(course => {
                         const option = document.createElement("option");
                         option.value = course.id;
