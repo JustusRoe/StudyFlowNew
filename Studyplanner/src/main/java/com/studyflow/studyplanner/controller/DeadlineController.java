@@ -32,9 +32,8 @@ public class DeadlineController {
     @GetMapping("/manage-deadlines")
     public String showManageDeadlinesPage(@RequestParam(value = "courseId", required = false) Long courseId, Principal principal, Model model) {
         if (courseId == null) {
-            // No course selected, redirect to dashboard or show a message
-            model.addAttribute("error", "Please select a course first.");
-            return "redirect:/dashboard";
+            // No course selected, just render the page with course selection
+            return "manage-deadlines";
         }
         String email = principal.getName();
         Course course = courseService.getCourseDetails(courseId, email);
