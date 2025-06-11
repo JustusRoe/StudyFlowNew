@@ -94,6 +94,19 @@ public class CourseController {
     }
 
     /**
+     * Gibt Kursdetails inkl. Fortschritt und Self-Study-Infos für die Sidebar zurück.
+     */
+    @GetMapping("/details/{id}")
+    public ResponseEntity<Course> getCourseDetails(@PathVariable Long id, Principal principal) {
+        String email = principal.getName();
+        Course course = courseService.getCourseDetails(id, email);
+        if (course == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(course);
+    }
+
+    /**
      * Löscht einen Kurs anhand der ID, wenn er dem eingeloggten Nutzer gehört.
      */
     @DeleteMapping("/delete/{id}")

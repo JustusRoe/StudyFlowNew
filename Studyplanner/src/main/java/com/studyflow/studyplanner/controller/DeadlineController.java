@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class DeadlineController {
@@ -48,22 +50,39 @@ public class DeadlineController {
 
     @GetMapping("/api/courses/{id}/deadlines")
     @ResponseBody
-    public List<CalendarEvent> getCourseDeadlines(@PathVariable Long id, Principal principal) {
+    public List<Map<String, Object>> getCourseDeadlines(@PathVariable Long id, Principal principal) {
         String email = principal.getName();
-        return courseService.getDeadlines(id, email);
+        // Nutze die Service-Methode, die alle Deadlines für den Kurs liefert
+        List<CalendarEvent> deadlines = courseService.getDeadlines(id, email);
+        return deadlines.stream()
+            .map(ev -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", ev.getId());
+                map.put("title", ev.getTitle());
+                map.put("startTime", ev.getStartTime() != null ? ev.getStartTime().toString() : "");
+                map.put("points", ev.getPoints());
+                return map;
+            })
+            .toList();
     }
 
     @PostMapping("/deadlines/create")
     @ResponseBody
-    public CalendarEvent createDeadline(@RequestBody CalendarEvent event, Principal principal) {
+    public CalendarEvent createDeadline(@RequestBody CalendarEvent event, @RequestParam Long courseId, Principal principal) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email);
-if (user == null) {
-    throw new RuntimeException("User not found");
-}
-event.setUserId(user.getId());
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        event.setUserId(user.getId());
         event.setDeadline(true);
-        return calendarService.saveEvent(event);
+        event.setCourseId(String.valueOf(courseId));
+        CalendarEvent saved = calendarService.saveEvent(event);
+
+        // Event dem Kurs hinzufügen!
+        courseService.addEventToCourse(courseId, saved.getId());
+
+        return saved;
     }
 
     @PostMapping("/deadlines/update/{id}")
@@ -86,4 +105,6 @@ event.setUserId(user.getId());
         calendarService.deleteEvent(id);
         return ResponseEntity.ok().build();
     }
+
+   
 }

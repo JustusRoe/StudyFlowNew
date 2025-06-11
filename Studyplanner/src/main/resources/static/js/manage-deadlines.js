@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     };
                     tr.querySelector(".delete-btn").onclick = () => {
                         if (confirm("Delete this deadline?")) {
-                            fetch(`/calendar/delete/${dl.id}`, { method: "DELETE" })
+                            fetch(`/deadlines/delete/${dl.id}`, { method: "DELETE" })
                                 .then(() => loadDeadlines());
                         }
                     };
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!title || !date || !points) return;
 
-        // Use a default duration of 1 hour for deadlines (can be adjusted as needed)
+        // Default: 1 Stunde Dauer
         const startTime = date;
         const endTime = (() => {
             const d = new Date(date);
@@ -103,43 +103,30 @@ document.addEventListener("DOMContentLoaded", function () {
             endTime,
             type: "exam",
             color: "#DB4437",
-            courseId,
             isDeadline: true,
             points
         };
 
-        if (editingId) {
-            // Update
-            fetch(`/calendar/update/${editingId}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                document.getElementById("deadlineForm").reset();
-                document.getElementById("editingDeadlineId").value = "";
-                loadDeadlines();
-            });
-        } else {
-            // Create
-            fetch("/calendar/create", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.text().then(text => { throw new Error(text); });
-                }
-                return res.json();
-            })
-            .then(() => {
-                document.getElementById("deadlineForm").reset();
-                loadDeadlines();
-            })
-            .catch(err => {
-                alert("Failed to add deadline: " + err.message);
-            });
-        }
+        // courseId aus URL holen
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get("courseId");
+
+        // KORREKT: courseId als Query-Parameter mitsenden!
+        fetch(`/deadlines/create?courseId=${courseId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to create deadline");
+            return res.json();
+        })
+        .then(() => {
+            // Nach dem Erstellen neu laden
+            loadDeadlines();
+            document.getElementById("deadlineForm").reset();
+        })
+        .catch(err => alert("Fehler beim Erstellen der Deadline: " + err.message));
     };
 
     // --- Self-study sessions ---

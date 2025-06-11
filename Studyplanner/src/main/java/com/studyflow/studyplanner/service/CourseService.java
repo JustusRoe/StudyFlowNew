@@ -381,11 +381,16 @@ public void addEventToCourse(Long courseId, String title, String description, St
         courseRepository.save(course);
     }
 
+    /**
+     * Gibt alle Deadlines eines Kurses für den eingeloggten Benutzer zurück.
+     * Nur Events mit isDeadline == true und courseId passend zum Kurs.
+     */
     public List<CalendarEvent> getDeadlines(Long courseId, String userEmail) {
         Course course = getCourseDetails(courseId, userEmail);
+        String courseIdStr = String.valueOf(courseId);
         return course.getResolvedEvents().stream()
-                .filter(CalendarEvent::isDeadline)
-                .toList();
+            .filter(e -> e.isDeadline() && e.getCourseId() != null && e.getCourseId().equals(courseIdStr))
+            .toList();
     }
 
     public Map<String, Object> getProgressInfo(Long courseId, String userEmail) {
