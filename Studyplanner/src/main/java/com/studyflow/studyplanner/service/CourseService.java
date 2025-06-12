@@ -335,47 +335,69 @@ public void addEventToCourse(Long courseId, String title, String description, St
         int lectureHours = 33;
         int remainingWorkload = workloadTotal - lectureHours;
 
-        int totalPoints = events.stream()
-                .filter(CalendarEvent::isDeadline)
-                .mapToInt(CalendarEvent::getPoints)
-                .sum();
-
-        if (totalPoints == 0) {
-            throw new RuntimeException("No points found for deadlines");
-        }
+        // Gesamtpunkte für Deadlines sind immer 120
+        int totalPoints = 120;
 
         double share = (double) deadline.getPoints() / totalPoints;
         int targetHours = (int) Math.round(remainingWorkload * share);
 
         List<CalendarEvent> allUserEvents = eventRepository.findByUserId(user.getId());
 
+        // --- Anpassung: StudyStart berücksichtigen ---
+        LocalDateTime studyStart = deadline.getStudyStart() != null ? deadline.getStudyStart() : LocalDateTime.now();
+        LocalDateTime studyEnd = deadline.getStartTime();
+
+        // Alle freien Slots im Zeitraum [studyStart, studyEnd)
+        List<TimeSlot> freeSlots = calculateFreeSlots(user, allUserEvents, studyStart, studyEnd.minusMinutes(1));
+
+        // Sessions gleichmäßig verteilen
+        int sessionsNeeded = (int) Math.ceil(targetHours / 2.0); // max 2h pro Session
+        int hoursLeft = targetHours;
         int planned = 0;
-        List<TimeSlot> freeSlots = calculateFreeSlots(user, allUserEvents, LocalDateTime.now(), deadline.getStartTime());
 
+        // Flache Liste aller möglichen Stunden-Slots in den freien Zeitfenstern
+        List<LocalDateTime> possibleStarts = new ArrayList<>();
         for (TimeSlot slot : freeSlots) {
-            if (planned >= targetHours) break;
+            LocalDateTime slotStart = slot.start();
+            while (slotStart.plusHours(1).isBefore(slot.end()) || slotStart.plusHours(1).equals(slot.end())) {
+                if (!slotStart.plusHours(1).isAfter(studyEnd)) {
+                    possibleStarts.add(slotStart);
+                }
+                slotStart = slotStart.plusHours(1);
+            }
+        }
 
-            int slotDuration = (int) java.time.Duration.between(slot.start(), slot.end()).toHours();
-            if (slotDuration < 1) continue;
-
-            int duration = Math.min(2, targetHours - planned); // max 2h per session
+        // Gleichmäßig verteilen
+        int interval = possibleStarts.size() >= sessionsNeeded ? possibleStarts.size() / sessionsNeeded : 1;
+        int used = 0;
+        for (int i = 0; i < possibleStarts.size() && planned < targetHours; i += interval) {
+            LocalDateTime sessionStart = possibleStarts.get(i);
+            int duration = Math.min(2, targetHours - planned);
+            LocalDateTime sessionEnd = sessionStart.plusHours(duration);
+            if (sessionEnd.isAfter(studyEnd)) {
+                sessionEnd = studyEnd;
+                duration = (int) java.time.Duration.between(sessionStart, sessionEnd).toHours();
+                if (duration <= 0) continue;
+            }
 
             CalendarEvent session = new CalendarEvent();
             session.setTitle("📖 Selfstudy for " + deadline.getTitle());
-            session.setStartTime(slot.start());
-            session.setEndTime(slot.start().plusHours(duration));
+            session.setStartTime(sessionStart);
+            session.setEndTime(sessionEnd);
             session.setUserId(user.getId());
             session.setColor(course.getColor());
             session.setType("self-study");
             session.setDescription("Auto-planned session");
             session.setCourseId(course.getId().toString());
             session.setGeneratedByEngine(true);
+            session.setRelatedDeadlineId(deadlineId);
 
             CalendarEvent saved = eventRepository.save(session);
             course.addEventId(saved.getId());
 
             planned += duration;
-            allUserEvents.add(saved);
+            used++;
+            if (used >= sessionsNeeded) break;
         }
 
         courseRepository.save(course);
@@ -447,5 +469,20 @@ public void addEventToCourse(Long courseId, String title, String description, St
                 return map;
             })
             .toList();
+    }
+
+    /**
+     * Löscht alle Self-Study-Sessions, die zu einer bestimmten Deadline gehören.
+     */
+    @Transactional
+    public void deleteSelfStudySessionsForDeadline(Long deadlineId) {
+        List<CalendarEvent> toDelete = eventRepository.findAll().stream()
+            .filter(e -> "self-study".equalsIgnoreCase(e.getType()))
+            .filter(e -> e.getRelatedDeadlineId() != null && e.getRelatedDeadlineId().equals(deadlineId))
+            .toList();
+
+        for (CalendarEvent ev : toDelete) {
+            eventRepository.deleteById(ev.getId());
+        }
     }
 }

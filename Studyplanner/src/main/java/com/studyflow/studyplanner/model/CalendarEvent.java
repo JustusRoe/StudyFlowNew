@@ -33,6 +33,12 @@ public class CalendarEvent {
     private int points = 0;
     private boolean generatedByEngine = false;
 
+    // Verknüpfung zu Deadline (optional, für Self-Study-Sessions)
+    private Long relatedDeadlineId;
+
+    // Startzeitpunkt für das Lernen zu dieser Deadline
+    private LocalDateTime studyStart;
+
     public CalendarEvent() {}
 
     public CalendarEvent(String title, LocalDateTime start, LocalDateTime end, Long userId) {
@@ -151,6 +157,22 @@ public class CalendarEvent {
 
     public void setGeneratedByEngine(boolean generatedByEngine) {
         this.generatedByEngine = generatedByEngine;
+    }
+
+    public Long getRelatedDeadlineId() {
+        return relatedDeadlineId;
+    }
+
+    public void setRelatedDeadlineId(Long relatedDeadlineId) {
+        this.relatedDeadlineId = relatedDeadlineId;
+    }
+
+    public LocalDateTime getStudyStart() {
+        return studyStart;
+    }
+
+    public void setStudyStart(LocalDateTime studyStart) {
+        this.studyStart = studyStart;
     }
 
     public int getDurationInHours() {

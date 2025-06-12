@@ -56,6 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         document.getElementById("deadlineDate").value = (dl.startTime || "").slice(0,16);
                         document.getElementById("deadlinePoints").value = dl.points ?? "";
                         document.getElementById("editingDeadlineId").value = dl.id;
+                        // StudyStart kann hier ggf. gesetzt werden, falls editierbar
                     };
                     tr.querySelector(".delete-btn").onclick = () => {
                         if (confirm("Delete this deadline?")) {
@@ -85,33 +86,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const title = document.getElementById("deadlineTitle").value.trim();
         const date = document.getElementById("deadlineDate").value;
         const points = parseInt(document.getElementById("deadlinePoints").value, 10);
+        const studyStart = document.getElementById("deadlineStudyStart").value; // neues Feld
         const editingId = document.getElementById("editingDeadlineId").value;
 
-        if (!title || !date || !points) return;
+        if (!title || !date || !points || !studyStart) return;
 
-        // Default: 1 Stunde Dauer
+        // Start- und Endzeitpunkt identisch
         const startTime = date;
-        const endTime = (() => {
-            const d = new Date(date);
-            d.setHours(d.getHours() + 1);
-            return d.toISOString().slice(0, 16);
-        })();
+        const endTime = date;
 
         const payload = {
             title,
             startTime,
             endTime,
             type: "exam",
-            color: "#DB4437",
             isDeadline: true,
-            points
+            points,
+            studyStart // neues Feld
         };
 
         // courseId aus URL holen
         const urlParams = new URLSearchParams(window.location.search);
         const courseId = urlParams.get("courseId");
 
-        // KORREKT: courseId als Query-Parameter mitsenden!
         fetch(`/deadlines/create?courseId=${courseId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -122,7 +119,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return res.json();
         })
         .then(() => {
-            // Nach dem Erstellen neu laden
             loadDeadlines();
             document.getElementById("deadlineForm").reset();
         })

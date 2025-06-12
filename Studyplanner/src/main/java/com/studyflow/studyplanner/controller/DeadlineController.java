@@ -68,15 +68,28 @@ public class DeadlineController {
 
     @PostMapping("/deadlines/create")
     @ResponseBody
-    public CalendarEvent createDeadline(@RequestBody CalendarEvent event, @RequestParam Long courseId, Principal principal) {
+    public CalendarEvent createDeadline(@RequestBody Map<String, Object> payload, @RequestParam Long courseId, Principal principal) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email);
         if (user == null) {
             throw new RuntimeException("User not found");
         }
-        event.setUserId(user.getId());
+        CalendarEvent event = new CalendarEvent();
+        event.setTitle((String) payload.get("title"));
+        event.setStartTime(java.time.LocalDateTime.parse((String) payload.get("startTime")));
+        event.setEndTime(java.time.LocalDateTime.parse((String) payload.get("endTime")));
+        event.setType((String) payload.get("type"));
         event.setDeadline(true);
+        event.setPoints((Integer) payload.get("points"));
+        event.setUserId(user.getId());
         event.setCourseId(String.valueOf(courseId));
+        // StudyStart setzen
+        if (payload.get("studyStart") != null) {
+            event.setStudyStart(java.time.LocalDateTime.parse((String) payload.get("studyStart")));
+        }
+        // Kursfarbe setzen
+        Course course = courseService.getById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+        event.setColor(course.getColor());
         CalendarEvent saved = calendarService.saveEvent(event);
 
         // Event dem Kurs hinzufügen!
@@ -102,9 +115,50 @@ public class DeadlineController {
     @DeleteMapping("/deadlines/delete/{id}")
     @ResponseBody
     public ResponseEntity<?> deleteDeadline(@PathVariable Long id) {
+        // Zuerst alle zugehörigen Self-Study-Sessions löschen
+        courseService.deleteSelfStudySessionsForDeadline(id);
         calendarService.deleteEvent(id);
         return ResponseEntity.ok().build();
     }
 
-   
+    // --- Selfstudy API ---
+
+    @GetMapping("/api/courses/{courseId}/selfstudy")
+    @ResponseBody
+    public List<Map<String, Object>> getSelfstudySessions(@PathVariable Long courseId, Principal principal) {
+        String email = principal.getName();
+        List<CalendarEvent> events = courseService.getCourseEvents(courseId, email);
+        return events.stream()
+            .filter(e -> "self-study".equalsIgnoreCase(e.getType()))
+            .map(e -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", e.getId());
+                map.put("title", e.getTitle());
+                map.put("startTime", e.getStartTime() != null ? e.getStartTime().toString() : "");
+                map.put("endTime", e.getEndTime() != null ? e.getEndTime().toString() : "");
+                return map;
+            })
+            .toList();
+    }
+
+    @PostMapping("/courses/{courseId}/add-selfstudy")
+    @ResponseBody
+    public ResponseEntity<?> addManualSelfstudySession(
+            @PathVariable Long courseId,
+            @RequestBody Map<String, Object> payload,
+            Principal principal) {
+        String email = principal.getName();
+        String title = (String) payload.get("title");
+        String description = (String) payload.getOrDefault("description", "Manual self-study session");
+        String color = (String) payload.getOrDefault("color", "#F4B400");
+        String startTimeStr = (String) payload.get("startTime");
+        String endTimeStr = (String) payload.get("endTime");
+
+        java.time.LocalDateTime startTime = java.time.LocalDateTime.parse(startTimeStr);
+        java.time.LocalDateTime endTime = java.time.LocalDateTime.parse(endTimeStr);
+
+        courseService.addManualSelfstudySession(courseId, title, description, color, startTime, endTime, email);
+        return ResponseEntity.ok().build();
+    }
+
 }
