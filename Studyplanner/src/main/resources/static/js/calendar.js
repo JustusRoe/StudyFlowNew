@@ -163,12 +163,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         saveBtn.onclick = function () {
+            const title = document.getElementById("addEventTitle").value.trim();
+            const startTime = document.getElementById("addEventStart").value;
+            const type = document.getElementById("addEventType").value;
+
+            if (!title || !startTime || !type) {
+                alert("Please fill in all required fields: Title, Start Time, and Type.");
+                return;
+            }
+
             const newEvent = {
-                title: document.getElementById("addEventTitle").value,
-                startTime: document.getElementById("addEventStart").value,
+                title: title,
+                startTime: startTime,
                 endTime: document.getElementById("addEventEnd").value,
                 location: document.getElementById("addEventLocation").value,
-                type: document.getElementById("addEventType").value,
+                type: type,
                 color: document.getElementById("addEventColor").value,
                 courseId: document.getElementById("addEventCourse").value || null
             };
@@ -218,16 +227,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         saveBtn.onclick = () => {
+            const title = document.getElementById("addEventTitle").value.trim();
+            const startTime = document.getElementById("addEventStart").value;
+            const type = document.getElementById("addEventType").value;
+
+            if (!title || !startTime || !type) {
+                alert("Please fill in all required fields: Title, Start Time, and Type.");
+                return;
+            }
+
             fetch(`/calendar/update/${event.id}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    title: document.getElementById("editEventTitle").value,
-                    startTime: document.getElementById("editEventStart").value,
+                    title: title,
+                    startTime: startTime,
                     endTime: document.getElementById("editEventEnd").value,
                     location: document.getElementById("editEventLocation").value,
                     color: document.getElementById("editEventColor").value,
-                    type: document.getElementById("editEventType").value
+                    type: type
                 })
             }).then(() => {
                 closeSidebarAndUnselect();
