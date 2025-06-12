@@ -269,51 +269,60 @@
     <span class="close-sidebar" onclick="closeEditSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
     <h2>Edit Course</h2>
     <div class="sidebar-tabs">
-      <button class="tab-btn active" data-tab="overview">Overview</button>
-      <button class="tab-btn" data-tab="deadlines">Deadlines</button>
-      <button class="tab-btn" data-tab="lectures">Lectures</button>
-      <button class="tab-btn" data-tab="settings">Settings</button>
+      <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
+      <button class="tab-btn" data-tab="deadlines" type="button">Deadlines</button>
+      <button class="tab-btn" data-tab="lectures" type="button">Lectures</button>
+      <button class="tab-btn" data-tab="settings" type="button">Settings</button>
     </div>
-    <div class="tab-content" id="tab-overview">
-      <div class="form-row">
-        <label for="editCourseName">Title</label>
-        <input type="text" id="editCourseName" />
-      </div>
-      <div class="form-row">
-        <label for="editCourseColor">Color</label>
-        <input type="color" id="editCourseColor" style="width:40px; height:40px; padding:0; border:none;" />
-      </div>
-      <div class="form-row">
-        <label for="editCourseDifficulty">Difficulty</label>
-        <select id="editCourseDifficulty">
-          <option value="1">Easy</option>
-          <option value="2">Medium</option>
-          <option value="3">Hard</option>
-        </select>
-      </div>
-      <div class="progress-section">
-        <label>Progress</label>
-        <div class="progress-bar">
-          <div class="progress-bar-inner" id="editCourseProgressBar"></div>
-          <span class="progress-label" id="editCourseProgressLabel"></span>
+    <!-- Overview Tab: Only show info, no editing -->
+    <div class="tab-content" id="tab-overview" style="display: block;">
+      <div style="margin-bottom:1rem;">
+        <strong>Course Name:</strong> <span id="overviewCourseName"></span><br>
+        <strong>Color:</strong> <span id="overviewCourseColorBox" style="display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:middle;"></span>
+        <span id="overviewCourseColor"></span><br>
+        <strong>Difficulty:</strong> <span id="overviewCourseDifficulty"></span><br>
+        <strong>Progress:</strong>
+        <div class="progress-bar" style="margin:0.5rem 0;">
+          <div class="progress-bar-inner" id="overviewCourseProgressBar"></div>
+          <span class="progress-label" id="overviewCourseProgressLabel"></span>
         </div>
+        <div id="overviewCourseStats" style="color:#2e3a78; font-size:0.98em;"></div>
       </div>
-      <div id="editCourseStats" style="margin-bottom:1rem; color:#2e3a78; font-size:0.98em;"></div>
-      <button onclick="updateCourse()" class="btn">Update</button>
-      <button onclick="closeEditSidebar()" class="btn btn-secondary">Cancel</button>
-      <button id="deleteCourseButton" class="btn btn-danger" style="margin-top: 1rem; display: none;">
-        Delete Course
-      </button>
     </div>
-    <div class="tab-content" id="tab-deadlines" style="display:none;">
+    <!-- Deadlines Tab: List deadlines in a table -->
+    <div class="tab-content" id="tab-deadlines" style="display: none;">
       <h3>Deadlines</h3>
-      <ul id="editCourseDeadlinesList" class="sidebar-list"></ul>
+      <table class="table-fancy" id="deadlinesTable" style="width:100%;margin-top:1rem;">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
     </div>
-    <div class="tab-content" id="tab-lectures" style="display:none;">
+    <!-- Lectures Tab: List lectures in a table -->
+    <div class="tab-content" id="tab-lectures" style="display: none;">
       <h3>Lectures</h3>
-      <ul id="editCourseLecturesList" class="sidebar-list"></ul>
+      <table class="table-fancy" id="lecturesTable" style="width:100%;margin-top:1rem;">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Start</th>
+            <th>End</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
     </div>
-    <div class="tab-content" id="tab-settings" style="display:none;">
+    <!-- Settings Tab: Only here editing is possible -->
+    <div class="tab-content" id="tab-settings" style="display: none;">
       <h3>Course Settings</h3>
       <form id="editCourseSettingsForm" autocomplete="off">
         <div class="form-row">
@@ -334,6 +343,9 @@
         </div>
         <button type="button" onclick="saveCourseSettings()" class="btn">Save Settings</button>
       </form>
+      <button id="deleteCourseButton" class="btn btn-danger" style="margin-top: 1rem; display: none;">
+        Delete Course
+      </button>
     </div>
   </div>
 </div>
@@ -447,6 +459,113 @@
         });
       });
     });
+  </script>
+  <script>
+  // Sidebar tab switching logic for edit course sidebar
+  document.addEventListener("DOMContentLoaded", function () {
+    const tabBtns = document.querySelectorAll('.sidebar-tabs .tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', function () {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(tab => tab.style.display = "none");
+        this.classList.add('active');
+        const tabId = 'tab-' + this.dataset.tab;
+        const tabContent = document.getElementById(tabId);
+        if (tabContent) tabContent.style.display = "block";
+        // Sync settings tab values if needed
+        if (this.dataset.tab === "settings") {
+          document.getElementById("editCourseNameSettings").value = document.getElementById("editCourseName").value;
+          document.getElementById("editCourseColorSettings").value = document.getElementById("editCourseColor").value;
+          document.getElementById("editCourseDifficultySettings").value = document.getElementById("editCourseDifficulty").value;
+        }
+        // Sync overview tab values if needed
+        if (this.dataset.tab === "overview") {
+          const name = document.getElementById("editCourseName").value;
+          const color = document.getElementById("editCourseColor").value;
+          const difficulty = document.getElementById("editCourseDifficulty").options[document.getElementById("editCourseDifficulty").selectedIndex].text;
+          const progress = document.getElementById("editCourseProgressBar").style.width;
+          const progressLabel = document.getElementById("editCourseProgressLabel").textContent;
+          document.getElementById("overviewCourseName").textContent = name;
+          document.getElementById("overviewCourseColorBox").style.background = color;
+          document.getElementById("overviewCourseColor").textContent = color;
+          document.getElementById("overviewCourseDifficulty").textContent = difficulty;
+          document.getElementById("overviewCourseProgressBar").style.width = progress;
+          document.getElementById("overviewCourseProgressLabel").textContent = progressLabel;
+          document.getElementById("overviewCourseStats").innerHTML = document.getElementById("editCourseStats").innerHTML;
+        }
+        // Fetch and render deadlines table
+        if (this.dataset.tab === "deadlines") {
+          const courseId = window.currentCourseId;
+          fetch(`/api/courses/${courseId}/deadlines`)
+            .then(res => res.json())
+            .then(deadlines => {
+              const tbody = document.querySelector("#deadlinesTable tbody");
+              tbody.innerHTML = "";
+              if (!Array.isArray(deadlines) || deadlines.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='3'>No deadlines yet.</td></tr>";
+                return;
+              }
+              deadlines.forEach(dl => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${dl.title}</td>
+                  <td>${(dl.startTime || "").slice(0,16).replace("T", " ")}</td>
+                  <td>${dl.points ?? ""}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            });
+        }
+        // Fetch and render lectures table
+        if (this.dataset.tab === "lectures") {
+          const courseId = window.currentCourseId;
+          fetch(`/courses/events/${courseId}`)
+            .then(res => res.json())
+            .then(events => {
+              const tbody = document.querySelector("#lecturesTable tbody");
+              tbody.innerHTML = "";
+              if (!Array.isArray(events) || events.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='3'>No lectures yet.</td></tr>";
+                return;
+              }
+              events.filter(ev => ev.type && ev.type.toLowerCase() === "lecture").forEach(ev => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${ev.title}</td>
+                  <td>${(ev.startTime || "").slice(0,16).replace("T", " ")}</td>
+                  <td>${(ev.endTime || "").slice(0,16).replace("T", " ")}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            });
+        }
+      });
+    });
+
+    // Initial sync for overview tab on sidebar open
+    function syncOverviewTab() {
+      const name = document.getElementById("editCourseName").value;
+      const color = document.getElementById("editCourseColor").value;
+      const difficulty = document.getElementById("editCourseDifficulty").options[document.getElementById("editCourseDifficulty").selectedIndex].text;
+      const progress = document.getElementById("editCourseProgressBar").style.width;
+      const progressLabel = document.getElementById("editCourseProgressLabel").textContent;
+      document.getElementById("overviewCourseName").textContent = name;
+      document.getElementById("overviewCourseColorBox").style.background = color;
+      document.getElementById("overviewCourseColor").textContent = color;
+      document.getElementById("overviewCourseDifficulty").textContent = difficulty;
+      document.getElementById("overviewCourseProgressBar").style.width = progress;
+      document.getElementById("overviewCourseProgressLabel").textContent = progressLabel;
+      document.getElementById("overviewCourseStats").innerHTML = document.getElementById("editCourseStats").innerHTML;
+    }
+    // Call sync when sidebar opens
+    window.openCourseDetailSidebar = (function(origFn){
+      return function(courseId) {
+        origFn(courseId);
+        setTimeout(syncOverviewTab, 100); // Wait for data to load
+      }
+    })(window.openCourseDetailSidebar);
+  });
   </script>
 </body>
 </html>
