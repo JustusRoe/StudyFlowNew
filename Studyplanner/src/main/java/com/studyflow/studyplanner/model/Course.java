@@ -8,7 +8,12 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
-@Table(name = "courses")
+@Table(
+    name = "courses",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"course_identifier", "user_id"})
+        }
+    )
 public class Course {
 
     @Id

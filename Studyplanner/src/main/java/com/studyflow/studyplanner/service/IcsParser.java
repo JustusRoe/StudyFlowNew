@@ -66,7 +66,7 @@ public class IcsParser {
                 String courseId = summary.substring(summary.indexOf("[") + 1, summary.indexOf("]"));
 
                 // find or creates the course in the DB
-                Optional<Course> optionalCourse = courseRepo.findByCourseIdentifier(courseId);
+                Optional<Course> optionalCourse = courseRepo.findByCourseIdentifierAndUser(courseId, user);
 
                 Course course = courseMap.get(courseId);
                 if (course == null) {
