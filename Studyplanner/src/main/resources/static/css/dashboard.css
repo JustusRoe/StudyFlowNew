@@ -329,7 +329,11 @@ ul {
 .course-form label {
   font-weight: bold;
   font-size: 0.95rem;
-  margin-bottom: -0.5rem;
+  margin-bottom: 0.2rem;
+  margin-right: 0.7rem;
+  display: inline-block;
+  min-width: 90px;
+  vertical-align: middle;
 }
 
 /* Layout for the new course event overview inside the edit-course sidebar */
@@ -396,4 +400,210 @@ ul {
   border-radius: 50%;
   display: inline-block;
   margin-right: 6px;
+}
+
+/* Modern Sidebar */
+.modern-sidebar {
+  max-width: 440px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(44,62,80,0.12);
+  padding: 2rem 2rem 1.5rem 2rem;
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.sidebar-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.7rem 0.5rem;
+  background: #f0f4fa;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  color: #2e3a78;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tab-btn.active {
+  background: #2e3a78;
+  color: #fff;
+}
+
+.tab-content {
+  background: #f9f9fb;
+  border-radius: 0 0 12px 12px;
+  padding: 1.2rem 1rem;
+  min-height: 180px;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.04);
+}
+
+.tab-content form .form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.tab-content form .form-row label {
+  min-width: 90px;
+  font-weight: 500;
+}
+.tab-content form .form-row input,
+.tab-content form .form-row select,
+.tab-content form .form-row textarea {
+  flex: 1;
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  font-size: 1rem;
+}
+.tab-content form button {
+  margin-top: 0.5rem;
+}
+
+.progress-section {
+  margin: 1rem 0;
+}
+
+.progress-bar {
+  background: #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 18px;
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.progress-bar-inner {
+  background: #33e1ed;
+  height: 100%;
+  width: 0%;
+  transition: width 0.5s;
+}
+
+.progress-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #222;
+  font-weight: bold;
+  font-size: 0.95em;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-list li {
+  background: #fff;
+  margin-bottom: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(44,62,80,0.07);
+  font-size: 1rem;
+  color: #2e3a78;
+}
+
+.btn {
+  background: #2e3a78;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: background 0.2s;
+}
+
+.btn-secondary {
+  background: #bbb;
+  color: #222;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+}
+
+/* Manage Deadlines: Kurs-Button-Leiste */
+#courseButtonBarWrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#courseButtonBar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  padding: 0.5rem 0;
+  /* Kein overflow-x mehr! */
+}
+
+/* Dynamische Anpassung der Button-Größe, damit alle in eine Zeile passen */
+#courseButtonBar .course-btn {
+  font-size: clamp(0.7rem, 1.1vw, 1rem);
+  padding: 0.35em 0.7em;
+  border-radius: 6px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  transition: background 0.2s, outline 0.2s, font-size 0.2s, padding 0.2s;
+}
+
+#courseButtonBar .course-btn:disabled {
+  outline: 3px solid #222;
+  opacity: 1;
+  cursor: default;
+  background: #e0e0e0 !important;
+  color: #222 !important;
+}
+
+/* Wenn zu viele Buttons, werden sie automatisch kleiner, damit sie in eine Zeile passen */
+#courseButtonBar {
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  #courseButtonBar .course-btn {
+    font-size: clamp(0.65rem, 1vw, 0.95rem);
+    padding: 0.32em 0.5em;
+  }
+}
+@media (max-width: 900px) {
+  #courseButtonBar .course-btn {
+    font-size: clamp(0.6rem, 0.9vw, 0.9rem);
+    padding: 0.28em 0.4em;
+  }
+}
+@media (max-width: 700px) {
+  #courseButtonBar .course-btn {
+    font-size: clamp(0.55rem, 0.8vw, 0.85rem);
+    padding: 0.22em 0.2em;
+  }
 }

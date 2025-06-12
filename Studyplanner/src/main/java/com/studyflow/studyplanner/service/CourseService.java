@@ -86,12 +86,11 @@ public class CourseService {
      * Erstellt einen neuen Kurs und speichert ihn in der Datenbank.
      */
     @Transactional
-    public Course createCourse(String name, String description, String color, String userEmail, String courseIdentifier, int difficulty) {
+    public Course createCourse(String name, String color, String userEmail, String courseIdentifier, int difficulty) {
         User user = userRepository.findByEmail(userEmail);
         if (user == null) throw new RuntimeException("User not found");
 
         Course course = new Course(name, color, user);
-        course.setDescription(description); // Set description here
         course.setCourseIdentifier(courseIdentifier);
         course.setDifficulty(difficulty);
         return courseRepository.save(course);
@@ -209,7 +208,7 @@ public class CourseService {
      * Aktualisiert einen Kurs und seine Events, sofern er dem Benutzer gehört.
      */
     @Transactional
-    public Course updateCourse(Long id, String name, String description, String color, String userEmail) {
+    public Course updateCourse(Long id, String name, String color, String userEmail) {
         // Finde den Kurs
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -225,7 +224,6 @@ public class CourseService {
 
         // Aktualisiere Felder
         course.setName(name);
-        course.setDescription(description);
         course.setColor(color);
 
         // Speichere Kurs

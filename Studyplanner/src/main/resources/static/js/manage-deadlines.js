@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div>Difficulty: ${["Easy", "Medium", "Hard"][course.difficulty - 1] || "Unknown"}</div>
                 <div>Progress: ${course.progressPercent}%</div>
                 <div>Self-study: ${course.selfStudyHours}h of ${course.workloadTarget}h</div>
-                <div>${course.description || ""}</div>
             `;
             document.getElementById("progressBarInner").style.width = `${course.progressPercent}%`;
             document.getElementById("progressLabel").textContent = `${course.progressPercent}%`;
@@ -35,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const tbody = document.querySelector("#deadlineTable tbody");
                 tbody.innerHTML = "";
                 const selector = document.getElementById("autoDeadlineSelector");
-                selector.innerHTML = '<option value="" disabled selected>Choose a deadline</option>';
+                selector.innerHTML = '<option value="" disabled selected>Select a deadline</option>';
                 if (!Array.isArray(deadlines) || deadlines.length === 0) {
                     tbody.innerHTML = "<tr><td colspan='4'>No deadlines yet.</td></tr>";
                     return;
@@ -47,17 +46,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>${(dl.startTime || "").slice(0,16).replace("T", " ")}</td>
                         <td>${dl.points ?? ""}</td>
                         <td>
-                            <button class="btn btn-small edit-btn">✏️</button>
                             <button class="btn btn-small btn-danger delete-btn">🗑️</button>
                         </td>
                     `;
-                    tr.querySelector(".edit-btn").onclick = () => {
-                        document.getElementById("deadlineTitle").value = dl.title;
-                        document.getElementById("deadlineDate").value = (dl.startTime || "").slice(0,16);
-                        document.getElementById("deadlinePoints").value = dl.points ?? "";
-                        document.getElementById("editingDeadlineId").value = dl.id;
-                        // StudyStart kann hier ggf. gesetzt werden, falls editierbar
-                    };
+                    // Remove edit button, only delete remains
                     tr.querySelector(".delete-btn").onclick = () => {
                         if (confirm("Delete this deadline?")) {
                             fetch(`/deadlines/delete/${dl.id}`, { method: "DELETE" })
@@ -193,4 +185,47 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(err => alert(err.message));
     };
+
+    // --- Course buttons in header ---
+    fetch("/courses/user")
+        .then(res => res.json())
+        .then(courses => {
+            const bar = document.getElementById("courseButtonBar");
+            bar.innerHTML = "";
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get("courseId");
+            courses.forEach(course => {
+                const btn = document.createElement("button");
+                btn.textContent = course.name;
+                btn.className = "btn course-btn";
+                btn.style.background = course.color || "#2e3a78";
+                btn.style.color = getContrastingTextColor(course.color || "#2e3a78");
+                btn.style.whiteSpace = "nowrap";
+                btn.style.overflow = "hidden";
+                btn.style.textOverflow = "ellipsis";
+                btn.style.maxWidth = "400px";
+                btn.style.minWidth = "90px";
+                btn.style.fontSize = "1rem";
+                btn.style.padding = "0.5rem 1.1rem";
+                if (courseId && String(course.id) === String(courseId)) {
+                    btn.style.outline = "3px solid #222";
+                    btn.disabled = true;
+                    btn.style.opacity = "1";
+                }
+                btn.onclick = function () {
+                    window.location.href = "/manage-deadlines?courseId=" + course.id;
+                };
+                bar.appendChild(btn);
+            });
+        });
+
+    function getContrastingTextColor(bgColor) {
+        // Simple function to determine contrasting text color (black or white)
+        const color = bgColor.startsWith("#") ? bgColor.slice(1) : bgColor;
+        const r = parseInt(color.substring(0, 2), 16);
+        const g = parseInt(color.substring(2, 4), 16);
+        const b = parseInt(color.substring(4, 6), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return (brightness > 128) ? "black" : "white";
+    }
 });

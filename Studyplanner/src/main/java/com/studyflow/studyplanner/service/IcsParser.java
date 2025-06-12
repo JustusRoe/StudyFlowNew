@@ -74,7 +74,7 @@ public class IcsParser {
                         course = optionalCourse.get();
                     } else {
                         System.out.println("Creating new course: " + courseName + " with ID: " + courseId + " for user: " + userEmail);
-                        course = courseService.createCourse(courseName, "", generateDefaultColor(courseId), userEmail, courseId, 2);
+                        course = courseService.createCourse(courseName, generateDefaultColor(courseId), userEmail, courseId, 2);
                         System.out.println("Created course: " + course);
                     }
                     courseMap.put(courseId, course);

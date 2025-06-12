@@ -24,8 +24,6 @@ public class Course {
 
     private String color;
 
-    private String description;
-
     @Column(unique = false)
     private String courseIdentifier; // stores the ICS courseId like [xxxxxx]
 
@@ -53,7 +51,6 @@ public class Course {
         this.name = name;
         this.color = color;
         this.user = user;
-        this.description = "";
     }
 
     /* --- Getter & Setter --- */
@@ -156,14 +153,6 @@ public class Course {
     @Transient
     public double getProgressFraction() {
         return getProgress();
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public int getDifficulty() {

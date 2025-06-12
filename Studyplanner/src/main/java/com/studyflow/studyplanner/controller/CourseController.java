@@ -29,7 +29,6 @@ public class CourseController {
         String email = principal.getName();
         Course created = courseService.createCourse(
             course.getName(),
-            course.getDescription(),
             course.getColor(),
             email,
             course.getCourseIdentifier(),
@@ -42,17 +41,43 @@ public class CourseController {
      * Aktualisiert einen bestehenden Kurs anhand der ID.
      */
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Map<String, String> updates, Principal principal) {
+    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Map<String, Object> updates, Principal principal) {
         try {
             String email = principal.getName();
-            String name = updates.get("name");
-            String description = updates.get("description");
-            String color = updates.get("color");
+            String name = (String) updates.get("name");
+            String color = (String) updates.get("color");
+            final int[] difficultyHolder = new int[]{1}; // Default
 
-            Course updated = courseService.updateCourse(id, name, description, color, email);
-            return ResponseEntity.ok(updated);
+            if (updates.containsKey("difficulty")) {
+                Object diffObj = updates.get("difficulty");
+                if (diffObj != null) {
+                    try {
+                        difficultyHolder[0] = Integer.parseInt(diffObj.toString());
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+
+            Course course = courseService.getById(id).orElseThrow(() -> new RuntimeException("Course not found"));
+            // Prüfe, ob der Kurs dem Benutzer gehört
+            if (!course.getUser().getEmail().equals(email)) {
+                return ResponseEntity.status(403).body("Access denied");
+            }
+
+            course.setName(name);
+            course.setColor(color);
+            course.setDifficulty(difficultyHolder[0]);
+            courseService.updateCourse(id, name, color, email);
+
+            // Save difficulty (optional, falls updateCourse das nicht übernimmt)
+            courseService.getById(id).ifPresent(c -> {
+                c.setDifficulty(difficultyHolder[0]);
+                courseService.updateCourse(c.getId(), c.getName(), c.getColor(), email);
+            });
+
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             e.printStackTrace();
+            // Fehlertext nur im Fehlerfall
             return ResponseEntity.status(500).body("Update failed: " + e.getMessage());
         }
     }
@@ -70,7 +95,6 @@ public class CourseController {
             Map<String, Object> item = new HashMap<>();
             item.put("id", course.getId());
             item.put("name", course.getName());
-            item.put("description", course.getDescription());
             item.put("color", course.getColor());
             item.put("progressPercent", course.getProgressPercent());
             item.put("courseIdentifier", course.getCourseIdentifier());

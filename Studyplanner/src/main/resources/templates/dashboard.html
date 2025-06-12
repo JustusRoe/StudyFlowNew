@@ -121,48 +121,93 @@
       <div class="course-form">
         <span class="close-sidebar" onclick="closeSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
         <h2>Create New Course</h2>
-        <label for="courseName">Title</label>
-        <input type="text" id="courseName" />
-
-        <label for="courseDescription">Description</label>
-        <textarea id="courseDescription"></textarea>
-
-        <label for="courseColor">Color</label>
-        <input type="color" id="courseColor" />
+        <div class="form-row">
+          <label for="courseName">Title</label>
+          <input type="text" id="courseName" />
+        </div>
+        <div class="form-row">
+          <label for="courseColor">Color</label>
+          <input type="color" id="courseColor" />
+        </div>
         <button onclick="saveCourse()">Save</button>
         <button onclick="closeSidebar()">Cancel</button>
       </div>
     </div>
 
-    <!-- Course Editing Sidebar -->
-    <div class="overlay" id="editCourseSidebar">
-      <div class="course-form">
-        <span class="close-sidebar" onclick="closeEditSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-        <h2>Edit Course</h2>
+    <!-- Course Editing Sidebar (Details & Edit) -->
+<div class="overlay" id="editCourseSidebar">
+  <div class="course-form modern-sidebar">
+    <span class="close-sidebar" onclick="closeEditSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+    <h2>Edit Course</h2>
+    <div class="sidebar-tabs">
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="deadlines">Deadlines</button>
+      <button class="tab-btn" data-tab="lectures">Lectures</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+    </div>
+    <div class="tab-content" id="tab-overview">
+      <div class="form-row">
         <label for="editCourseName">Title</label>
         <input type="text" id="editCourseName" />
-
-        <label for="editCourseDescription">Description</label>
-        <textarea id="editCourseDescription"></textarea>
-
-        <label for="editCourseColor">Color</label>
-        <input type="color" id="editCourseColor" />
-
-        <div id="courseEventOverview" class="course-events">
-          <h3>Course Events</h3>
-          <ul id="eventList">
-            <!-- Filled via JS -->
-          </ul>
-          <button id="addEventToCourseBtn">+ Add Calendar Event to Course</button>
-        </div>
-
-        <button onclick="updateCourse()">Update</button>
-        <button onclick="closeEditSidebar()">Cancel</button>
-        <button id="deleteCourseButton" style="background-color: #e74c3c; color: white; margin-top: auto; display: none;">
-          Delete Course
-        </button>
       </div>
+      <div class="form-row">
+        <label for="editCourseColor">Color</label>
+        <input type="color" id="editCourseColor" style="width:40px; height:40px; padding:0; border:none;" />
+      </div>
+      <div class="form-row">
+        <label for="editCourseDifficulty">Difficulty</label>
+        <select id="editCourseDifficulty">
+          <option value="1">Easy</option>
+          <option value="2">Medium</option>
+          <option value="3">Hard</option>
+        </select>
+      </div>
+      <div class="progress-section">
+        <label>Progress</label>
+        <div class="progress-bar">
+          <div class="progress-bar-inner" id="editCourseProgressBar"></div>
+          <span class="progress-label" id="editCourseProgressLabel"></span>
+        </div>
+      </div>
+      <div id="editCourseStats" style="margin-bottom:1rem; color:#2e3a78; font-size:0.98em;"></div>
+      <button onclick="updateCourse()" class="btn">Update</button>
+      <button onclick="closeEditSidebar()" class="btn btn-secondary">Cancel</button>
+      <button id="deleteCourseButton" class="btn btn-danger" style="margin-top: 1rem; display: none;">
+        Delete Course
+      </button>
     </div>
+    <div class="tab-content" id="tab-deadlines" style="display:none;">
+      <h3>Deadlines</h3>
+      <ul id="editCourseDeadlinesList" class="sidebar-list"></ul>
+    </div>
+    <div class="tab-content" id="tab-lectures" style="display:none;">
+      <h3>Lectures</h3>
+      <ul id="editCourseLecturesList" class="sidebar-list"></ul>
+    </div>
+    <div class="tab-content" id="tab-settings" style="display:none;">
+      <h3>Course Settings</h3>
+      <form id="editCourseSettingsForm" autocomplete="off">
+        <div class="form-row">
+          <label for="editCourseNameSettings">Title</label>
+          <input type="text" id="editCourseNameSettings" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label for="editCourseColorSettings">Color</label>
+          <input type="color" id="editCourseColorSettings" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <label for="editCourseDifficultySettings">Difficulty</label>
+          <select id="editCourseDifficultySettings">
+            <option value="1">Easy</option>
+            <option value="2">Medium</option>
+            <option value="3">Hard</option>
+          </select>
+        </div>
+        <button type="button" onclick="saveCourseSettings()" class="btn">Save Settings</button>
+      </form>
+    </div>
+  </div>
+</div>
   </div>
 
   <!-- Sidebar for Adding Event -->
@@ -234,7 +279,7 @@
   </div>
 </div>
 
-    <!-- Add Course Detail Sidebar (functional) -->
+    <!-- Remove this block:
     <div class="overlay" id="courseDetailSidebar" style="display: block;">
       <div class="course-form" style="max-width: 400px;">
         <span class="close-sidebar" onclick="closeCourseDetailSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
@@ -251,6 +296,7 @@
         </div>
       </div>
     </div>
+    -->
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
