@@ -324,10 +324,10 @@ public void addEventToCourse(Long courseId, String title, String description, St
         }
 
         int workloadTotal = switch (course.getDifficulty()) {
-            case 1 -> 120;
-            case 2 -> 150;
-            case 3 -> 180;
-            default -> 150;
+            case 1 -> 100; // was 120
+            case 2 -> 130; // was 150
+            case 3 -> 160; // was 180
+            default -> 130;
         };
 
         int lectureHours = 33;
