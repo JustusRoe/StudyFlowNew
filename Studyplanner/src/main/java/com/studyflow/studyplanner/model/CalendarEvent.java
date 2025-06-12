@@ -26,6 +26,9 @@ public class CalendarEvent {
 
     private String courseId;
 
+    @Column(name = "fill_type")
+    private String fillType;
+
     private boolean isDeadline = false;
     private int points = 0;
     private boolean generatedByEngine = false;
@@ -103,6 +106,14 @@ public class CalendarEvent {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getFillType() {
+        return fillType;
+    }
+
+    public void setFillType(String fillType) {
+        this.fillType = fillType;
     }
     
     @Transient

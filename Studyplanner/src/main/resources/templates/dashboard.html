@@ -175,6 +175,7 @@
     <label>End Time</label><input type="datetime-local" id="addEventEnd" />
     <label>Location (optional)</label><input type="text" id="addEventLocation" />
     <label>Type</label>
+
     <select id="addEventType">
       <option value="lecture">Lecture</option>
       <option value="assignment">Assignment</option>
@@ -182,7 +183,17 @@
       <option value="self-study">Self-Study</option>
       <option value="custom" selected>Custom</option>
     </select>
+
+    <div id="fillTypeWrapper" style="display: none; margin-top: 0.5rem;">
+      <label for="addEventFillType">Fill Style</label>
+      <select id="addEventFillType">
+          <option value="partial-fill">Partial Fill</option>
+          <option value="complete-fill">Complete Fill</option>
+      </select>
+    </div>
+
     <label>Course (optional)</label>
+    
     <select id="addEventCourse"></select>
     <label>Color</label><input type="color" id="addEventColor" value="#aaaaaa" />
     <div style="display:flex; justify-content:space-between;">

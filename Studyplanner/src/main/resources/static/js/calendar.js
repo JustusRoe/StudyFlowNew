@@ -94,28 +94,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         },
 
-        // lecture events show color dot + time + title only
         eventContent: function (arg) {
-        const { event } = arg;
-        if (event.extendedProps.type === "lecture") {
-            const dot = document.createElement("span");
-            dot.style.backgroundColor = event.backgroundColor;
-            dot.style.borderRadius = "50%";
-            dot.style.width = "10px";
-            dot.style.height = "10px";
-            dot.style.display = "inline-block";
-            dot.style.marginRight = "6px";
+            const { event, el } = arg;
+            const type = event.extendedProps.type;
+            const fillType = event.extendedProps.fillType;
+            const color = event.backgroundColor;
 
-            const time = document.createElement("strong");
-            time.innerText = event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (type === "lecture" || type === "self-study") {
+                const dot = document.createElement("span");
+                dot.style.backgroundColor = color;
+                dot.style.borderRadius = "50%";
+                dot.style.width = "10px";
+                dot.style.height = "10px";
+                dot.style.display = "inline-block";
+                dot.style.marginRight = "6px";
 
-            const title = document.createElement("span");
-            title.innerText = ` ${event.title}`;
+                const time = document.createElement("strong");
+                time.innerText = event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            return { domNodes: [dot, time, title] };
-        }
-        return true; // default rendering
-        },
+                const title = document.createElement("span");
+                title.innerText = ` ${event.title}`;
+
+                return { domNodes: [dot, time, title] };
+            }
+
+            if (type === "custom") {
+                if (fillType === "partial-fill") {
+                arg.el.style.background = `linear-gradient(to right, ${color} 50%, transparent 50%)`;
+                }
+            }
+
+            return true; // assignment, exam, custom(complete-fill)
+            },
 
         // clicking empty calendar cell to add new event
         select: openAddEventSidebar,
@@ -142,6 +152,14 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("addEventLocation").value = "";
         document.getElementById("addEventColor").value = "#4285F4";
         document.getElementById("addEventType").value = "custom";
+        document.getElementById("addEventType").addEventListener("change", function () {
+            const fillTypeWrapper = document.getElementById("fillTypeWrapper");
+            if (this.value === "custom") {
+                fillTypeWrapper.style.display = "block";
+            } else {
+                fillTypeWrapper.style.display = "none";
+            }
+        });
 
         loadCoursesForDropdown("addEventCourse");
 
@@ -171,6 +189,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert("Please fill in all required fields: Title, Start Time, and Type.");
                 return;
             }
+
+            const fillTypeInput = document.getElementById("addEventFillType");
 
             const newEvent = {
                 title: title,

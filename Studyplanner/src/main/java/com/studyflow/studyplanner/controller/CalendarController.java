@@ -90,6 +90,7 @@ public class CalendarController {
             json.put("points", event.getPoints());
             json.put("generatedByEngine", event.isGeneratedByEngine());
             json.put("duration", event.getDurationInHours());
+            json.put("fillType", event.getFillType());
             result.add(json);
         }
         return result;
@@ -163,6 +164,7 @@ public class CalendarController {
         existing.setDeadline(updated.isDeadline());
         existing.setPoints(updated.getPoints());
         existing.setGeneratedByEngine(updated.isGeneratedByEngine());
+        existing.setFillType(updated.getFillType());
 
         return calendarService.saveEvent(existing);
     }

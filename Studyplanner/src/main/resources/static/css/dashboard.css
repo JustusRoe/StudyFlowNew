@@ -382,3 +382,18 @@ ul {
 #addEventToCourseBtn:hover {
   background-color: #216a94;
 }
+
+/* alignment of dot and text */
+.fc-event-title {
+  display: flex;
+  align-items: center;
+}
+
+/* dot styling */
+.fc-event-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
