@@ -120,7 +120,7 @@
       background: #1a4e6e;
     }
     .sidebar .section {
-      margin-bottom: 2.2rem;
+      margin-bottom: 0.0rem;
     }
     .sidebar .section h2 {
       margin-bottom: 0.7rem;
@@ -182,36 +182,29 @@
         </div>
       </div>
       <!-- Filter Switches -->
-      <div class="filter-switch-group" id="filter-controls">
-        <label class="filter-switch">
+      <div class="filter-switch-group" id="filter-controls" style="display: flex; width: 96%;">
+        <label class="filter-switch" style="flex:1; justify-content:center;">
           <span>Lecture</span>
           <label class="switch">
             <input type="checkbox" value="lecture" checked>
             <span class="slider"></span>
           </label>
         </label>
-        <label class="filter-switch">
-          <span>Assignment</span>
+        <label class="filter-switch" style="flex:1; justify-content:center;">
+          <span>Deadline</span>
           <label class="switch">
-            <input type="checkbox" value="assignment" checked>
+            <input type="checkbox" value="deadline" checked>
             <span class="slider"></span>
           </label>
         </label>
-        <label class="filter-switch">
-          <span>Exam</span>
-          <label class="switch">
-            <input type="checkbox" value="exam" checked>
-            <span class="slider"></span>
-          </label>
-        </label>
-        <label class="filter-switch">
+        <label class="filter-switch" style="flex:1; justify-content:center;">
           <span>Self-Study</span>
           <label class="switch">
             <input type="checkbox" value="self-study" checked>
             <span class="slider"></span>
           </label>
         </label>
-        <label class="filter-switch">
+        <label class="filter-switch" style="flex:1; justify-content:center;">
           <span>Custom</span>
           <label class="switch">
             <input type="checkbox" value="custom" checked>
@@ -224,7 +217,21 @@
 
     <!-- Sidebar -->
     <aside class="sidebar">
-      <button class="manage-deadlines-btn" id="manage-deadlines-btn">📅 Manage Deadlines</button>
+      <div class="section">
+        <h2>Tools</h2>
+        <button class="manage-deadlines-btn" id="manage-deadlines-btn" style="width:100%;margin-bottom:0.7rem;">
+          📅 Manage Deadlines
+        </button>
+        <button id="import-button" class="btn" style="background:#33bbee; color:#fff; font-weight:600; border-radius:7px; padding:0.5rem 1.2rem; width:100%;margin-bottom:0.7rem;">
+          📥 Import Calendar (.ics)
+        </button>
+        <input type="file" id="file" accept=".ics" style="display:none;">
+        <div id="loadingPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(255,255,255,0.7);align-items:center;justify-content:center;">
+          <div style="background:#fff;padding:2rem 2.5rem;border-radius:12px;box-shadow:0 2px 12px rgba(44,62,80,0.09);font-size:1.2rem;color:#2474a6;">
+            Importing calendar...
+          </div>
+        </div>
+      </div>
       <div class="section">
         <h2>Upcoming Events</h2>
         <ul id="upcoming-events-list">

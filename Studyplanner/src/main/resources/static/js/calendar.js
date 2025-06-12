@@ -357,52 +357,54 @@ document.addEventListener('DOMContentLoaded', function () {
     const fileInput = document.getElementById('file');
     const importButton = document.getElementById('import-button');
 
-    importButton.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener('change', () => {
-        const loadingPopup = document.getElementById('loadingPopup');
-        
-        if (!fileInput.files || fileInput.files.length === 0) {
-            console.warn("No file selected");
-            return;
-        }
-        
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-
-        if (loadingPopup) {
-            loadingPopup.style.display = 'flex';
-        } else {
-            console.warn("Loading popup element not found.");
-        }
-
-        fetch('/calendar/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => {
-            if (!res.ok) throw new Error('Upload failed');
-            return res.text();
-        })
-        .then(() => {
-            calendar.refetchEvents();
-            loadCourses();
-            loadUpcomingEvents();
-            loadCoursesForDropdown("addEventCourse");
-            loadCoursesForDropdown("editEventCourse");
-            loadCoursesForDropdown("courseSelectForActions");
-            alert('Calendar imported successfully!');
-
-        })
-        .catch(err => {
-            alert(err.message);
-        })
-        .finally(() => {
-            loadingPopup.style.display = 'none'; // removes loading popup
+    if (importButton && fileInput) {
+        importButton.addEventListener('click', () => {
+            fileInput.click();
         });
-    });
+
+        fileInput.addEventListener('change', () => {
+            const loadingPopup = document.getElementById('loadingPopup');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                console.warn("No file selected");
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            if (loadingPopup) {
+                loadingPopup.style.display = 'flex';
+            } else {
+                console.warn("Loading popup element not found.");
+            }
+
+            fetch('/calendar/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Upload failed');
+                return res.text();
+            })
+            .then(() => {
+                calendar.refetchEvents();
+                loadCourses();
+                loadUpcomingEvents();
+                loadCoursesForDropdown("addEventCourse");
+                loadCoursesForDropdown("editEventCourse");
+                loadCoursesForDropdown("courseSelectForActions");
+                alert('Calendar imported successfully!');
+
+            })
+            .catch(err => {
+                alert(err.message);
+            })
+            .finally(() => {
+                if (loadingPopup) loadingPopup.style.display = 'none'; // removes loading popup
+            });
+        });
+    }
 
     /* --- Color for Event Types --- */
     function getColorForEventType(type) {

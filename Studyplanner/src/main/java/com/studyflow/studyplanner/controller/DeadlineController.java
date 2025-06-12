@@ -78,7 +78,8 @@ public class DeadlineController {
         event.setTitle((String) payload.get("title"));
         event.setStartTime(java.time.LocalDateTime.parse((String) payload.get("startTime")));
         event.setEndTime(java.time.LocalDateTime.parse((String) payload.get("endTime")));
-        event.setType((String) payload.get("type"));
+        // Always set type to "deadline"
+        event.setType("deadline");
         event.setDeadline(true);
         event.setPoints((Integer) payload.get("points"));
         event.setUserId(user.getId());

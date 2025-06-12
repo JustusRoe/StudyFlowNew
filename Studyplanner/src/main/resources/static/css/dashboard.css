@@ -74,6 +74,28 @@ body {
   margin-right: 1rem;
 }
 
+.filter-switch-group {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  margin-bottom: 1.2rem;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+.filter-switch {
+  flex: 1 1 0;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #2e3a78;
+  user-select: none;
+  min-width: 0;
+  padding: 0.2rem 0;
+}
+
 /* Echter Import-Button */
 #import-button {
   background-color: #2c3e50;
@@ -94,22 +116,24 @@ body {
 .sidebar {
   flex: 1;
   background: #f9f9f9;
-  padding: 1.5rem;
+  padding: 0.7rem 1.2rem 1.2rem 1.2rem; /* noch weniger Padding oben */
   border-radius: 8px;
   box-shadow: 0 0 8px rgba(0,0,0,0.05);
   min-width: 250px;
   max-width: 300px;
+  margin-top: 0.2rem; /* noch früherer Start */
 }
 
 .section {
-  margin-bottom: 2rem;
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 .section h2 {
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.3rem; /* noch weniger Abstand zur Liste */
   font-size: 1.2rem;
   border-bottom: 1px solid #ccc;
-  padding-bottom: 0.3rem;
+  padding-bottom: 0.1rem;
 }
 
 ul {
@@ -119,7 +143,7 @@ ul {
 }
 
 .sidebar ul li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem; /* noch weniger Abstand zwischen Listeneinträgen */
   background: #fff;
   padding: 0.6rem;
   border-radius: 6px;

@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
             title,
             startTime,
             endTime,
-            type: "exam",
+            type: "deadline", // <--- set type to "deadline"
             isDeadline: true,
             points,
             studyStart // neues Feld
