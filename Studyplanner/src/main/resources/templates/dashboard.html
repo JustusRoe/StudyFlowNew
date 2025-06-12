@@ -3,117 +3,239 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Studyflow Dashboard</title>
+  <title>StudyFlow Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="/css/dashboard.css" />
+  <style>
+    .dashboard-header {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .dashboard-header-logo {
+      height: 54px;
+      width: auto;
+      display: block;
+    }
+    .dashboard-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #2474a6;
+      letter-spacing: -1px;
+      margin: 0;
+      line-height: 1.1;
+    }
+    .dashboard-subtitle {
+      font-size: 1.1rem;
+      color: #4a6fa1;
+      margin-top: 0.2rem;
+      margin-bottom: 0;
+      font-weight: 400;
+    }
+    .filter-switch-group {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+    }
+    .filter-switch {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #2e3a78;
+      user-select: none;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 22px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cfd8dc;
+      transition: .3s;
+      border-radius: 22px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(44,62,80,0.08);
+    }
+    .switch input:checked + .slider {
+      background-color: #33bbee;
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(16px);
+      background: #2474a6;
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 2rem 1.5rem 2rem 1.5rem;
+      background: #f9f9fb;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(44,62,80,0.07);
+      min-width: 270px;
+      max-width: 320px;
+      margin-left: 2rem;
+      margin-top: 2.5rem;
+      margin-bottom: 2.5rem;
+      height: fit-content;
+    }
+    .sidebar .manage-deadlines-btn {
+      background: #2474a6;
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.08rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      padding: 0.7rem 1.2rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+    }
+    .sidebar .manage-deadlines-btn:hover {
+      background: #1a4e6e;
+    }
+    .sidebar .section {
+      margin-bottom: 2.2rem;
+    }
+    .sidebar .section h2 {
+      margin-bottom: 0.7rem;
+      font-size: 1.15rem;
+      border-bottom: 1px solid #cfd8dc;
+      padding-bottom: 0.3rem;
+      color: #2474a6;
+      font-weight: 700;
+    }
+    .sidebar ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.5rem;
+      background: #fff;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(44,62,80,0.07);
+      font-size: 1rem;
+      color: #2e3a78;
+    }
+    .sidebar .placeholder {
+      color: #b0b8c1;
+      font-style: italic;
+    }
+    @media (max-width: 900px) {
+      .main-container {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .sidebar {
+        margin-left: 0;
+        margin-top: 1.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-
   <!-- Navigation Bar -->
-  <nav class="navbar">
-    <span class="brand">Studyflow</span>
-    <div class="nav-links">
-      <a href="/user_settings">Profile</a>
-      <a href="/logout">Logout</a>
+  <nav class="navbar" style="background: #2474a6; align-items: center;">
+    <span class="brand" style="font-weight: bold; font-size: 1.5rem; letter-spacing: -1px; display: flex; align-items: center;">
+      <img src="/images/studyflow-white.png" alt="StudyFlow Logo" style="height: 38px; vertical-align: middle; margin-right: 0.7rem;">
+    </span>
+    <div class="nav-links" style="display: flex; align-items: center; gap: 1.2rem;">
+      <a href="/user_settings" style="display: flex; align-items: center;">Profile</a>
+      <a href="/logout" style="display: flex; align-items: center;">Logout</a>
     </div>
   </nav>
 
-  <!-- Calendar -->
   <div class="main-container">
     <div class="calendar-area">
-      <div class="calendar-header">
-        <h1>📚 My Study Calendar</h1>
-        <form id="icsUploadForm" onsubmit="return false;" enctype="multipart/form-data">
-          <button type="button" id="import-button">📅 Import Calendar</button>
-          <input type="file" id="file" name="file" hidden />
-        </form>
+      <div class="dashboard-header">
+        <img src="/images/studyflow.png" alt="StudyFlow Logo" class="dashboard-header-logo" />
+        <div>
+          <h1 class="dashboard-title">Welcome to StudyFlow</h1>
+          <div class="dashboard-subtitle">Your smart study planner for lectures, deadlines, and self-study.</div>
+        </div>
       </div>
-
-  <!-- Type Filter -->
-      <div id="filter-controls">
-        <label><input type="checkbox" value="lecture" checked> Lecture</label>
-        <label><input type="checkbox" value="assignment" checked> Assignment</label>
-        <label><input type="checkbox" value="exam" checked> Exam</label>
-        <label><input type="checkbox" value="self-study" checked> Self-Study</label>
-        <label><input type="checkbox" value="custom" checked> Custom</label>
+      <!-- Filter Switches -->
+      <div class="filter-switch-group" id="filter-controls">
+        <label class="filter-switch">
+          <span>Lecture</span>
+          <label class="switch">
+            <input type="checkbox" value="lecture" checked>
+            <span class="slider"></span>
+          </label>
+        </label>
+        <label class="filter-switch">
+          <span>Assignment</span>
+          <label class="switch">
+            <input type="checkbox" value="assignment" checked>
+            <span class="slider"></span>
+          </label>
+        </label>
+        <label class="filter-switch">
+          <span>Exam</span>
+          <label class="switch">
+            <input type="checkbox" value="exam" checked>
+            <span class="slider"></span>
+          </label>
+        </label>
+        <label class="filter-switch">
+          <span>Self-Study</span>
+          <label class="switch">
+            <input type="checkbox" value="self-study" checked>
+            <span class="slider"></span>
+          </label>
+        </label>
+        <label class="filter-switch">
+          <span>Custom</span>
+          <label class="switch">
+            <input type="checkbox" value="custom" checked>
+            <span class="slider"></span>
+          </label>
+        </label>
       </div>
-
       <div id="calendar"></div>
     </div>
-<!---->
-    <div id="loadingPopup" style="
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0, 0, 0, 0.4);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      font-weight: bold;
-      color: white;
-    ">
-      <div style="text-align: center;">
-        <div class="spinner" style="
-          margin: 0 auto 15px auto;
-          border: 5px solid #fff;
-          border-top: 5px solid #888;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          animation: spin 1s linear infinite;
-        "></div>
-        Importing calendar... Please wait...
-      </div>
-    </div>
 
-    <style>
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
-  
-  
-  <!-- Sidebar -->
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <!-- Upcoming Events -->
+      <button class="manage-deadlines-btn" id="manage-deadlines-btn">📅 Manage Deadlines</button>
       <div class="section">
         <h2>Upcoming Events</h2>
         <ul id="upcoming-events-list">
           <li class="placeholder">No upcoming events.</li>
         </ul>
       </div>
-
-      <!-- Course Management -->
       <div class="section">
         <h2>Courses</h2>
         <ul id="course-list"></ul>
         <button id="create-course-btn">+ Create Course</button>
       </div>
-
-      <!-- Course Tools -->
-      <div class="section">
-        <h2>Course Tools</h2>
-        <div class="course-actions">
-          <button id="manage-deadlines-btn" style="margin-top: 10px;">📅 Manage Deadlines</button>
-        </div>
-      </div>
-    <style>
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      .course-actions {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .course-actions button {
-        padding: 0.4rem;
-        font-size: 0.9rem;
-      }
-    </style>
     </aside>
 
     <!-- Course Creation Sidebar -->
@@ -302,7 +424,6 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
   <script>
-    // Only one button, always enabled, redirects to /manage-deadlines
     document.addEventListener('DOMContentLoaded', function () {
       const manageDeadlinesBtn = document.getElementById("manage-deadlines-btn");
       if (manageDeadlinesBtn) {
@@ -310,6 +431,14 @@
           window.location.href = "/manage-deadlines";
         });
       }
+      // Filter logic for toggle switches
+      document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          if (window.calendar && typeof window.calendar.refetchEvents === "function") {
+            window.calendar.refetchEvents();
+          }
+        });
+      });
     });
   </script>
 </body>

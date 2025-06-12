@@ -423,9 +423,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const courseList = document.getElementById('course-list');
 
     // Öffnen
-    document.getElementById('create-course-btn').addEventListener('click', () => {
-        sidebar.classList.add('open');
-    });
+    const createCourseBtn = document.getElementById('create-course-btn');
+    if (createCourseBtn) {
+        createCourseBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+        });
+    }
 
     // Schließen
     window.closeSidebar = function () {

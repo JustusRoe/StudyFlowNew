@@ -8,15 +8,25 @@ body {
 .navbar {
   display: flex;
   justify-content: space-between;
+  align-items: center; /* add this */
   padding: 1rem 2rem;
   background: #2c3e50;
   color: white;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center; /* add this */
+  gap: 1.2rem;
 }
 
 .navbar a {
   color: white;
   text-decoration: none;
   margin-left: 1rem;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 /* Hauptcontainer */
