@@ -141,10 +141,10 @@ public class Course {
     @Transient
     public int getWorkloadTarget() {
         return switch (difficulty) {
-            case 1 -> 120; // leicht
-            case 2 -> 150; // mittel
-            case 3 -> 180; // schwer
-            default -> 150; // fallback
+            case 1 -> 100; // leicht (was 120 war)
+            case 2 -> 130; // mittel (was 150 war)
+            case 3 -> 160; // schwer (was 180 war)
+            default -> 130; // fallback
         };
     }
 

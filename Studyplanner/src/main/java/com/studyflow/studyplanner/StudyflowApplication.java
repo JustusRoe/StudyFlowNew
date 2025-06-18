@@ -10,10 +10,5 @@ public class StudyflowApplication {
     public static void main(String[] args) {
         SpringApplication.run(StudyflowApplication.class, args);
     }
-
-    /// Creating TestUser
-	/// Name: test
-	/// Mail: test@test.com
-	/// password: test
 }
 

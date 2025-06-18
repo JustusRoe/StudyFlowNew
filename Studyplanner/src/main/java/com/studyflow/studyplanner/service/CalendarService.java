@@ -53,10 +53,10 @@ public class CalendarService {
     // Calculates the total workload hours for a course based on given difficulty level.
     public int calculateTotalWorkload(int difficultyLevel) {
         return switch (difficultyLevel) {
-            case 1 -> 120;
-            case 2 -> 150;
-            case 3 -> 180;
-            default -> 150;
+            case 1 -> 100; // was 120
+            case 2 -> 130; // was 150
+            case 3 -> 160; // was 180
+            default -> 130;
         };
     }
 
