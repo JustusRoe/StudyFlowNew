@@ -102,6 +102,8 @@
       margin-top: 2.5rem;
       margin-bottom: 2.5rem;
       height: fit-content;
+      overflow-y: auto; /* allow scrolling */
+      max-height: 90vh;
     }
     .sidebar .manage-deadlines-btn {
       background: #2474a6;
@@ -147,6 +149,16 @@
     .sidebar .placeholder {
       color: #b0b8c1;
       font-style: italic;
+    }
+    .modern-sidebar {
+      /* ...existing code... */
+      overflow-y: auto;
+      max-height: 95vh;
+    }
+    /* Optional: make sure tab-content fills available space and scrolls if needed */
+    .modern-sidebar .tab-content {
+      max-height: 60vh;
+      overflow-y: auto;
     }
     @media (max-width: 900px) {
       .main-container {
@@ -277,17 +289,21 @@
     <!-- Overview Tab: Only show info, no editing -->
     <div class="tab-content" id="tab-overview" style="display: block;">
       <div style="margin-bottom:1rem;">
-        <strong>Course Name:</strong> <span id="overviewCourseName"></span><br>
-        <strong>Color:</strong> <span id="overviewCourseColorBox" style="display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:middle;"></span>
-        <span id="overviewCourseColor"></span><br>
-        <strong>Difficulty:</strong> <span id="overviewCourseDifficulty"></span><br>
+        <strong>Course Name:</strong> <span id="overviewCourseName">-</span><br>
+        <strong>Color:</strong>
+        <span id="overviewCourseColorBox" style="display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:middle;background:#eee;"></span>
+        <span id="overviewCourseColor">-</span><br>
+        <strong>Difficulty:</strong> <span id="overviewCourseDifficulty">-</span><br>
         <strong>Progress:</strong>
-        <div class="progress-bar" style="margin:0.5rem 0;">
-          <div class="progress-bar-inner" id="overviewCourseProgressBar"></div>
-          <span class="progress-label" id="overviewCourseProgressLabel"></span>
+        <div class="progress-bar" style="margin:0.5rem 0; position:relative;">
+          <div class="progress-bar-inner" id="overviewCourseProgressBar" style="width:0%"></div>
+          <span class="progress-label" id="overviewCourseProgressLabel" style="position:absolute;left:50%;top:0;transform:translateX(-50%);color:#222;font-weight:bold;">0%</span>
         </div>
-        <div id="overviewCourseStats" style="color:#2e3a78; font-size:0.98em;"></div>
+        <!-- Removed self-study stats -->
       </div>
+      <button id="deleteCourseButtonOverview" class="btn btn-danger" style="margin-top: 1rem; background:#e74c3c;">
+        Delete Course
+      </button>
     </div>
     <!-- Deadlines Tab: List deadlines in a table -->
     <div class="tab-content" id="tab-deadlines" style="display: none;">
@@ -420,26 +436,6 @@
   </div>
 </div>
 
-    <!-- Remove this block:
-    <div class="overlay" id="courseDetailSidebar" style="display: block;">
-      <div class="course-form" style="max-width: 400px;">
-        <span class="close-sidebar" onclick="closeCourseDetailSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-        <h2 class="course-title"></h2>
-        <div class="course-desc"></div>
-        <div class="course-progress-bar" style="background:#eee; border-radius:8px; overflow:hidden; height:18px; margin:1rem 0;">
-          <div class="course-progress-bar-inner" style="background:#33e1ed; height:100%; width:0%; transition:width 0.5s;"></div>
-          <span class="course-progress-label" style="position:absolute; left:50%; transform:translateX(-50%); color:#222; font-weight:bold; font-size:0.95em;"></span>
-        </div>
-        <img src="/images/fish-mascot.png" alt="Fish Mascot" class="mascot-fish" style="width:60px; height:60px; margin:0.5rem auto 1rem auto; display:block; transition:transform 0.3s;">
-        <div>
-          <h3>Deadlines</h3>
-          <ul class="course-deadlines-list" style="padding-left:1.2em;"></ul>
-        </div>
-      </div>
-    </div>
-    -->
-
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
   <script>
@@ -458,114 +454,146 @@
           }
         });
       });
-    });
-  </script>
-  <script>
-  // Sidebar tab switching logic for edit course sidebar
-  document.addEventListener("DOMContentLoaded", function () {
-    const tabBtns = document.querySelectorAll('.sidebar-tabs .tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabBtns.forEach(btn => {
-      btn.addEventListener('click', function () {
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(tab => tab.style.display = "none");
-        this.classList.add('active');
-        const tabId = 'tab-' + this.dataset.tab;
-        const tabContent = document.getElementById(tabId);
-        if (tabContent) tabContent.style.display = "block";
-        // Sync settings tab values if needed
-        if (this.dataset.tab === "settings") {
-          document.getElementById("editCourseNameSettings").value = document.getElementById("editCourseName").value;
-          document.getElementById("editCourseColorSettings").value = document.getElementById("editCourseColor").value;
-          document.getElementById("editCourseDifficultySettings").value = document.getElementById("editCourseDifficulty").value;
-        }
-        // Sync overview tab values if needed
-        if (this.dataset.tab === "overview") {
-          const name = document.getElementById("editCourseName").value;
-          const color = document.getElementById("editCourseColor").value;
-          const difficulty = document.getElementById("editCourseDifficulty").options[document.getElementById("editCourseDifficulty").selectedIndex].text;
-          const progress = document.getElementById("editCourseProgressBar").style.width;
-          const progressLabel = document.getElementById("editCourseProgressLabel").textContent;
-          document.getElementById("overviewCourseName").textContent = name;
-          document.getElementById("overviewCourseColorBox").style.background = color;
-          document.getElementById("overviewCourseColor").textContent = color;
-          document.getElementById("overviewCourseDifficulty").textContent = difficulty;
-          document.getElementById("overviewCourseProgressBar").style.width = progress;
-          document.getElementById("overviewCourseProgressLabel").textContent = progressLabel;
-          document.getElementById("overviewCourseStats").innerHTML = document.getElementById("editCourseStats").innerHTML;
-        }
-        // Fetch and render deadlines table
-        if (this.dataset.tab === "deadlines") {
-          const courseId = window.currentCourseId;
-          fetch(`/api/courses/${courseId}/deadlines`)
-            .then(res => res.json())
-            .then(deadlines => {
-              const tbody = document.querySelector("#deadlinesTable tbody");
-              tbody.innerHTML = "";
-              if (!Array.isArray(deadlines) || deadlines.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='3'>No deadlines yet.</td></tr>";
-                return;
-              }
-              deadlines.forEach(dl => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                  <td>${dl.title}</td>
-                  <td>${(dl.startTime || "").slice(0,16).replace("T", " ")}</td>
-                  <td>${dl.points ?? ""}</td>
-                `;
-                tbody.appendChild(tr);
-              });
-            });
-        }
-        // Fetch and render lectures table
-        if (this.dataset.tab === "lectures") {
-          const courseId = window.currentCourseId;
-          fetch(`/courses/events/${courseId}`)
-            .then(res => res.json())
-            .then(events => {
-              const tbody = document.querySelector("#lecturesTable tbody");
-              tbody.innerHTML = "";
-              if (!Array.isArray(events) || events.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='3'>No lectures yet.</td></tr>";
-                return;
-              }
-              events.filter(ev => ev.type && ev.type.toLowerCase() === "lecture").forEach(ev => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                  <td>${ev.title}</td>
-                  <td>${(ev.startTime || "").slice(0,16).replace("T", " ")}</td>
-                  <td>${(ev.endTime || "").slice(0,16).replace("T", " ")}</td>
-                `;
-                tbody.appendChild(tr);
-              });
-            });
-        }
-      });
-    });
 
-    // Initial sync for overview tab on sidebar open
-    function syncOverviewTab() {
-      const name = document.getElementById("editCourseName").value;
-      const color = document.getElementById("editCourseColor").value;
-      const difficulty = document.getElementById("editCourseDifficulty").options[document.getElementById("editCourseDifficulty").selectedIndex].text;
-      const progress = document.getElementById("editCourseProgressBar").style.width;
-      const progressLabel = document.getElementById("editCourseProgressLabel").textContent;
-      document.getElementById("overviewCourseName").textContent = name;
-      document.getElementById("overviewCourseColorBox").style.background = color;
-      document.getElementById("overviewCourseColor").textContent = color;
-      document.getElementById("overviewCourseDifficulty").textContent = difficulty;
-      document.getElementById("overviewCourseProgressBar").style.width = progress;
-      document.getElementById("overviewCourseProgressLabel").textContent = progressLabel;
-      document.getElementById("overviewCourseStats").innerHTML = document.getElementById("editCourseStats").innerHTML;
-    }
-    // Call sync when sidebar opens
-    window.openCourseDetailSidebar = (function(origFn){
-      return function(courseId) {
-        origFn(courseId);
-        setTimeout(syncOverviewTab, 100); // Wait for data to load
+      // Sidebar tab switching logic for edit course sidebar
+      const tabBtns = document.querySelectorAll('.sidebar-tabs .tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          tabContents.forEach(tab => tab.style.display = "none");
+          this.classList.add('active');
+          const tabId = 'tab-' + this.dataset.tab;
+          const tabContent = document.getElementById(tabId);
+          if (tabContent) tabContent.style.display = "block";
+          // Prefill settings fields with current values from backend (not just from edit fields)
+          if (this.dataset.tab === "settings") {
+            const courseId = window.currentCourseId;
+            fetch(`/courses/details/${courseId}`)
+              .then(res => res.json())
+              .then(course => {
+                const nameInput = document.getElementById("editCourseNameSettings");
+                if (nameInput) nameInput.value = course.name || "";
+                const colorInput = document.getElementById("editCourseColorSettings");
+                if (colorInput) colorInput.value = course.color || "#4287f5";
+                const diffInput = document.getElementById("editCourseDifficultySettings");
+                if (diffInput) diffInput.value = course.difficulty || 1;
+              });
+          }
+          // No sync for overview tab here!
+          // Fetch and render deadlines table
+          if (this.dataset.tab === "deadlines") {
+            const courseId = window.currentCourseId;
+            fetch(`/api/courses/${courseId}/deadlines`)
+              .then(res => res.json())
+              .then(deadlines => {
+                const tbody = document.querySelector("#deadlinesTable tbody");
+                tbody.innerHTML = "";
+                if (!Array.isArray(deadlines) || deadlines.length === 0) {
+                  tbody.innerHTML = "<tr><td colspan='3'>No deadlines yet.</td></tr>";
+                  return;
+                }
+                deadlines.forEach(dl => {
+                  const tr = document.createElement("tr");
+                  tr.innerHTML = `
+                    <td>${dl.title}</td>
+                    <td>${(dl.startTime || "").slice(0,16).replace("T", " ")}</td>
+                    <td>${dl.points ?? ""}</td>
+                  `;
+                  tbody.appendChild(tr);
+                });
+              });
+          }
+          // Fetch and render lectures table
+          if (this.dataset.tab === "lectures") {
+            const courseId = window.currentCourseId;
+            fetch(`/courses/events/${courseId}`)
+              .then(res => res.json())
+              .then(events => {
+                const tbody = document.querySelector("#lecturesTable tbody");
+                tbody.innerHTML = "";
+                if (!Array.isArray(events) || events.length === 0) {
+                  tbody.innerHTML = "<tr><td colspan='3'>No lectures yet.</td></tr>";
+                  return;
+                }
+                events.filter(ev => ev.type && ev.type.toLowerCase() === "lecture").forEach(ev => {
+                  const tr = document.createElement("tr");
+                  tr.innerHTML = `
+                    <td>${ev.title}</td>
+                    <td>${(ev.startTime || "").slice(0,16).replace("T", " ")}</td>
+                    <td>${(ev.endTime || "").slice(0,16).replace("T", " ")}</td>
+                  `;
+                  tbody.appendChild(tr);
+                });
+              });
+          }
+        });
+      });
+
+      // Only define openCourseDetailSidebar ONCE and do not wrap it again!
+      window.openCourseDetailSidebar = function(courseId) {
+        window.currentCourseId = courseId;
+        fetch(`/courses/details/${courseId}`)
+          .then(res => res.json())
+          .then(course => {
+            const sidebar = document.getElementById("editCourseSidebar");
+            sidebar.classList.add("open");
+            // Fill edit fields (for settings tab)
+            const nameInput = document.getElementById("editCourseName");
+            if (nameInput) nameInput.value = course.name || "";
+            const colorInput = document.getElementById("editCourseColor");
+            if (colorInput) colorInput.value = course.color || "#4287f5";
+            const diffInput = document.getElementById("editCourseDifficulty");
+            if (diffInput) diffInput.value = course.difficulty || 1;
+            // Progress
+            const progress = course.progressPercent || 0;
+            const progressBar = document.getElementById("editCourseProgressBar");
+            if (progressBar) progressBar.style.width = `${progress}%`;
+            const progressLabel = document.getElementById("editCourseProgressLabel");
+            if (progressLabel) progressLabel.textContent = `${progress}%`;
+            // --- Fill overview tab directly with course data ---
+            const overviewName = document.getElementById("overviewCourseName");
+            if (overviewName) overviewName.textContent = course.name || "-";
+            const overviewColorBox = document.getElementById("overviewCourseColorBox");
+            if (overviewColorBox) overviewColorBox.style.background = course.color || "#4287f5";
+            const overviewColor = document.getElementById("overviewCourseColor");
+            if (overviewColor) overviewColor.textContent = course.color || "-";
+            const overviewDiff = document.getElementById("overviewCourseDifficulty");
+            if (overviewDiff) overviewDiff.textContent =
+              (["Easy", "Medium", "Hard"][course.difficulty - 1] || "-");
+            const overviewProgressBar = document.getElementById("overviewCourseProgressBar");
+            if (overviewProgressBar) overviewProgressBar.style.width = `${progress}%`;
+            const overviewProgressLabel = document.getElementById("overviewCourseProgressLabel");
+            if (overviewProgressLabel) overviewProgressLabel.textContent = `${progress}%`;
+            // Remove self-study stats from overview
+            const overviewStats = document.getElementById("overviewCourseStats");
+            if (overviewStats) overviewStats.innerHTML = "";
+          });
+      };
+
+      // Delete button in overview tab
+      const deleteBtnOverview = document.getElementById("deleteCourseButtonOverview");
+      if (deleteBtnOverview) {
+        deleteBtnOverview.onclick = function () {
+          if (!window.currentCourseId) return;
+          if (!confirm("Are you sure you want to delete this course? This cannot be undone.")) return;
+          fetch(`/courses/delete/${window.currentCourseId}`, {
+            method: 'DELETE'
+          })
+          .then(res => {
+            if (!res.ok) throw new Error("Failed to delete course");
+            document.getElementById("editCourseSidebar").classList.remove("open");
+            // reload course list and calendar
+            if (typeof loadCourses === "function") loadCourses();
+            if (window.calendar && typeof window.calendar.refetchEvents === "function") window.calendar.refetchEvents();
+          })
+          .catch(err => {
+            console.error("Error deleting course:", err);
+            alert("Could not delete course.");
+          });
+        };
       }
-    })(window.openCourseDetailSidebar);
-  });
+    });
   </script>
 </body>
 </html>

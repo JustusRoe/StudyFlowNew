@@ -313,7 +313,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             const editCourseSidebar = document.getElementById("editCourseSidebar");
             if (editCourseSidebar && editCourseSidebar.classList.contains("open")) {
+                // Reset tabs to overview for next open (same as closeEditSidebar)
                 editCourseSidebar.classList.remove("open");
+                document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+                const overviewBtn = document.querySelector('.sidebar-tabs .tab-btn[data-tab="overview"]');
+                if (overviewBtn) overviewBtn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
+                const overviewTab = document.getElementById("tab-overview");
+                if (overviewTab) overviewTab.style.display = "block";
             }
             const courseSidebar = document.getElementById("courseSidebar");
             if (courseSidebar && courseSidebar.classList.contains("open")) {
@@ -481,6 +488,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ---------------------------------------- */
 
     // Öffnet die Sidebar mit Kursdetails und Editiermöglichkeiten
+    // Öffnet die Sidebar mit Kursdetails und zeigt IMMER den Overview-Tab
     window.openCourseDetailSidebar = function(courseId) {
         window.currentCourseId = courseId;
         fetch(`/courses/details/${courseId}`)
@@ -488,59 +496,44 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(course => {
                 const sidebar = document.getElementById("editCourseSidebar");
                 sidebar.classList.add("open");
-                // Overview Tab
-                document.getElementById("editCourseName").value = course.name;
-                document.getElementById("editCourseDescription").value = course.description || "";
-                document.getElementById("editCourseColor").value = course.color || "#4287f5";
-                document.getElementById("editCourseDifficulty").value = course.difficulty || 1;
-                // Progress
+                // --- Immer Overview-Tab aktivieren ---
+                // Remove all 'active' classes first (robustness)
+                document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+                // Set only overview tab as active
+                const overviewBtn = document.querySelector('.sidebar-tabs .tab-btn[data-tab="overview"]');
+                if (overviewBtn) overviewBtn.classList.add('active');
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
+                // Show only overview tab content
+                const overviewTab = document.getElementById("tab-overview");
+                if (overviewTab) overviewTab.style.display = "block";
+                // --- Kursdaten setzen ---
+                const nameInput = document.getElementById("editCourseName");
+                if (nameInput) nameInput.value = course.name || "";
+                const colorInput = document.getElementById("editCourseColor");
+                if (colorInput) colorInput.value = course.color || "#4287f5";
+                const diffInput = document.getElementById("editCourseDifficulty");
+                if (diffInput) diffInput.value = course.difficulty || 1;
                 const progress = course.progressPercent || 0;
-                document.getElementById("editCourseProgressBar").style.width = `${progress}%`;
-                document.getElementById("editCourseProgressLabel").textContent = `${progress}%`;
-                // Stats
-                document.getElementById("editCourseStats").innerHTML =
-                    `<div>Self-study: ${course.selfStudyHours || 0}h of ${course.workloadTarget || 0}h</div>`;
-
-                // Deadlines Tab
-                fetch(`/api/courses/${courseId}/deadlines`)
-                    .then(res => res.json())
-                    .then(deadlines => {
-                        const ul = document.getElementById("editCourseDeadlinesList");
-                        ul.innerHTML = "";
-                        if (!Array.isArray(deadlines) || deadlines.length === 0) {
-                            ul.innerHTML = "<li class='placeholder'>No deadlines.</li>";
-                            return;
-                        }
-                        deadlines.forEach(dl => {
-                            const li = document.createElement("li");
-                            li.textContent = `${dl.title} (${(dl.startTime || "").slice(0,16).replace("T", " ")}) – ${dl.points ?? ""} pts`;
-                            ul.appendChild(li);
-                        });
-                    });
-
-                // Lectures Tab
-                fetch(`/courses/events/${courseId}`)
-                    .then(res => res.json())
-                    .then(events => {
-                        const ul = document.getElementById("editCourseLecturesList");
-                        ul.innerHTML = "";
-                        if (!Array.isArray(events) || events.length === 0) {
-                            ul.innerHTML = "<li class='placeholder'>No lectures.</li>";
-                            return;
-                        }
-                        events.filter(ev => ev.type && ev.type.toLowerCase() === "lecture").forEach(ev => {
-                            const li = document.createElement("li");
-                            li.textContent = `${ev.title} (${(ev.startTime || "").slice(0,16).replace("T", " ")})`;
-                            ul.appendChild(li);
-                        });
-                    });
-
-                // Show delete button if allowed
-                const deleteBtn = document.getElementById("deleteCourseButton");
-                if (deleteBtn) {
-                    deleteBtn.style.display = "block";
-                    deleteBtn.onclick = window.deleteCourse;
-                }
+                const progressBar = document.getElementById("editCourseProgressBar");
+                if (progressBar) progressBar.style.width = `${progress}%`;
+                const progressLabel = document.getElementById("editCourseProgressLabel");
+                if (progressLabel) progressLabel.textContent = `${progress}%`;
+                const overviewName = document.getElementById("overviewCourseName");
+                if (overviewName) overviewName.textContent = course.name || "-";
+                const overviewColorBox = document.getElementById("overviewCourseColorBox");
+                if (overviewColorBox) overviewColorBox.style.background = course.color || "#4287f5";
+                const overviewColor = document.getElementById("overviewCourseColor");
+                if (overviewColor) overviewColor.textContent = course.color || "-";
+                const overviewDiff = document.getElementById("overviewCourseDifficulty");
+                if (overviewDiff) overviewDiff.textContent =
+                    (["Easy", "Medium", "Hard"][course.difficulty - 1] || "-");
+                const overviewProgressBar = document.getElementById("overviewCourseProgressBar");
+                if (overviewProgressBar) overviewProgressBar.style.width = `${progress}%`;
+                const overviewProgressLabel = document.getElementById("overviewCourseProgressLabel");
+                if (overviewProgressLabel) overviewProgressLabel.textContent = `${progress}%`;
+                const overviewStats = document.getElementById("overviewCourseStats");
+                if (overviewStats) overviewStats.innerHTML = "";
             });
     };
 
@@ -554,10 +547,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('tab-' + this.dataset.tab).style.display = "";
                 // Settings tab: sync values from overview
                 if (this.dataset.tab === "settings") {
-                    document.getElementById("editCourseNameSettings").value = document.getElementById("editCourseName").value;
-                    document.getElementById("editCourseDescriptionSettings").value = document.getElementById("editCourseDescription").value;
-                    document.getElementById("editCourseColorSettings").value = document.getElementById("editCourseColor").value;
-                    document.getElementById("editCourseDifficultySettings").value = document.getElementById("editCourseDifficulty").value;
+                    const name = document.getElementById("editCourseName");
+                    const desc = document.getElementById("editCourseDescription");
+                    const color = document.getElementById("editCourseColor");
+                    const diff = document.getElementById("editCourseDifficulty");
+                    if (document.getElementById("editCourseNameSettings") && name)
+                        document.getElementById("editCourseNameSettings").value = name.value;
+                    if (document.getElementById("editCourseDescriptionSettings") && desc)
+                        document.getElementById("editCourseDescriptionSettings").value = desc.value;
+                    if (document.getElementById("editCourseColorSettings") && color)
+                        document.getElementById("editCourseColorSettings").value = color.value;
+                    if (document.getElementById("editCourseDifficultySettings") && diff)
+                        document.getElementById("editCourseDifficultySettings").value = diff.value;
                 }
             });
         });
@@ -566,11 +567,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // Save settings from settings tab
     window.saveCourseSettings = function () {
         const id = window.currentCourseId;
-        const name = document.getElementById("editCourseNameSettings").value.trim();
-        const description = document.getElementById("editCourseDescriptionSettings").value.trim();
-        const color = document.getElementById("editCourseColorSettings").value;
-        // Wert aus Dropdown ist bereits "1", "2" oder "3"
-        const difficulty = document.getElementById("editCourseDifficultySettings").value;
+        // Defensive: check if elements exist before accessing .value
+        const nameInput = document.getElementById("editCourseNameSettings");
+        const colorInput = document.getElementById("editCourseColorSettings");
+        const diffInput = document.getElementById("editCourseDifficultySettings");
+
+        // Only read values if the elements exist, else fallback to ""
+        const name = nameInput ? nameInput.value.trim() : "";
+        const color = colorInput ? colorInput.value : "";
+        const difficulty = diffInput ? diffInput.value : "";
 
         if (!name) {
             alert("Course name cannot be empty.");
@@ -582,17 +587,23 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: name,
-                description: description,
                 color: color,
-                difficulty: difficulty // als String "1", "2", "3"
+                difficulty: difficulty
             })
         })
         .then(() => {
-            document.getElementById("editCourseName").value = name;
-            document.getElementById("editCourseDescription").value = description;
-            document.getElementById("editCourseColor").value = color;
-            document.getElementById("editCourseDifficulty").value = difficulty;
-            alert("Course settings saved!");
+            // Update the main edit fields so overview tab is in sync
+            const nameEdit = document.getElementById("editCourseName");
+            if (nameEdit) nameEdit.value = name;
+            const colorEdit = document.getElementById("editCourseColor");
+            if (colorEdit) colorEdit.value = color;
+            const diffEdit = document.getElementById("editCourseDifficulty");
+            if (diffEdit) diffEdit.value = difficulty;
+            // Close the sidebar after saving
+            document.getElementById("editCourseSidebar").classList.remove("open");
+            // Optionally reload course list and calendar
+            if (typeof loadCourses === "function") loadCourses();
+            if (window.calendar && typeof window.calendar.refetchEvents === "function") window.calendar.refetchEvents();
         });
     };
 
@@ -627,7 +638,15 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.closeEditSidebar = function () {
-        document.getElementById("editCourseSidebar").classList.remove("open");
+        const sidebar = document.getElementById("editCourseSidebar");
+        sidebar.classList.remove("open");
+        // Reset tabs to overview for next open
+        document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+        const overviewBtn = document.querySelector('.sidebar-tabs .tab-btn[data-tab="overview"]');
+        if (overviewBtn) overviewBtn.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
+        const overviewTab = document.getElementById("tab-overview");
+        if (overviewTab) overviewTab.style.display = "block";
     };
 
     window.deleteCourse = function () {
@@ -690,7 +709,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 li.dataset.id = course.id;
                 li.style.cursor = "pointer";
 
-                li.addEventListener("click", () => {
+                li.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    // Always open the sidebar for THIS course and show the overview tab
                     openCourseDetailSidebar(course.id);
                 });
 
