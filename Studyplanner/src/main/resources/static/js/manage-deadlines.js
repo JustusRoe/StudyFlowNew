@@ -14,11 +14,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 <h2>${course.name}</h2>
                 <div>Difficulty: ${["Easy", "Medium", "Hard"][course.difficulty - 1] || "Unknown"}</div>
                 <div>Progress: ${course.progressPercent}%</div>
-                <div>Self-study: ${course.selfStudyHours}h of ${course.workloadTarget}h</div>
             `;
             document.getElementById("progressBarInner").style.width = `${course.progressPercent}%`;
             document.getElementById("progressLabel").textContent = `${course.progressPercent}%`;
-            document.getElementById("mascotFish").style.transform = `scale(${0.7 + (course.progressPercent || 0) / 100 * 1.3})`;
+            // document.getElementById("mascotFish").style.transform = ...; // (falls noch vorhanden)
         });
 
     // --- Deadlines ---
