@@ -6,171 +6,6 @@
   <title>StudyFlow Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="/css/dashboard.css" />
-  <style>
-    .dashboard-header {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-      margin-top: 1.5rem;
-    }
-    .dashboard-header-logo {
-      height: 54px;
-      width: auto;
-      display: block;
-    }
-    .dashboard-title {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: #2474a6;
-      letter-spacing: -1px;
-      margin: 0;
-      line-height: 1.1;
-    }
-    .dashboard-subtitle {
-      font-size: 1.1rem;
-      color: #4a6fa1;
-      margin-top: 0.2rem;
-      margin-bottom: 0;
-      font-weight: 400;
-    }
-    .filter-switch-group {
-      display: flex;
-      gap: 1.2rem;
-      align-items: center;
-      margin-bottom: 1.2rem;
-      flex-wrap: wrap;
-    }
-    .filter-switch {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #2e3a78;
-      user-select: none;
-    }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 38px;
-      height: 22px;
-    }
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #cfd8dc;
-      transition: .3s;
-      border-radius: 22px;
-    }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
-      background-color: #fff;
-      transition: .3s;
-      border-radius: 50%;
-      box-shadow: 0 1px 4px rgba(44,62,80,0.08);
-    }
-    .switch input:checked + .slider {
-      background-color: #33bbee;
-    }
-    .switch input:checked + .slider:before {
-      transform: translateX(16px);
-      background: #2474a6;
-    }
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      padding: 2rem 1.5rem 2rem 1.5rem;
-      background: #f9f9fb;
-      border-radius: 14px;
-      box-shadow: 0 2px 12px rgba(44,62,80,0.07);
-      min-width: 270px;
-      max-width: 320px;
-      margin-left: 2rem;
-      margin-top: 2.5rem;
-      margin-bottom: 2.5rem;
-      height: fit-content;
-      overflow-y: auto; /* allow scrolling */
-      max-height: 90vh;
-    }
-    .sidebar .manage-deadlines-btn {
-      background: #2474a6;
-      color: #fff;
-      font-weight: bold;
-      font-size: 1.08rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      padding: 0.7rem 1.2rem;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s;
-      box-shadow: 0 2px 8px rgba(44,62,80,0.07);
-    }
-    .sidebar .manage-deadlines-btn:hover {
-      background: #1a4e6e;
-    }
-    .sidebar .section {
-      margin-bottom: 0.0rem;
-    }
-    .sidebar .section h2 {
-      margin-bottom: 0.7rem;
-      font-size: 1.15rem;
-      border-bottom: 1px solid #cfd8dc;
-      padding-bottom: 0.3rem;
-      color: #2474a6;
-      font-weight: 700;
-    }
-    .sidebar ul {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-    .sidebar ul li {
-      margin-bottom: 0.5rem;
-      background: #fff;
-      padding: 0.7rem 1rem;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(44,62,80,0.07);
-      font-size: 1rem;
-      color: #2e3a78;
-    }
-    .sidebar .placeholder {
-      color: #b0b8c1;
-      font-style: italic;
-    }
-    .modern-sidebar {
-      /* ...existing code... */
-      overflow-y: auto;
-      max-height: 95vh;
-    }
-    /* Optional: make sure tab-content fills available space and scrolls if needed */
-    .modern-sidebar .tab-content {
-      max-height: 60vh;
-      overflow-y: auto;
-    }
-    @media (max-width: 900px) {
-      .main-container {
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-      .sidebar {
-        margin-left: 0;
-        margin-top: 1.5rem;
-      }
-    }
-  </style>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -260,7 +95,7 @@
     <!-- Course Creation Sidebar -->
     <div class="overlay" id="courseSidebar">
       <div class="course-form">
-        <span class="close-sidebar" onclick="closeSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+        <span class="close-sidebar" id="closeCourseSidebarBtn" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
         <h2>Create New Course</h2>
         <div class="form-row">
           <label for="courseName">Title</label>
@@ -270,330 +105,173 @@
           <label for="courseColor">Color</label>
           <input type="color" id="courseColor" />
         </div>
-        <button onclick="saveCourse()">Save</button>
-        <button onclick="closeSidebar()">Cancel</button>
+        <button id="saveCourseBtn">Save</button>
+        <button id="cancelCourseBtn">Cancel</button>
       </div>
     </div>
 
     <!-- Course Editing Sidebar (Details & Edit) -->
-<div class="overlay" id="editCourseSidebar">
-  <div class="course-form modern-sidebar">
-    <span class="close-sidebar" onclick="closeEditSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-    <h2>Edit Course</h2>
-    <div class="sidebar-tabs">
-      <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
-      <button class="tab-btn" data-tab="deadlines" type="button">Deadlines</button>
-      <button class="tab-btn" data-tab="lectures" type="button">Lectures</button>
-      <button class="tab-btn" data-tab="settings" type="button">Settings</button>
-    </div>
-    <!-- Overview Tab: Only show info, no editing -->
-    <div class="tab-content" id="tab-overview" style="display: block;">
-      <div style="margin-bottom:1rem;">
-        <strong>Course Name:</strong> <span id="overviewCourseName">-</span><br>
-        <strong>Color:</strong>
-        <span id="overviewCourseColorBox" style="display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:middle;background:#eee;"></span>
-        <span id="overviewCourseColor">-</span><br>
-        <strong>Difficulty:</strong> <span id="overviewCourseDifficulty">-</span><br>
-        <strong>Progress:</strong>
-        <div class="progress-bar" style="margin:0.5rem 0; position:relative;">
-          <div class="progress-bar-inner" id="overviewCourseProgressBar" style="width:0%"></div>
-          <span class="progress-label" id="overviewCourseProgressLabel" style="position:absolute;left:50%;top:0;transform:translateX(-50%);color:#222;font-weight:bold;">0%</span>
+    <div class="overlay" id="editCourseSidebar">
+      <div class="course-form modern-sidebar">
+        <span class="close-sidebar" id="closeEditCourseSidebarBtn" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+        <h2>Edit Course</h2>
+        <div class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
+          <button class="tab-btn" data-tab="deadlines" type="button">Deadlines</button>
+          <button class="tab-btn" data-tab="lectures" type="button">Lectures</button>
+          <button class="tab-btn" data-tab="settings" type="button">Settings</button>
         </div>
-        <!-- Removed self-study stats -->
+        <!-- Overview Tab: Only show info, no editing -->
+        <div class="tab-content" id="tab-overview" style="display: block;">
+          <div style="margin-bottom:1rem;">
+            <strong>Course Name:</strong> <span id="overviewCourseName">-</span><br>
+            <strong>Color:</strong>
+            <span id="overviewCourseColorBox" style="display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:middle;background:#eee;"></span>
+            <span id="overviewCourseColor">-</span><br>
+            <strong>Difficulty:</strong> <span id="overviewCourseDifficulty">-</span><br>
+            <strong>Progress:</strong>
+            <div class="progress-bar" style="margin:0.5rem 0; position:relative;">
+              <div class="progress-bar-inner" id="overviewCourseProgressBar" style="width:0%"></div>
+              <span class="progress-label" id="overviewCourseProgressLabel" style="position:absolute;left:50%;top:0;transform:translateX(-50%);color:#222;font-weight:bold;">0%</span>
+            </div>
+            <!-- Removed self-study stats -->
+          </div>
+          <button id="deleteCourseButtonOverview" class="btn btn-danger" style="margin-top: 1rem; background:#e74c3c;">
+            Delete Course
+          </button>
+        </div>
+        <!-- Deadlines Tab: List deadlines in a table -->
+        <div class="tab-content" id="tab-deadlines" style="display: none;">
+          <h3>Deadlines</h3>
+          <table class="table-fancy" id="deadlinesTable" style="width:100%;margin-top:1rem;">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Lectures Tab: List lectures in a table -->
+        <div class="tab-content" id="tab-lectures" style="display: none;">
+          <h3>Lectures</h3>
+          <table class="table-fancy" id="lecturesTable" style="width:100%;margin-top:1rem;">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Start</th>
+                <th>End</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Settings Tab: Only here editing is possible -->
+        <div class="tab-content" id="tab-settings" style="display: none;">
+          <h3>Course Settings</h3>
+          <form id="editCourseSettingsForm" autocomplete="off">
+            <div class="form-row">
+              <label for="editCourseNameSettings">Title</label>
+              <input type="text" id="editCourseNameSettings" autocomplete="off">
+            </div>
+            <div class="form-row">
+              <label for="editCourseColorSettings">Color</label>
+              <input type="color" id="editCourseColorSettings" autocomplete="off">
+            </div>
+            <div class="form-row">
+              <label for="editCourseDifficultySettings">Difficulty</label>
+              <select id="editCourseDifficultySettings">
+                <option value="1">Easy</option>
+                <option value="2">Medium</option>
+                <option value="3">Hard</option>
+              </select>
+            </div>
+            <button type="button" id="saveCourseSettingsBtn" class="btn">Save Settings</button>
+          </form>
+          <button id="deleteCourseButton" class="btn btn-danger" style="margin-top: 1rem; display: none;">
+            Delete Course
+          </button>
+        </div>
       </div>
-      <button id="deleteCourseButtonOverview" class="btn btn-danger" style="margin-top: 1rem; background:#e74c3c;">
-        Delete Course
-      </button>
     </div>
-    <!-- Deadlines Tab: List deadlines in a table -->
-    <div class="tab-content" id="tab-deadlines" style="display: none;">
-      <h3>Deadlines</h3>
-      <table class="table-fancy" id="deadlinesTable" style="width:100%;margin-top:1rem;">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Date</th>
-            <th>Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Filled by JS -->
-        </tbody>
-      </table>
-    </div>
-    <!-- Lectures Tab: List lectures in a table -->
-    <div class="tab-content" id="tab-lectures" style="display: none;">
-      <h3>Lectures</h3>
-      <table class="table-fancy" id="lecturesTable" style="width:100%;margin-top:1rem;">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Start</th>
-            <th>End</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Filled by JS -->
-        </tbody>
-      </table>
-    </div>
-    <!-- Settings Tab: Only here editing is possible -->
-    <div class="tab-content" id="tab-settings" style="display: none;">
-      <h3>Course Settings</h3>
-      <form id="editCourseSettingsForm" autocomplete="off">
-        <div class="form-row">
-          <label for="editCourseNameSettings">Title</label>
-          <input type="text" id="editCourseNameSettings" autocomplete="off">
-        </div>
-        <div class="form-row">
-          <label for="editCourseColorSettings">Color</label>
-          <input type="color" id="editCourseColorSettings" autocomplete="off">
-        </div>
-        <div class="form-row">
-          <label for="editCourseDifficultySettings">Difficulty</label>
-          <select id="editCourseDifficultySettings">
-            <option value="1">Easy</option>
-            <option value="2">Medium</option>
-            <option value="3">Hard</option>
+
+    <!-- Sidebar for Adding Event -->
+    <div class="overlay" id="addEventSidebar">
+      <div class="course-form">
+        <span class="close-sidebar" id="closeAddEventSidebarBtn" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+        <h2>Add New Event</h2>
+        <label>Title</label><input type="text" id="addEventTitle" />
+        <label>Start Time</label><input type="datetime-local" id="addEventStart" />
+        <label>End Time</label><input type="datetime-local" id="addEventEnd" />
+        <label>Location (optional)</label><input type="text" id="addEventLocation" />
+        <label>Type</label>
+
+        <select id="addEventType">
+          <option value="lecture">Lecture</option>
+          <option value="assignment">Assignment</option>
+          <option value="exam">Exam</option>
+          <option value="self-study">Self-Study</option>
+          <option value="custom" selected>Custom</option>
+        </select>
+
+        <div id="fillTypeWrapper" style="display: none; margin-top: 0.5rem;">
+          <label for="addEventFillType">Fill Style</label>
+          <select id="addEventFillType">
+              <option value="partial-fill">Partial Fill</option>
+              <option value="complete-fill">Complete Fill</option>
           </select>
         </div>
-        <button type="button" onclick="saveCourseSettings()" class="btn">Save Settings</button>
-      </form>
-      <button id="deleteCourseButton" class="btn btn-danger" style="margin-top: 1rem; display: none;">
-        Delete Course
-      </button>
-    </div>
-  </div>
-</div>
-  </div>
 
-  <!-- Sidebar for Adding Event -->
-<div class="overlay" id="addEventSidebar">
-  <div class="course-form">
-    <span class="close-sidebar" onclick="closeAddEventSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-    <h2>Add New Event</h2>
-    <label>Title</label><input type="text" id="addEventTitle" />
-    <label>Start Time</label><input type="datetime-local" id="addEventStart" />
-    <label>End Time</label><input type="datetime-local" id="addEventEnd" />
-    <label>Location (optional)</label><input type="text" id="addEventLocation" />
-    <label>Type</label>
-
-    <select id="addEventType">
-      <option value="lecture">Lecture</option>
-      <option value="assignment">Assignment</option>
-      <option value="exam">Exam</option>
-      <option value="self-study">Self-Study</option>
-      <option value="custom" selected>Custom</option>
-    </select>
-
-    <div id="fillTypeWrapper" style="display: none; margin-top: 0.5rem;">
-      <label for="addEventFillType">Fill Style</label>
-      <select id="addEventFillType">
-          <option value="partial-fill">Partial Fill</option>
-          <option value="complete-fill">Complete Fill</option>
-      </select>
+        <label>Course (optional)</label>
+        
+        <select id="addEventCourse"></select>
+        <label>Color</label><input type="color" id="addEventColor" value="#aaaaaa" />
+        <div style="display:flex; justify-content:space-between;">
+          <div>
+            <button id="cancelNewEvent">Cancel</button>
+            <button id="saveNewEvent">Save</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <label>Course (optional)</label>
-    
-    <select id="addEventCourse"></select>
-    <label>Color</label><input type="color" id="addEventColor" value="#aaaaaa" />
-    <div style="display:flex; justify-content:space-between;">
-      <div>
-        <button id="cancelNewEvent">Cancel</button>
-        <button id="saveNewEvent">Save</button>
+    <!-- Sidebar for Editing Event -->
+    <div class="overlay" id="editEventSidebar">
+      <div class="course-form">
+        <span class="close-sidebar" id="closeEditEventSidebarBtn" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+        <h2>Edit Event</h2>
+        <input type="hidden" id="editEventId" />
+        <label>Title</label><input type="text" id="editEventTitle" />
+        <label>Start Time</label><input type="datetime-local" id="editEventStart" />
+        <label>End Time</label><input type="datetime-local" id="editEventEnd" />
+        <label>Location (optional)</label><input type="text" id="editEventLocation" />
+        <label>Type</label>
+        <select id="editEventType">
+          <option value="lecture">Lecture</option>
+          <option value="assignment">Assignment</option>
+          <option value="exam">Exam</option>
+          <option value="self-study">Self-Study</option>
+          <option value="custom">Custom</option>
+        </select>
+        <label>Color</label><input type="color" id="editEventColor" value="#aaaaaa" />
+        <div style="display:flex; justify-content:space-between;">
+          <button id="deleteEvent" style="background-color: #e74c3c; color: white;">Delete</button>
+          <div>
+            <button id="cancelEditEvent">Cancel</button>
+            <button id="saveEditedEvent">Save</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<!-- Sidebar for Editing Event -->
-<div class="overlay" id="editEventSidebar">
-  <div class="course-form">
-    <span class="close-sidebar" onclick="closeEditEventSidebar()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-    <h2>Edit Event</h2>
-    <input type="hidden" id="editEventId" />
-    <label>Title</label><input type="text" id="editEventTitle" />
-    <label>Start Time</label><input type="datetime-local" id="editEventStart" />
-    <label>End Time</label><input type="datetime-local" id="editEventEnd" />
-    <label>Location (optional)</label><input type="text" id="editEventLocation" />
-    <label>Type</label>
-    <select id="editEventType">
-      <option value="lecture">Lecture</option>
-      <option value="assignment">Assignment</option>
-      <option value="exam">Exam</option>
-      <option value="self-study">Self-Study</option>
-      <option value="custom">Custom</option>
-    </select>
-    <label>Color</label><input type="color" id="editEventColor" value="#aaaaaa" />
-    <div style="display:flex; justify-content:space-between;">
-      <button id="deleteEvent" style="background-color: #e74c3c; color: white;">Delete</button>
-      <div>
-        <button id="cancelEditEvent">Cancel</button>
-        <button id="saveEditedEvent">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
 
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="/js/calendar.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const manageDeadlinesBtn = document.getElementById("manage-deadlines-btn");
-      if (manageDeadlinesBtn) {
-        manageDeadlinesBtn.addEventListener("click", function () {
-          window.location.href = "/manage-deadlines";
-        });
-      }
-      // Filter logic for toggle switches
-      document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
-        cb.addEventListener('change', () => {
-          if (window.calendar && typeof window.calendar.refetchEvents === "function") {
-            window.calendar.refetchEvents();
-          }
-        });
-      });
-
-      // Sidebar tab switching logic for edit course sidebar
-      const tabBtns = document.querySelectorAll('.sidebar-tabs .tab-btn');
-      const tabContents = document.querySelectorAll('.tab-content');
-      tabBtns.forEach(btn => {
-        btn.addEventListener('click', function () {
-          tabBtns.forEach(b => b.classList.remove('active'));
-          tabContents.forEach(tab => tab.style.display = "none");
-          this.classList.add('active');
-          const tabId = 'tab-' + this.dataset.tab;
-          const tabContent = document.getElementById(tabId);
-          if (tabContent) tabContent.style.display = "block";
-          // Prefill settings fields with current values from backend (not just from edit fields)
-          if (this.dataset.tab === "settings") {
-            const courseId = window.currentCourseId;
-            fetch(`/courses/details/${courseId}`)
-              .then(res => res.json())
-              .then(course => {
-                const nameInput = document.getElementById("editCourseNameSettings");
-                if (nameInput) nameInput.value = course.name || "";
-                const colorInput = document.getElementById("editCourseColorSettings");
-                if (colorInput) colorInput.value = course.color || "#4287f5";
-                const diffInput = document.getElementById("editCourseDifficultySettings");
-                if (diffInput) diffInput.value = course.difficulty || 1;
-              });
-          }
-          // No sync for overview tab here!
-          // Fetch and render deadlines table
-          if (this.dataset.tab === "deadlines") {
-            const courseId = window.currentCourseId;
-            fetch(`/api/courses/${courseId}/deadlines`)
-              .then(res => res.json())
-              .then(deadlines => {
-                const tbody = document.querySelector("#deadlinesTable tbody");
-                tbody.innerHTML = "";
-                if (!Array.isArray(deadlines) || deadlines.length === 0) {
-                  tbody.innerHTML = "<tr><td colspan='3'>No deadlines yet.</td></tr>";
-                  return;
-                }
-                deadlines.forEach(dl => {
-                  const tr = document.createElement("tr");
-                  tr.innerHTML = `
-                    <td>${dl.title}</td>
-                    <td>${(dl.startTime || "").slice(0,16).replace("T", " ")}</td>
-                    <td>${dl.points ?? ""}</td>
-                  `;
-                  tbody.appendChild(tr);
-                });
-              });
-          }
-          // Fetch and render lectures table
-          if (this.dataset.tab === "lectures") {
-            const courseId = window.currentCourseId;
-            fetch(`/courses/events/${courseId}`)
-              .then(res => res.json())
-              .then(events => {
-                const tbody = document.querySelector("#lecturesTable tbody");
-                tbody.innerHTML = "";
-                if (!Array.isArray(events) || events.length === 0) {
-                  tbody.innerHTML = "<tr><td colspan='3'>No lectures yet.</td></tr>";
-                  return;
-                }
-                events.filter(ev => ev.type && ev.type.toLowerCase() === "lecture").forEach(ev => {
-                  const tr = document.createElement("tr");
-                  tr.innerHTML = `
-                    <td>${ev.title}</td>
-                    <td>${(ev.startTime || "").slice(0,16).replace("T", " ")}</td>
-                    <td>${(ev.endTime || "").slice(0,16).replace("T", " ")}</td>
-                  `;
-                  tbody.appendChild(tr);
-                });
-              });
-          }
-        });
-      });
-
-      // Only define openCourseDetailSidebar ONCE and do not wrap it again!
-      window.openCourseDetailSidebar = function(courseId) {
-        window.currentCourseId = courseId;
-        fetch(`/courses/details/${courseId}`)
-          .then(res => res.json())
-          .then(course => {
-            const sidebar = document.getElementById("editCourseSidebar");
-            sidebar.classList.add("open");
-            // Fill edit fields (for settings tab)
-            const nameInput = document.getElementById("editCourseName");
-            if (nameInput) nameInput.value = course.name || "";
-            const colorInput = document.getElementById("editCourseColor");
-            if (colorInput) colorInput.value = course.color || "#4287f5";
-            const diffInput = document.getElementById("editCourseDifficulty");
-            if (diffInput) diffInput.value = course.difficulty || 1;
-            // Progress
-            const progress = course.progressPercent || 0;
-            const progressBar = document.getElementById("editCourseProgressBar");
-            if (progressBar) progressBar.style.width = `${progress}%`;
-            const progressLabel = document.getElementById("editCourseProgressLabel");
-            if (progressLabel) progressLabel.textContent = `${progress}%`;
-            // --- Fill overview tab directly with course data ---
-            const overviewName = document.getElementById("overviewCourseName");
-            if (overviewName) overviewName.textContent = course.name || "-";
-            const overviewColorBox = document.getElementById("overviewCourseColorBox");
-            if (overviewColorBox) overviewColorBox.style.background = course.color || "#4287f5";
-            const overviewColor = document.getElementById("overviewCourseColor");
-            if (overviewColor) overviewColor.textContent = course.color || "-";
-            const overviewDiff = document.getElementById("overviewCourseDifficulty");
-            if (overviewDiff) overviewDiff.textContent =
-              (["Easy", "Medium", "Hard"][course.difficulty - 1] || "-");
-            const overviewProgressBar = document.getElementById("overviewCourseProgressBar");
-            if (overviewProgressBar) overviewProgressBar.style.width = `${progress}%`;
-            const overviewProgressLabel = document.getElementById("overviewCourseProgressLabel");
-            if (overviewProgressLabel) overviewProgressLabel.textContent = `${progress}%`;
-            // Remove self-study stats from overview
-            const overviewStats = document.getElementById("overviewCourseStats");
-            if (overviewStats) overviewStats.innerHTML = "";
-          });
-      };
-
-      // Delete button in overview tab
-      const deleteBtnOverview = document.getElementById("deleteCourseButtonOverview");
-      if (deleteBtnOverview) {
-        deleteBtnOverview.onclick = function () {
-          if (!window.currentCourseId) return;
-          if (!confirm("Are you sure you want to delete this course? This cannot be undone.")) return;
-          fetch(`/courses/delete/${window.currentCourseId}`, {
-            method: 'DELETE'
-          })
-          .then(res => {
-            if (!res.ok) throw new Error("Failed to delete course");
-            document.getElementById("editCourseSidebar").classList.remove("open");
-            // reload course list and calendar
-            if (typeof loadCourses === "function") loadCourses();
-            if (window.calendar && typeof window.calendar.refetchEvents === "function") window.calendar.refetchEvents();
-          })
-          .catch(err => {
-            console.error("Error deleting course:", err);
-            alert("Could not delete course.");
-          });
-        };
-      }
-    });
-  </script>
 </body>
 </html>

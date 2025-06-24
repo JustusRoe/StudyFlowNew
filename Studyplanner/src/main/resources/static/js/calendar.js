@@ -1,3 +1,4 @@
+// Fetch and display all events assigned to a specific course in the course detail sidebar
 function getCourseEvents(courseId) {
     fetch(`/courses/events/${courseId}`)
         .then(res => {
@@ -25,6 +26,7 @@ function getCourseEvents(courseId) {
         });
 }
 
+// Remove an event from a course (used in course detail sidebar)
 function removeEventFromCourse(courseId, eventId) {
     fetch(`/courses/events/remove`, {
         method: "POST",
@@ -40,13 +42,16 @@ function removeEventFromCourse(courseId, eventId) {
     });
 }
 
+// Main initialization after DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
+    // Log to confirm script is running
     console.log("✅ calendar.js is loaded and running!");
 
+    // Reference to the calendar container element
     const calendarEl = document.getElementById('calendar');
     let currentCourseFilter = "";
 
-    /* --- Initialize FullCalendar --- */
+    // Initialize FullCalendar with configuration and event handlers
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         selectable: true,
@@ -58,12 +63,11 @@ document.addEventListener('DOMContentLoaded', function () {
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
 
-        /* --- Load and filter events --- */
+        // Load and filter events from backend, applying type filters
         events: function (info, successCallback, failureCallback) {
             fetch('/calendar/events')
                 .then(response => {
                     if (!response.ok) {
-                        // Try to parse error message if possible
                         return response.text().then(text => {
                             console.error("calendar/events error:", text);
                             failureCallback && failureCallback("Server error: could not load events.");
@@ -73,16 +77,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     return response.json();
                 })
                 .then(allEvents => {
-                    // Defensive: Only filter if allEvents is an array
                     if (!Array.isArray(allEvents)) {
                         console.error("calendar/events did not return an array:", allEvents);
                         failureCallback && failureCallback("Server error: could not load events.");
                         return;
                     }
+                    // Get all checked event type filters
                     const selectedTypes = Array.from(
                         document.querySelectorAll('#filter-controls input[type=checkbox]:checked')
                     ).map(cb => cb.value.toLowerCase());
 
+                    // Filter events by selected types
                     const filtered = allEvents.filter(event =>
                         event.type && selectedTypes.includes(event.type.toLowerCase())
                     );
@@ -94,12 +99,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         },
 
+        // Custom rendering for events in the calendar
         eventContent: function (arg) {
             const { event, el } = arg;
             const type = event.extendedProps.type;
             const fillType = event.extendedProps.fillType;
             const color = event.backgroundColor;
 
+            // For lectures and self-study, show a colored dot and time
             if (type === "lecture" || type === "self-study") {
                 const dot = document.createElement("span");
                 dot.style.backgroundColor = color;
@@ -118,35 +125,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 return { domNodes: [dot, time, title] };
             }
 
+            // For custom events, apply partial fill style if needed
             if (type === "custom") {
                 if (fillType === "partial-fill") {
-                arg.el.style.background = `linear-gradient(to right, ${color} 50%, transparent 50%)`;
+                    arg.el.style.background = `linear-gradient(to right, ${color} 50%, transparent 50%)`;
                 }
             }
 
-            return true; // assignment, exam, custom(complete-fill)
-            },
+            // For other types, use default rendering
+            return true;
+        },
 
-        // clicking empty calendar cell to add new event
+        // Handler for selecting a time range to add a new event
         select: openAddEventSidebar,
 
-        // click existing event to open edit/delete modal
+        // Handler for clicking an existing event to edit it
         eventClick: function(info) {
             openEditEventSidebar(info.event);
         }
     });
 
+    // Render the calendar
     calendar.render();
     window.calendar = calendar;
 
-    // --- Add Event Sidebar ---
+    // --- Add Event Sidebar logic ---
+    // Opens the sidebar for adding a new event
     function openAddEventSidebar(info) {
         console.log("Opening add sidebar", info);
         const sidebar = document.getElementById("addEventSidebar");
         sidebar.classList.add("open");
 
+        // Reset form fields
         document.getElementById("addEventTitle").value = "";
-        // Fix: Use correct format for datetime-local input
         document.getElementById("addEventStart").value = info.startStr.slice(0, 16);
         document.getElementById("addEventEnd").value = info.endStr.slice(0, 16);
         document.getElementById("addEventLocation").value = "";
@@ -161,25 +172,29 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        // Populate course dropdown
         loadCoursesForDropdown("addEventCourse");
 
+        // Button references
         const saveBtn = document.getElementById("saveNewEvent");
         const cancelBtn = document.getElementById("cancelNewEvent");
         const closeBtn = sidebar.querySelector(".close-sidebar");
 
+        // Remove previous handlers
         saveBtn.onclick = null;
         cancelBtn.onclick = null;
         if (closeBtn) closeBtn.onclick = null;
 
+        // Helper to close sidebar and refresh calendar
         function closeSidebarAndUnselect() {
             sidebar.classList.remove("open");
             calendar.unselect();
             calendar.refetchEvents();
-
             calendar.setOption('selectable', false);
             setTimeout(() => calendar.setOption('selectable', true), 0);
         }
 
+        // Save new event handler
         saveBtn.onclick = function () {
             const title = document.getElementById("addEventTitle").value.trim();
             const startTime = document.getElementById("addEventStart").value;
@@ -189,8 +204,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert("Please fill in all required fields: Title, Start Time, and Type.");
                 return;
             }
-
-            const fillTypeInput = document.getElementById("addEventFillType");
 
             const newEvent = {
                 title: title,
@@ -211,15 +224,18 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         };
 
+        // Cancel and close handlers
         cancelBtn.onclick = closeSidebarAndUnselect;
         if (closeBtn) closeBtn.onclick = closeSidebarAndUnselect;
     }
 
-    // --- Edit Event Sidebar ---
+    // --- Edit Event Sidebar logic ---
+    // Opens the sidebar for editing an existing event
     function openEditEventSidebar(event) {
         const sidebar = document.getElementById("editEventSidebar");
         sidebar.classList.add("open");
 
+        // Populate form fields with event data
         document.getElementById("editEventId").value = event.id;
         document.getElementById("editEventTitle").value = event.title;
         document.getElementById("editEventStart").value = event.startStr.slice(0, 16);
@@ -228,24 +244,29 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("editEventColor").value = event.backgroundColor;
         document.getElementById("editEventType").value = event.extendedProps.type || "custom";
 
+        // Populate course dropdown
         loadCoursesForDropdown("editEventCourse");
 
+        // Button references
         const saveBtn = document.getElementById("saveEditedEvent");
         const deleteBtn = document.getElementById("deleteEvent");
         const cancelBtn = document.getElementById("cancelEditEvent");
         const closeBtn = sidebar.querySelector(".close-sidebar");
 
+        // Remove previous handlers
         saveBtn.onclick = null;
         deleteBtn.onclick = null;
         cancelBtn.onclick = null;
         if (closeBtn) closeBtn.onclick = null;
 
+        // Helper to close sidebar and refresh calendar
         function closeSidebarAndUnselect() {
             sidebar.classList.remove("open");
             calendar.unselect();
             calendar.refetchEvents();
         }
 
+        // Save edited event handler
         saveBtn.onclick = () => {
             const title = document.getElementById("addEventTitle").value.trim();
             const startTime = document.getElementById("addEventStart").value;
@@ -272,6 +293,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         };
 
+        // Delete event handler
         deleteBtn.onclick = () => {
             if (confirm("Delete this event? This action cannot be undone.")) {
                 fetch(`/calendar/delete/${event.id}`, { method: "DELETE" }).then(() => {
@@ -280,23 +302,26 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
+        // Cancel and close handlers
         cancelBtn.onclick = closeSidebarAndUnselect;
         if (closeBtn) closeBtn.onclick = closeSidebarAndUnselect;
     }
 
-    // Sidebar close helpers for HTML close buttons
+    // Helper to close the add event sidebar and refresh calendar
     window.closeAddEventSidebar = function() {
         document.getElementById("addEventSidebar").classList.remove("open");
         calendar.unselect();
         calendar.refetchEvents();
     };
+
+    // Helper to close the edit event sidebar and refresh calendar
     window.closeEditEventSidebar = function() {
         document.getElementById("editEventSidebar").classList.remove("open");
         calendar.unselect();
         calendar.refetchEvents();
     };
 
-    // --- ESC handler for all sidebars ---
+    // ESC key closes any open sidebar overlays
     document.addEventListener("keydown", function(event) {
         if (event.key === "Escape") {
             const addEventSidebar = document.getElementById("addEventSidebar");
@@ -313,7 +338,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             const editCourseSidebar = document.getElementById("editCourseSidebar");
             if (editCourseSidebar && editCourseSidebar.classList.contains("open")) {
-                // Reset tabs to overview for next open (same as closeEditSidebar)
                 editCourseSidebar.classList.remove("open");
                 document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
                 const overviewBtn = document.querySelector('.sidebar-tabs .tab-btn[data-tab="overview"]');
@@ -329,21 +353,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    /* --- Event Type Checkboxes --- */
+    // Refresh calendar events when event type checkboxes are toggled
     document.querySelectorAll('#filter-controls input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', () => {
             calendar.refetchEvents();
         });
     });
 
-    /* --- Course Name Filter (text input) --- */
+    // Filter events by course name (if implemented)
     window.applyFilter = function () {
         const input = document.getElementById('course');
         currentCourseFilter = input.value;
         calendar.refetchEvents();
     };
 
-    // Load course list for dropdown (add/edit modal)
+    // Populate a select dropdown with all user courses
     function loadCoursesForDropdown(selectId) {
         fetch("/courses/user")
         .then(res => res.json())
@@ -352,18 +376,17 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!dropdown) return;
             dropdown.innerHTML = '<option value="">None</option>';
             courses.forEach(course => {
-            const opt = document.createElement("option");
-            opt.value = course.id;
-            opt.textContent = course.name;
-            dropdown.appendChild(opt);
+                const opt = document.createElement("option");
+                opt.value = course.id;
+                opt.textContent = course.name;
+                dropdown.appendChild(opt);
             });
         });
     }
 
-    /* --- ICS Upload --- */
+    // ICS calendar import logic
     const fileInput = document.getElementById('file');
     const importButton = document.getElementById('import-button');
-
     if (importButton && fileInput) {
         importButton.addEventListener('click', () => {
             fileInput.click();
@@ -402,36 +425,119 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadCoursesForDropdown("editEventCourse");
                 loadCoursesForDropdown("courseSelectForActions");
                 alert('Calendar imported successfully!');
-
             })
             .catch(err => {
                 alert(err.message);
             })
             .finally(() => {
-                if (loadingPopup) loadingPopup.style.display = 'none'; // removes loading popup
+                if (loadingPopup) loadingPopup.style.display = 'none';
             });
         });
     }
 
-    /* --- Color for Event Types --- */
-    function getColorForEventType(type) {
-        switch (type.toLowerCase()) {
-            case 'lecture': return '#4285F4';
-            case 'assignment': return '#0F9D58';
-            case 'exam': return '#DB4437';
-            case 'self-study': return '#F4B400';
-            default: return '#aaaaaa';
-        }
+    // Helper to get a readable color for text on a given background color
+    function getContrastingTextColor(hexColor) {
+        const hex = hexColor.replace('#', '');
+        const r = parseInt(hex.substr(0,2),16);
+        const g = parseInt(hex.substr(2,2),16);
+        const b = parseInt(hex.substr(4,2),16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness > 125 ? '#000000' : '#ffffff';
     }
 
-    /* ---------------------------------------
-       📌 Sidebar für "Create Course"
-    ---------------------------------------- */
+    // Load and display all user courses in the sidebar and dropdowns
+    function loadCourses() {
+        fetch("/courses/user")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to fetch courses");
+            }
+            return response.json();
+        })
+        .then(courses => {
+            const courseList = document.getElementById("course-list");
+            courseList.innerHTML = "";
 
+            if (!Array.isArray(courses) || courses.length === 0) {
+                courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
+                const dropdown = document.getElementById("courseSelectForActions");
+                if (dropdown) {
+                    dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
+                }
+                return;
+            }
+
+            courses.forEach(course => {
+                const progress = typeof course.progressPercent === "number" ? course.progressPercent : 0;
+                const li = document.createElement("li");
+                const textColor = getContrastingTextColor(course.color || '#ffffff');
+                li.style.backgroundColor = course.color || '#eeeeee';
+                li.style.color = textColor;
+                li.classList.add('course-item');
+                li.textContent = `${course.name} – ${progress}% complete`;
+                li.dataset.id = course.id;
+                li.style.cursor = "pointer";
+
+                li.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    openCourseDetailSidebar(course.id);
+                });
+
+                courseList.appendChild(li);
+            });
+
+            // Update course dropdown for actions
+            const dropdown = document.getElementById("courseSelectForActions");
+            if (dropdown) {
+                dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
+                courses.forEach(course => {
+                    const option = document.createElement("option");
+                    option.value = course.id;
+                    option.textContent = course.name;
+                    dropdown.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error loading courses:", error);
+            alert("Could not load courses.");
+        });
+    }
+
+    // Load and display upcoming events in the sidebar
+    function loadUpcomingEvents() {
+        fetch("/calendar/upcoming?limit=4")
+            .then(response => response.json())
+            .then(events => {
+                const upcomingList = document.getElementById("upcoming-events-list");
+                upcomingList.innerHTML = "";
+                if (!Array.isArray(events) || events.length === 0) {
+                    upcomingList.innerHTML = "<li class='placeholder'>No upcoming events.</li>";
+                    return;
+                }
+                events.forEach(event => {
+                    const li = document.createElement("li");
+                    const dateStr = new Date(event.startTime).toLocaleString();
+                    li.textContent = `${event.title} (${dateStr})`;
+                    upcomingList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error("Error loading upcoming events:", error);
+                alert("Could not load upcoming events.");
+            });
+    }
+
+    // Initial load of courses and upcoming events
+    loadCourses();
+    loadUpcomingEvents();
+
+    // --- Course creation sidebar logic ---
+    // Reference to the course creation sidebar
     const sidebar = document.getElementById('courseSidebar');
     const courseList = document.getElementById('course-list');
 
-    // Öffnen
+    // Open course creation sidebar when button is clicked
     const createCourseBtn = document.getElementById('create-course-btn');
     if (createCourseBtn) {
         createCourseBtn.addEventListener('click', () => {
@@ -439,14 +545,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Schließen
+    // Close course creation sidebar and reset fields
     window.closeSidebar = function () {
         sidebar.classList.remove('open');
         document.getElementById('courseName').value = "";
         document.getElementById('courseDescription').value = "";
     };
 
-    // Speichern
+    // Save a new course to the backend
     window.saveCourse = function () {
         const nameInput = document.getElementById('courseName');
         const descInput = document.getElementById('courseDescription');
@@ -459,14 +565,13 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Kurs an Backend senden
         fetch('/courses/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: name,
                 description: description,
-                color: '#4287f5' // feste Farbe – optional dynamisch machen
+                color: '#4287f5'
             })
         })
         .then(res => {
@@ -475,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(() => {
             closeSidebar();
-            loadCourses(); // 🔁 Liste komplett neu laden!
+            loadCourses();
         })
         .catch(error => {
             console.error("Error creating course:", error);
@@ -483,12 +588,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
-    /* ---------------------------------------
-       📌 Sidebar für "Edit Course"
-    ---------------------------------------- */
-
-    // Öffnet die Sidebar mit Kursdetails und Editiermöglichkeiten
-    // Öffnet die Sidebar mit Kursdetails und zeigt IMMER den Overview-Tab
+    // --- Course editing sidebar logic ---
+    // Open the course detail sidebar and show the overview tab
     window.openCourseDetailSidebar = function(courseId) {
         window.currentCourseId = courseId;
         fetch(`/courses/details/${courseId}`)
@@ -496,18 +597,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(course => {
                 const sidebar = document.getElementById("editCourseSidebar");
                 sidebar.classList.add("open");
-                // --- Immer Overview-Tab aktivieren ---
-                // Remove all 'active' classes first (robustness)
                 document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
-                // Set only overview tab as active
                 const overviewBtn = document.querySelector('.sidebar-tabs .tab-btn[data-tab="overview"]');
                 if (overviewBtn) overviewBtn.classList.add('active');
-                // Hide all tab contents
                 document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
-                // Show only overview tab content
                 const overviewTab = document.getElementById("tab-overview");
                 if (overviewTab) overviewTab.style.display = "block";
-                // --- Kursdaten setzen ---
                 const nameInput = document.getElementById("editCourseName");
                 if (nameInput) nameInput.value = course.name || "";
                 const colorInput = document.getElementById("editCourseColor");
@@ -537,42 +632,107 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     };
 
-    // Tab switching logic (add settings tab logic)
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
-                document.getElementById('tab-' + this.dataset.tab).style.display = "";
-                // Settings tab: sync values from overview
-                if (this.dataset.tab === "settings") {
-                    const name = document.getElementById("editCourseName");
-                    const desc = document.getElementById("editCourseDescription");
-                    const color = document.getElementById("editCourseColor");
-                    const diff = document.getElementById("editCourseDifficulty");
-                    if (document.getElementById("editCourseNameSettings") && name)
-                        document.getElementById("editCourseNameSettings").value = name.value;
-                    if (document.getElementById("editCourseDescriptionSettings") && desc)
-                        document.getElementById("editCourseDescriptionSettings").value = desc.value;
-                    if (document.getElementById("editCourseColorSettings") && color)
-                        document.getElementById("editCourseColorSettings").value = color.value;
-                    if (document.getElementById("editCourseDifficultySettings") && diff)
-                        document.getElementById("editCourseDifficultySettings").value = diff.value;
+    // --- API calls for course sidebar tabs (Deadlines & Lectures) ---
+    // Helper to load deadlines for the current course and fill the deadlines table
+    function loadCourseDeadlines(courseId) {
+        fetch(`/api/courses/${courseId}/deadlines`)
+            .then(res => res.json())
+            .then(deadlines => {
+                const tbody = document.querySelector("#deadlinesTable tbody");
+                if (!tbody) return;
+                tbody.innerHTML = "";
+                if (!Array.isArray(deadlines) || deadlines.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='3'>No deadlines yet.</td></tr>";
+                    return;
                 }
+                deadlines.forEach(dl => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${dl.title}</td>
+                        <td>${(dl.startTime || "").slice(0,16).replace("T", " ")}</td>
+                        <td>${dl.points ?? ""}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             });
+    }
+
+    // Helper to load lectures for the current course and fill the lectures table
+    function loadCourseLectures(courseId) {
+        fetch(`/courses/events/${courseId}`)
+            .then(res => res.json())
+            .then(events => {
+                const tbody = document.querySelector("#lecturesTable tbody");
+                if (!tbody) return;
+                tbody.innerHTML = "";
+                if (!Array.isArray(events) || events.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='3'>No lectures yet.</td></tr>";
+                    return;
+                }
+                events.filter(ev => ev.type && ev.type.toLowerCase() === "lecture").forEach(ev => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${ev.title}</td>
+                        <td>${(ev.startTime || "").slice(0,16).replace("T", " ")}</td>
+                        <td>${(ev.endTime || "").slice(0,16).replace("T", " ")}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+    }
+
+    // --- Tab switching logic for course sidebar (with API calls) ---
+    document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
+            document.getElementById('tab-' + this.dataset.tab).style.display = "";
+
+            // Settings tab: sync values from overview
+            if (this.dataset.tab === "settings") {
+                const name = document.getElementById("editCourseName");
+                const desc = document.getElementById("editCourseDescription");
+                const color = document.getElementById("editCourseColor");
+                const diff = document.getElementById("editCourseDifficulty");
+                if (document.getElementById("editCourseNameSettings") && name)
+                    document.getElementById("editCourseNameSettings").value = name.value;
+                if (document.getElementById("editCourseDescriptionSettings") && desc)
+                    document.getElementById("editCourseDescriptionSettings").value = desc.value;
+                if (document.getElementById("editCourseColorSettings") && color)
+                    document.getElementById("editCourseColorSettings").value = color.value;
+                if (document.getElementById("editCourseDifficultySettings") && diff)
+                    document.getElementById("editCourseDifficultySettings").value = diff.value;
+            }
+            // Deadlines tab: load deadlines from API
+            if (this.dataset.tab === "deadlines" && window.currentCourseId) {
+                loadCourseDeadlines(window.currentCourseId);
+            }
+            // Lectures tab: load lectures from API
+            if (this.dataset.tab === "lectures" && window.currentCourseId) {
+                loadCourseLectures(window.currentCourseId);
+            }
         });
     });
 
-    // Save settings from settings tab
+    // --- Also load deadlines/lectures when opening the sidebar directly on those tabs ---
+    // (If user opens sidebar and a non-overview tab is already active)
+    const activeTabBtn = document.querySelector('.sidebar-tabs .tab-btn.active');
+    if (activeTabBtn && window.currentCourseId) {
+        if (activeTabBtn.dataset.tab === "deadlines") {
+            loadCourseDeadlines(window.currentCourseId);
+        }
+        if (activeTabBtn.dataset.tab === "lectures") {
+            loadCourseLectures(window.currentCourseId);
+        }
+    }
+
+    // Save course settings from the settings tab
     window.saveCourseSettings = function () {
         const id = window.currentCourseId;
-        // Defensive: check if elements exist before accessing .value
         const nameInput = document.getElementById("editCourseNameSettings");
         const colorInput = document.getElementById("editCourseColorSettings");
         const diffInput = document.getElementById("editCourseDifficultySettings");
-
-        // Only read values if the elements exist, else fallback to ""
         const name = nameInput ? nameInput.value.trim() : "";
         const color = colorInput ? colorInput.value : "";
         const difficulty = diffInput ? diffInput.value : "";
@@ -592,28 +752,24 @@ document.addEventListener('DOMContentLoaded', function () {
             })
         })
         .then(() => {
-            // Update the main edit fields so overview tab is in sync
             const nameEdit = document.getElementById("editCourseName");
             if (nameEdit) nameEdit.value = name;
             const colorEdit = document.getElementById("editCourseColor");
             if (colorEdit) colorEdit.value = color;
             const diffEdit = document.getElementById("editCourseDifficulty");
             if (diffEdit) diffEdit.value = difficulty;
-            // Close the sidebar after saving
             document.getElementById("editCourseSidebar").classList.remove("open");
-            // Optionally reload course list and calendar
             if (typeof loadCourses === "function") loadCourses();
             if (window.calendar && typeof window.calendar.refetchEvents === "function") window.calendar.refetchEvents();
         });
     };
 
-    // Update course with difficulty (from overview tab)
+    // Update course from overview tab (not settings)
     window.updateCourse = function () {
         const id = window.currentCourseId;
         const name = document.getElementById("editCourseName").value.trim();
         const description = document.getElementById("editCourseDescription").value.trim();
         const color = document.getElementById("editCourseColor").value;
-        // Wert aus Dropdown ist bereits "1", "2" oder "3"
         const difficulty = document.getElementById("editCourseDifficulty").value;
 
         if (!name) {
@@ -628,7 +784,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 name: name,
                 description: description,
                 color: color,
-                difficulty: difficulty // als String "1", "2", "3"
+                difficulty: difficulty
             })
         })
         .finally(() => {
@@ -637,10 +793,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
+    // Close the course editing sidebar and reset to overview tab
     window.closeEditSidebar = function () {
         const sidebar = document.getElementById("editCourseSidebar");
         sidebar.classList.remove("open");
-        // Reset tabs to overview for next open
         document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
         const overviewBtn = document.querySelector('.sidebar-tabs .tab-btn[data-tab="overview"]');
         if (overviewBtn) overviewBtn.classList.add('active');
@@ -649,6 +805,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (overviewTab) overviewTab.style.display = "block";
     };
 
+    // Delete a course from the backend
     window.deleteCourse = function () {
         if (!window.currentCourseId) return;
         if (!confirm("Are you sure you want to delete this course? This cannot be undone.")) return;
@@ -667,98 +824,67 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
-    function getContrastingTextColor(hexColor) {
-        const hex = hexColor.replace('#', '');
-        const r = parseInt(hex.substr(0,2),16);
-        const g = parseInt(hex.substr(2,2),16);
-        const b = parseInt(hex.substr(4,2),16);
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-        return brightness > 125 ? '#000000' : '#ffffff';
+    // Ensure closeSidebar and closeEditSidebar exist for close button handlers
+    if (typeof window.closeSidebar !== "function") {
+        window.closeSidebar = function () {
+            const sidebar = document.getElementById('courseSidebar');
+            if (sidebar) sidebar.classList.remove('open');
+            const nameInput = document.getElementById('courseName');
+            if (nameInput) nameInput.value = "";
+            const descInput = document.getElementById('courseDescription');
+            if (descInput) descInput.value = "";
+        };
+    }
+    if (typeof window.closeEditSidebar !== "function") {
+        window.closeEditSidebar = function () {
+            const sidebar = document.getElementById("editCourseSidebar");
+            if (sidebar) sidebar.classList.remove("open");
+            document.querySelectorAll('.sidebar-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+            const overviewBtn = document.querySelector('.sidebar-tabs .tab-btn[data-tab="overview"]');
+            if (overviewBtn) overviewBtn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
+            const overviewTab = document.getElementById("tab-overview");
+            if (overviewTab) overviewTab.style.display = "block";
+        };
     }
 
-    function loadCourses() {
-        fetch("/courses/user")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Failed to fetch courses");
-            }
-            return response.json();
-        })
-        .then(courses => {
-            const courseList = document.getElementById("course-list");
-            courseList.innerHTML = "";
+    // Attach close handlers to sidebar close buttons
+    const closeCourseSidebarBtn = document.getElementById('closeCourseSidebarBtn');
+    if (closeCourseSidebarBtn) {
+        closeCourseSidebarBtn.addEventListener('click', window.closeSidebar);
+    }
+    const closeEditCourseSidebarBtn = document.getElementById('closeEditCourseSidebarBtn');
+    if (closeEditCourseSidebarBtn) {
+        closeEditCourseSidebarBtn.addEventListener('click', window.closeEditSidebar);
+    }
 
-            if (!Array.isArray(courses) || courses.length === 0) {
-                courseList.innerHTML = "<li class='placeholder'>No courses yet.</li>";
-                const dropdown = document.getElementById("courseSelectForActions");
-                if (dropdown) {
-                    dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
-                }
-                return;
-            }
-
-            courses.forEach(course => {
-                // Always use backend value for progressPercent
-                const progress = typeof course.progressPercent === "number" ? course.progressPercent : 0;
-                const li = document.createElement("li");
-                const textColor = getContrastingTextColor(course.color || '#ffffff');
-                li.style.backgroundColor = course.color || '#eeeeee';
-                li.style.color = textColor;
-                li.classList.add('course-item');
-                li.textContent = `${course.name} – ${progress}% complete`;
-                li.dataset.id = course.id;
-                li.style.cursor = "pointer";
-
-                li.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    // Always open the sidebar for THIS course and show the overview tab
-                    openCourseDetailSidebar(course.id);
-                });
-
-                courseList.appendChild(li);
+    // Attach delete handler for deleteCourseButtonOverview to delete course
+    const deleteBtnOverview = document.getElementById("deleteCourseButtonOverview");
+    if (deleteBtnOverview) {
+        deleteBtnOverview.onclick = function () {
+            if (!window.currentCourseId) return;
+            if (!confirm("Are you sure you want to delete this course? This cannot be undone.")) return;
+            fetch(`/courses/delete/${window.currentCourseId}`, {
+                method: 'DELETE'
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to delete course");
+                document.getElementById("editCourseSidebar").classList.remove("open");
+                if (typeof loadCourses === "function") loadCourses();
+                if (window.calendar && typeof window.calendar.refetchEvents === "function") window.calendar.refetchEvents();
+            })
+            .catch(err => {
+                console.error("Error deleting course:", err);
+                alert("Could not delete course.");
             });
+        };
+    }
 
-            // Dropdown für zentrale Kursaktionen aktualisieren
-            const dropdown = document.getElementById("courseSelectForActions");
-            if (dropdown) {
-                dropdown.innerHTML = '<option value="" disabled selected>Select course</option>';
-                courses.forEach(course => {
-                    const option = document.createElement("option");
-                    option.value = course.id;
-                    option.textContent = course.name;
-                    dropdown.appendChild(option);
-                });
-            }
-        })
-        .catch(error => {
-            console.error("Error loading courses:", error);
-            alert("Could not load courses.");
+    // Attach handler for manage-deadlines-btn to redirect to new page 
+    const manageDeadlinesBtn = document.getElementById("manage-deadlines-btn");
+    if (manageDeadlinesBtn) {
+        manageDeadlinesBtn.addEventListener("click", function () {
+            window.location.href = "/manage-deadlines";
         });
     }
-
-    function loadUpcomingEvents() {
-        fetch("/calendar/upcoming?limit=4")
-            .then(response => response.json())
-            .then(events => {
-                const upcomingList = document.getElementById("upcoming-events-list");
-                upcomingList.innerHTML = "";
-                if (!Array.isArray(events) || events.length === 0) {
-                    upcomingList.innerHTML = "<li class='placeholder'>No upcoming events.</li>";
-                    return;
-                }
-                events.forEach(event => {
-                    const li = document.createElement("li");
-                    const dateStr = new Date(event.startTime).toLocaleString();
-                    li.textContent = `${event.title} (${dateStr})`;
-                    upcomingList.appendChild(li);
-                });
-            })
-            .catch(error => {
-                console.error("Error loading upcoming events:", error);
-                alert("Could not load upcoming events.");
-            });
-    }
-    // Load all
-    loadCourses();
-    loadUpcomingEvents();
 });
