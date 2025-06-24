@@ -7,7 +7,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.web.csrf.CsrfToken;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import com.studyflow.studyplanner.model.User;
@@ -25,18 +24,24 @@ public class UserSettingsController {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Displays the user settings page with the current user's data and CSRF token.
+     */
     @GetMapping("/user_settings")
-public String showSettings(Model model, Principal principal, HttpServletRequest request) {
-    User user = userRepository.findByEmail(principal.getName());
-    model.addAttribute("user", user);
+    public String showSettings(Model model, Principal principal, HttpServletRequest request) {
+        User user = userRepository.findByEmail(principal.getName());
+        model.addAttribute("user", user);
 
-    // manueller CSRF-Token
-    CsrfToken token = (CsrfToken) request.getAttribute("_csrf");
-    model.addAttribute("_csrf", token);
+        // Add CSRF token to the model for form protection
+        CsrfToken token = (CsrfToken) request.getAttribute("_csrf");
+        model.addAttribute("_csrf", token);
 
-    return "user_settings";
-}
+        return "user_settings";
+    }
 
+    /**
+     * Handles updates to user settings (password, study times, study days, etc.).
+     */
     @PostMapping("/user_settings")
     public String updateSettings(
         @Valid @ModelAttribute("user") User formUser,
@@ -48,11 +53,11 @@ public String showSettings(Model model, Principal principal, HttpServletRequest 
         }
 
         User user = userRepository.findByEmail(principal.getName());
-        // Passwort
+        // Update password if provided
         if (formUser.getPassword() != null && !formUser.getPassword().isEmpty()) {
             userService.changePassword(user, formUser.getPassword());
         }
-        // Zeiten und Tage
+        // Update preferred study times and days
         user.setPreferredStartTime(formUser.getPreferredStartTime());
         user.setPreferredEndTime(formUser.getPreferredEndTime());
         user.setPreferredBreakTime(formUser.getPreferredBreakTime());

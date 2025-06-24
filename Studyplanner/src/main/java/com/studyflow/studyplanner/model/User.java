@@ -9,7 +9,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-// Creating SQL Table for USER
+/**
+ * Represents an application user with authentication and profile settings.
+ */
 @Entity
 @Table(name = "USERS")
 public class User {

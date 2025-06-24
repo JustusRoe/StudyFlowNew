@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for accessing and managing Course entities.
+ */
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByUser(User user);
 

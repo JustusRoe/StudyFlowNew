@@ -3,6 +3,11 @@ package com.studyflow.studyplanner.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Represents a calendar event (lecture, deadline, self-study, etc.) for a user.
+ * Each event is linked to a user (via userId) and can optionally be associated with a course (via courseId).
+ * Used for all time-based planning and tracking in the application.
+ */
 @Entity
 @Table(name = "calendar_events")
 public class CalendarEvent {
@@ -33,10 +38,8 @@ public class CalendarEvent {
     private int points = 0;
     private boolean generatedByEngine = false;
 
-    // Verknüpfung zu Deadline (optional, für Self-Study-Sessions)
     private Long relatedDeadlineId;
 
-    // Startzeitpunkt für das Lernen zu dieser Deadline
     private LocalDateTime studyStart;
 
     public CalendarEvent() {}

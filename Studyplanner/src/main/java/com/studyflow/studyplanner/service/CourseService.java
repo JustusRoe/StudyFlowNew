@@ -34,6 +34,9 @@ public class CourseService {
         this.eventRepository = eventRepository;
     }
 
+    /**
+     * Calculates all free time slots for a user between two dates, considering existing events and user preferences.
+     */
     private List<TimeSlot> calculateFreeSlots(User user, List<CalendarEvent> existingEvents, LocalDateTime from, LocalDateTime to) {
         List<TimeSlot> slots = new ArrayList<>();
 
@@ -83,7 +86,7 @@ public class CourseService {
     }
 
     /**
-     * Erstellt einen neuen Kurs und speichert ihn in der Datenbank.
+     * Creates a new course and saves it to the database.
      */
     @Transactional
     public Course createCourse(String name, String color, String userEmail, String courseIdentifier, int difficulty) {
@@ -97,7 +100,7 @@ public class CourseService {
     }
 
     /**
-     * Fügt einem Kurs ein Event hinzu (per ID).
+     * Adds an event to a course by event ID.
      */
     @Transactional
     public Course addEventToCourse(Long courseId, Long eventId) {
@@ -107,11 +110,11 @@ public class CourseService {
         CalendarEvent event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Setze Event-Farbe auf Kursfarbe
+        // Set event color to course color
         event.setColor(course.getColor());
         eventRepository.save(event);
 
-        // Event-ID zum Kurs hinzufügen und alle Events einfärben
+        // Add event ID to course and color all events
         course.addEventId(eventId);
         Course updated = courseRepository.save(course);
         applyCourseColorToEvents(updated);
@@ -119,7 +122,7 @@ public class CourseService {
     }
 
     /**
-     * Liefert einen Kurs mit vollständigen Eventdaten (für Progress-Berechnung).
+     * Returns a course with all event data resolved (for progress calculation).
      */
     public Course getCourseWithProgress(Long courseId) {
         Course course = courseRepository.findById(courseId)
@@ -131,7 +134,7 @@ public class CourseService {
     }
 
     /**
-     * Gibt alle Kurse eines Users mit vollständigem Fortschritt zurück.
+     * Returns all courses for a user with progress information.
      */
     public List<Course> getCoursesWithProgress(String userEmail) {
         User user = userRepository.findByEmail(userEmail);
@@ -141,15 +144,15 @@ public class CourseService {
         for (Course course : courses) {
             List<CalendarEvent> events = eventRepository.findAllById(course.getEventIds());
             course.setResolvedEvents(events);
-            // Fortschritt in Prozent berechnen (Wert wird dynamisch über getProgressPercent() bereitgestellt)
+            // Calculate progress in percent (value is dynamically provided via getProgressPercent())
             double progressPercent = course.getProgressPercent();
-            // Optional: Wenn weitere Verarbeitung/Logging nötig ist, kann hier darauf zugegriffen werden.
+            // Optional: If further processing/logging is needed, it can be accessed here.
         }
         return courses;
     }
 
     /**
-     * Holt die Kursdetails inkl. Events für ein bestimmtes Course-Id und den zugehörigen Benutzer.
+     * Returns course details including events for a given course ID and user.
      */
     public Course getCourseDetails(Long courseId, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
@@ -177,21 +180,27 @@ public class CourseService {
         return courseRepository.findById(id);
     }
 
+    /**
+     * Deletes a course and all associated events.
+     */
     @Transactional
     public void deleteCourse(Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Alle zugehörigen Events löschen
+        // Delete all associated events
         List<Long> eventIds = course.getEventIds();
         if (eventIds != null && !eventIds.isEmpty()) {
             eventRepository.deleteAllById(eventIds);
         }
 
-        // Danach den Kurs selbst löschen
+        // Then delete the course itself
         courseRepository.deleteById(id);
     }
 
+    /**
+     * Applies the course color to all associated events.
+     */
     private void applyCourseColorToEvents(Course course) {
         List<Long> eventIds = course.getEventIds();
         if (eventIds == null || eventIds.isEmpty()) {
@@ -205,15 +214,15 @@ public class CourseService {
     }
 
     /**
-     * Aktualisiert einen Kurs und seine Events, sofern er dem Benutzer gehört.
+     * Updates a course and its events if it belongs to the user.
      */
     @Transactional
     public Course updateCourse(Long id, String name, String color, String userEmail) {
-        // Finde den Kurs
+        // Find the course
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Prüfe, ob der Kurs dem Benutzer gehört
+        // Check if the course belongs to the user
         User user = userRepository.findByEmail(userEmail);
         if (user == null) {
             throw new RuntimeException("User not found");
@@ -222,20 +231,20 @@ public class CourseService {
             throw new RuntimeException("Access denied");
         }
 
-        // Aktualisiere Felder
+        // Update fields
         course.setName(name);
         course.setColor(color);
 
-        // Speichere Kurs
+        // Save course
         Course savedCourse = courseRepository.save(course);
 
-        // Setze Kursfarbe auf alle Events
+        // Set course color to all events
         applyCourseColorToEvents(savedCourse);
         return savedCourse;
     }
 
     /**
-     * Gibt alle Events eines Kurses zurück, mit Benutzerüberprüfung.
+     * Returns all events for a course, with user verification.
      */
     public List<CalendarEvent> getCourseEvents(Long courseId, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
@@ -252,7 +261,7 @@ public class CourseService {
     }
 
     /**
-     * Entfernt ein Event aus einem Kurs (mit Benutzerüberprüfung).
+     * Removes an event from a course (with user verification).
      */
     @Transactional
     public void removeEventFromCourse(Long courseId, Long eventId, String userEmail) {
@@ -269,40 +278,47 @@ public class CourseService {
         course.removeEventId(eventId);
         courseRepository.save(course);
     }
-@Transactional
-public void addEventToCourse(Long courseId, String title, String description, String type, String color,
-                             LocalDateTime startTime, LocalDateTime endTime, String userEmail) {
-    User user = userRepository.findByEmail(userEmail);
-    if (user == null) throw new RuntimeException("User not found");
 
-    Course course = courseRepository.findById(courseId)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
+    /**
+     * Adds a new event to a course, creating the event and linking it to the course.
+     */
+    @Transactional
+    public void addEventToCourse(Long courseId, String title, String description, String type, String color,
+                                 LocalDateTime startTime, LocalDateTime endTime, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) throw new RuntimeException("User not found");
 
-    if (!course.getUser().getId().equals(user.getId())) {
-        throw new RuntimeException("Access denied");
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (!course.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+
+        // Create new event
+        CalendarEvent event = new CalendarEvent();
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setType(type);
+        event.setColor(color);
+        event.setStartTime(startTime);
+        event.setEndTime(endTime);
+        event.setUserId(user.getId());
+
+        // Save event
+        CalendarEvent savedEvent = eventRepository.save(event);
+
+        // Add event ID to course
+        course.addEventId(savedEvent.getId());
+        courseRepository.save(course);
+
+        // Optional: Apply color to all course events (can be done as needed)
+        applyCourseColorToEvents(course);
     }
 
-    // Neues Event anlegen
-    CalendarEvent event = new CalendarEvent();
-    event.setTitle(title);
-    event.setDescription(description);
-    event.setType(type);
-    event.setColor(color);
-    event.setStartTime(startTime);
-    event.setEndTime(endTime);
-    event.setUserId(user.getId());
-
-    // Event speichern
-    CalendarEvent savedEvent = eventRepository.save(event);
-
-    // Event-ID zum Kurs hinzufügen
-    course.addEventId(savedEvent.getId());
-    courseRepository.save(course);
-
-    // Optional: Farbe auf alle Events des Kurses anwenden (kann man je nach Bedarf machen)
-    applyCourseColorToEvents(course);
-}
-
+    /**
+     * Automatically plans self-study sessions for a deadline, distributing sessions in available slots.
+     */
     @Transactional
     public void autoPlanSelfstudySessions(Long courseId, Long deadlineId, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
@@ -333,7 +349,7 @@ public void addEventToCourse(Long courseId, String title, String description, St
         int lectureHours = 33;
         int remainingWorkload = workloadTotal - lectureHours;
 
-        // Gesamtpunkte für Deadlines sind immer 120
+        // Total points for deadlines are always 120
         int totalPoints = 120;
 
         double share = (double) deadline.getPoints() / totalPoints;
@@ -341,19 +357,19 @@ public void addEventToCourse(Long courseId, String title, String description, St
 
         List<CalendarEvent> allUserEvents = eventRepository.findByUserId(user.getId());
 
-        // --- Anpassung: StudyStart berücksichtigen ---
+        // --- Adjustment: Consider StudyStart ---
         LocalDateTime studyStart = deadline.getStudyStart() != null ? deadline.getStudyStart() : LocalDateTime.now();
         LocalDateTime studyEnd = deadline.getStartTime();
 
-        // Alle freien Slots im Zeitraum [studyStart, studyEnd)
+        // All free slots in the period [studyStart, studyEnd)
         List<TimeSlot> freeSlots = calculateFreeSlots(user, allUserEvents, studyStart, studyEnd.minusMinutes(1));
 
-        // Sessions gleichmäßig verteilen
-        int sessionsNeeded = (int) Math.ceil(targetHours / 2.0); // max 2h pro Session
+        // Distribute sessions evenly
+        int sessionsNeeded = (int) Math.ceil(targetHours / 2.0); // max 2h per session
         int hoursLeft = targetHours;
         int planned = 0;
 
-        // Flache Liste aller möglichen Stunden-Slots in den freien Zeitfenstern
+        // Flat list of all possible hour slots in the free time windows
         List<LocalDateTime> possibleStarts = new ArrayList<>();
         for (TimeSlot slot : freeSlots) {
             LocalDateTime slotStart = slot.start();
@@ -365,7 +381,7 @@ public void addEventToCourse(Long courseId, String title, String description, St
             }
         }
 
-        // Gleichmäßig verteilen
+        // Distribute evenly
         int interval = possibleStarts.size() >= sessionsNeeded ? possibleStarts.size() / sessionsNeeded : 1;
         int used = 0;
         for (int i = 0; i < possibleStarts.size() && planned < targetHours; i += interval) {
@@ -402,8 +418,8 @@ public void addEventToCourse(Long courseId, String title, String description, St
     }
 
     /**
-     * Gibt alle Deadlines eines Kurses für den eingeloggten Benutzer zurück.
-     * Nur Events mit isDeadline == true und courseId passend zum Kurs.
+     * Returns all deadlines for a course for the logged-in user.
+     * Only events with isDeadline == true and matching courseId.
      */
     public List<CalendarEvent> getDeadlines(Long courseId, String userEmail) {
         Course course = getCourseDetails(courseId, userEmail);
@@ -413,6 +429,9 @@ public void addEventToCourse(Long courseId, String title, String description, St
             .toList();
     }
 
+    /**
+     * Returns progress information for a course as a map.
+     */
     public Map<String, Object> getProgressInfo(Long courseId, String userEmail) {
         Course course = getCourseDetails(courseId, userEmail);
         Map<String, Object> map = new HashMap<>();
@@ -422,6 +441,9 @@ public void addEventToCourse(Long courseId, String title, String description, St
         return map;
     }
 
+    /**
+     * Adds a manual self-study session to a course.
+     */
     @Transactional
     public void addManualSelfstudySession(Long courseId, String title, String description, String color,
                                           LocalDateTime startTime, LocalDateTime endTime, String userEmail) {
@@ -446,7 +468,7 @@ public void addEventToCourse(Long courseId, String title, String description, St
     }
 
     /**
-     * Gibt alle Deadlines eines Kurses als reduzierte Map-Liste für die Tabelle zurück.
+     * Returns all deadlines for a course as a reduced map list for tables.
      * Filters by courseId (as String) and isDeadline == true.
      */
     public List<Map<String, Object>> getDeadlinesForTable(Long courseId, String userEmail) {
@@ -470,7 +492,7 @@ public void addEventToCourse(Long courseId, String title, String description, St
     }
 
     /**
-     * Löscht alle Self-Study-Sessions, die zu einer bestimmten Deadline gehören.
+     * Deletes all self-study sessions associated with a specific deadline.
      */
     @Transactional
     public void deleteSelfStudySessionsForDeadline(Long deadlineId) {

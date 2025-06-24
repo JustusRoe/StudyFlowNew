@@ -14,7 +14,6 @@ import java.util.List;
  * UserDetailsService separately from UserService. By handling authentication here,
  * we avoid a circular dependency between SecurityConfig and the main UserService.
  */
-
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -25,7 +24,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
-    // Spring method to get data of user by username (email in our case)
+    /**
+     * Loads user details by email for Spring Security authentication.
+     */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email);

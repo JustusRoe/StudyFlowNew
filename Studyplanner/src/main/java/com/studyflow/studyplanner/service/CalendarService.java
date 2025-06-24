@@ -13,13 +13,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-// handles the event import logic of saving imported lectures and fetching them later to show on the calendar page
-
+/**
+ * Handles the event import logic, saving imported lectures and fetching them for the calendar page.
+ * Also provides workload and self-study calculations.
+ */
 @Service
 public class CalendarService {
     private final CalendarEventRepository eventRepository;
 
-    // Feste Lecture-Stunden
+    // Fixed number of lecture hours used for workload calculation
     private static final int LECTURE_HOURS = 33;
 
     @Autowired
@@ -50,23 +52,29 @@ public class CalendarService {
         eventRepository.deleteById(eventId);
     }
 
-    // Calculates the total workload hours for a course based on given difficulty level.
+    /**
+     * Calculates the total workload hours for a course based on the given difficulty level.
+     */
     public int calculateTotalWorkload(int difficultyLevel) {
         return switch (difficultyLevel) {
-            case 1 -> 100; // was 120
-            case 2 -> 130; // was 150
-            case 3 -> 160; // was 180
+            case 1 -> 100; // easy
+            case 2 -> 130; // medium
+            case 3 -> 160; // hard
             default -> 130;
         };
     }
 
-    // Berechnet Self-Study Stunden auf Basis der Schwierigkeit
+    /**
+     * Calculates the required self-study hours for a course based on difficulty.
+     */
     public int calculateSelfStudyHours(int difficultyLevel) {
         int total = calculateTotalWorkload(difficultyLevel);
         return Math.max(0, total - LECTURE_HOURS);
     }
 
-    // Summiert die geplanten Self-Study-Stunden für einen Kurs
+    /**
+     * Sums the planned self-study hours for a course from a list of events.
+     */
     public int getPlannedSelfStudyHours(List<CalendarEvent> events) {
         return events.stream()
                 .filter(e -> "self-study".equalsIgnoreCase(e.getType()))
@@ -74,19 +82,26 @@ public class CalendarService {
                 .sum();
     }
 
-    // Berechnet die verbleibenden Self-Study-Stunden, die geplant werden müssen
+    /**
+     * Calculates the remaining self-study hours that need to be planned for a course.
+     */
     public int getRemainingSelfStudyHours(int difficultyLevel, List<CalendarEvent> events) {
         int required = calculateSelfStudyHours(difficultyLevel);
         int planned = getPlannedSelfStudyHours(events);
         return Math.max(0, required - planned);
     }
 
-    // Calculates the workload weight for a deadline event based on its points and the course's total points/workload
+    /**
+     * Calculates the workload weight for a deadline event based on its points and the course's total points/workload.
+     */
     public int calculateDeadlineWorkload(CalendarEvent deadline, int totalWorkload, int totalPoints) {
         if (deadline.getPoints() <= 0 || totalPoints <= 0) return 0;
         return (int) ((deadline.getPoints() / (double) totalPoints) * totalWorkload);
     }
 
+    /**
+     * Calculates and returns a list of self-study session events for a deadline, based on user preferences and available slots.
+     */
     public List<CalendarEvent> calculateStudySlotsForDeadline(User user, CalendarEvent deadline, List<CalendarEvent> existingEvents, int hoursToPlan) {
         List<CalendarEvent> sessions = new ArrayList<>();
 

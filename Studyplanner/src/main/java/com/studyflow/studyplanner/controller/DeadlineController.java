@@ -32,7 +32,11 @@ public class DeadlineController {
         this.userRepository = userRepository;
     }
 
-    // Serve the manage-deadlines page (HTML)
+    /**
+     * Serves the manage-deadlines page (HTML).
+     * If no courseId is provided, renders the page with course selection only.
+     * If courseId is provided, adds course and deadline data to the model.
+     */
     @GetMapping("/manage-deadlines")
     public String showManageDeadlinesPage(@RequestParam(value = "courseId", required = false) Long courseId, Principal principal, Model model) {
         if (courseId == null) {
@@ -48,11 +52,13 @@ public class DeadlineController {
         return "manage-deadlines";
     }
 
+    /**
+     * Returns all deadlines for a given course as a list of maps (API).
+     */
     @GetMapping("/api/courses/{id}/deadlines")
     @ResponseBody
     public List<Map<String, Object>> getCourseDeadlines(@PathVariable Long id, Principal principal) {
         String email = principal.getName();
-        // Nutze die Service-Methode, die alle Deadlines für den Kurs liefert
         List<CalendarEvent> deadlines = courseService.getDeadlines(id, email);
         return deadlines.stream()
             .map(ev -> {
@@ -66,6 +72,9 @@ public class DeadlineController {
             .toList();
     }
 
+    /**
+     * Creates a new deadline event for a course.
+     */
     @PostMapping("/deadlines/create")
     @ResponseBody
     public CalendarEvent createDeadline(@RequestBody Map<String, Object> payload, @RequestParam Long courseId, Principal principal) {
@@ -84,21 +93,24 @@ public class DeadlineController {
         event.setPoints((Integer) payload.get("points"));
         event.setUserId(user.getId());
         event.setCourseId(String.valueOf(courseId));
-        // StudyStart setzen
+        // Set studyStart if provided
         if (payload.get("studyStart") != null) {
             event.setStudyStart(java.time.LocalDateTime.parse((String) payload.get("studyStart")));
         }
-        // Kursfarbe setzen
+        // Set course color
         Course course = courseService.getById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
         event.setColor(course.getColor());
         CalendarEvent saved = calendarService.saveEvent(event);
 
-        // Event dem Kurs hinzufügen!
+        // Add event to course
         courseService.addEventToCourse(courseId, saved.getId());
 
         return saved;
     }
 
+    /**
+     * Updates an existing deadline event.
+     */
     @PostMapping("/deadlines/update/{id}")
     @ResponseBody
     public CalendarEvent updateDeadline(@PathVariable Long id, @RequestBody CalendarEvent updated, Principal principal) {
@@ -113,10 +125,13 @@ public class DeadlineController {
         return calendarService.saveEvent(existing);
     }
 
+    /**
+     * Deletes a deadline event and all associated self-study sessions.
+     */
     @DeleteMapping("/deadlines/delete/{id}")
     @ResponseBody
     public ResponseEntity<?> deleteDeadline(@PathVariable Long id) {
-        // Zuerst alle zugehörigen Self-Study-Sessions löschen
+        // First delete all associated self-study sessions
         courseService.deleteSelfStudySessionsForDeadline(id);
         calendarService.deleteEvent(id);
         return ResponseEntity.ok().build();
@@ -124,6 +139,9 @@ public class DeadlineController {
 
     // --- Selfstudy API ---
 
+    /**
+     * Returns all self-study sessions for a course.
+     */
     @GetMapping("/api/courses/{courseId}/selfstudy")
     @ResponseBody
     public List<Map<String, Object>> getSelfstudySessions(@PathVariable Long courseId, Principal principal) {
@@ -142,6 +160,9 @@ public class DeadlineController {
             .toList();
     }
 
+    /**
+     * Adds a manual self-study session to a course.
+     */
     @PostMapping("/courses/{courseId}/add-selfstudy")
     @ResponseBody
     public ResponseEntity<?> addManualSelfstudySession(

@@ -45,6 +45,9 @@ public class CalendarController {
         this.courseService = courseService;
     }
 
+    /**
+     * Handles uploading and importing a calendar (.ics) file for the current user.
+     */
     @PostMapping("/upload")
     @ResponseBody
     public ResponseEntity<String> uploadCalendar(@RequestParam("file") MultipartFile file, Principal principal) {
@@ -53,14 +56,14 @@ public class CalendarController {
             String email = principal.getName();
             User user = userRepository.findByEmail(email);
             Long userId = user.getId();
-            
+
             List<CalendarEvent> events = IcsParser.parseIcs(inputStream, userId,
-            userRepository, courseRepository, calendarEventRepository, courseService, email);
-            
+                userRepository, courseRepository, calendarEventRepository, courseService, email);
+
             for (CalendarEvent event : events) {
                 calendarService.saveEvent(event);
             }
-            
+
             return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body("success");
         } catch (Exception e) {
             return ResponseEntity.status(500).contentType(MediaType.TEXT_PLAIN)
@@ -68,6 +71,9 @@ public class CalendarController {
         }
     }
 
+    /**
+     * Returns all calendar events for the current user in a format suitable for the frontend.
+     */
     @GetMapping("/events")
     @ResponseBody
     public List<Map<String, Object>> getEventsForFrontend(Principal principal) {
@@ -85,7 +91,7 @@ public class CalendarController {
             json.put("description", event.getDescription());
             json.put("type", event.getType());
             json.put("courseId", event.getCourseId());
-            json.put("completed", event.isCompleted()); // always dynamic
+            json.put("completed", event.isCompleted());
             json.put("isDeadline", event.isDeadline());
             json.put("points", event.getPoints());
             json.put("generatedByEngine", event.isGeneratedByEngine());
@@ -96,6 +102,9 @@ public class CalendarController {
         return result;
     }
 
+    /**
+     * Returns a limited list of upcoming events for the current user.
+     */
     @GetMapping("/upcoming")
     @ResponseBody
     public List<Map<String, Object>> getUpcomingEvents(Principal principal,
@@ -116,6 +125,9 @@ public class CalendarController {
         return result;
     }
 
+    /**
+     * Creates a new calendar event for the current user.
+     */
     @PostMapping("/create")
     @ResponseBody
     public CalendarEvent createEvent(@RequestBody CalendarEvent event, Principal principal) {
@@ -125,12 +137,8 @@ public class CalendarController {
             event.setColor(getColorForEventType(event.getType()));
         }
         event.setCourseId(event.getCourseId());
-        // Removed: event.setCompleted(event.isCompleted());
-        // Fix: Ensure isDeadline is set correctly from the request (not default false)
-        // If the JSON contains "isDeadline", it will be set by Jackson. But if not, check type:
+        // Ensure isDeadline is set correctly for exams and assignments
         if ("exam".equalsIgnoreCase(event.getType()) || "assignment".equalsIgnoreCase(event.getType())) {
-            // Only override if not explicitly set
-            // If isDeadline is not set (default false), set to true for exam/assignment
             if (!event.isDeadline()) {
                 event.setDeadline(true);
             }
@@ -140,6 +148,9 @@ public class CalendarController {
         return calendarService.saveEvent(event);
     }
 
+    /**
+     * Updates an existing calendar event for the current user.
+     */
     @PostMapping("/update/{id}")
     @ResponseBody
     public CalendarEvent updateEvent(@PathVariable Long id,
@@ -160,7 +171,6 @@ public class CalendarController {
         existing.setDescription(updated.getDescription());
         existing.setType(updated.getType());
         existing.setCourseId(updated.getCourseId());
-        // Removed: existing.setCompleted(updated.isCompleted());
         existing.setDeadline(updated.isDeadline());
         existing.setPoints(updated.getPoints());
         existing.setGeneratedByEngine(updated.isGeneratedByEngine());
@@ -169,6 +179,9 @@ public class CalendarController {
         return calendarService.saveEvent(existing);
     }
 
+    /**
+     * Deletes a calendar event for the current user.
+     */
     @DeleteMapping("/delete/{id}")
     @ResponseBody
     public void deleteEvent(@PathVariable Long id, Principal principal) {
@@ -181,6 +194,9 @@ public class CalendarController {
         }
     }
 
+    /**
+     * Returns a default color for a given event type.
+     */
     private String getColorForEventType(String type) {
         return switch (type == null ? "" : type.toLowerCase()) {
             case "lecture" -> "#4285F4";

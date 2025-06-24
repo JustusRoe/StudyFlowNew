@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Repository for accessing and managing CalendarEvent entities.
+ */
 @Repository
 public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Long> {
 

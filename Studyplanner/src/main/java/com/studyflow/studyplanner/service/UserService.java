@@ -18,7 +18,7 @@ import com.studyflow.studyplanner.repository.UserRepository;
 @Service
 public class UserService {
 
-    // Dependencies required for user operations
+    // Dependencies for user operations
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -34,7 +34,7 @@ public class UserService {
 
     /**
      * Registers a new user and logs them in automatically.
-     * This method is transactional to ensure DB consistency.
+     * Transactional for DB consistency.
      */
     @Transactional
     public User registerAndLogin(String username, String email, String rawPassword) {
@@ -70,7 +70,7 @@ public class UserService {
     private EmailService emailService;
 
     /**
-     * Initiates the password reset process by generating a token.
+     * Initiates the password reset process by generating a token and sending an email.
      */
     @Transactional
     public void requestPasswordReset(String email) {

@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Represents a course for a user. Each course can have multiple calendar events (by event IDs)
+ * and is linked to a user. Used for grouping lectures, deadlines, and self-study sessions.
+ */
 @Entity
 @Table(
     name = "courses",
@@ -28,20 +32,20 @@ public class Course {
     private String courseIdentifier; // stores the ICS courseId like [xxxxxx]
 
     @Column(name = "difficulty")
-    private int difficulty; // 1 = leicht, 2 = mittel, 3 = schwer
+    private int difficulty; // 1 = easy, 2 = medium, 3 = hard
 
-    // Event-IDs als einfache Liste (One-to-Many auf IDs)
+    // List of event IDs associated with this course
     @ElementCollection
     @CollectionTable(name = "course_event_ids", joinColumns = @JoinColumn(name = "course_id"))
     @Column(name = "event_id")
     private List<Long> eventIds = new ArrayList<>();
 
-    // Verknüpfter Benutzer
+    // Linked user (owner of the course)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Nicht persistente Events zur Laufzeit (für Progress-Berechnung)
+    // Non-persistent events, resolved at runtime (for progress calculation)
     @Transient
     private List<CalendarEvent> resolvedEvents = new ArrayList<>();
 
@@ -53,7 +57,7 @@ public class Course {
         this.user = user;
     }
 
-    /* --- Getter & Setter --- */
+    // --- Getters & Setters ---
 
     public Long getId() {
         return id;
@@ -115,6 +119,9 @@ public class Course {
         this.resolvedEvents = resolvedEvents;
     }
 
+    /**
+     * Returns the progress as a fraction (0.0 - 1.0) based on completed events.
+     */
     @Transient
     public double getProgress() {
         if (resolvedEvents == null || resolvedEvents.isEmpty()) return 0.0;
@@ -123,11 +130,17 @@ public class Course {
         return (double) completed / resolvedEvents.size();
     }
     
+    /**
+     * Returns the progress as a percentage (0-100).
+     */
     @JsonProperty("progressPercent")
     public int getProgressPercent() {
         return (int) Math.round(getProgress() * 100);
     }
 
+    /**
+     * Returns the total self-study hours for this course.
+     */
     @JsonProperty("selfStudyHours")
     @Transient
     public int getSelfStudyHours() {
@@ -137,18 +150,21 @@ public class Course {
             .sum();
     }
 
+    /**
+     * Returns the workload target based on course difficulty.
+     */
     @JsonProperty("workloadTarget")
     @Transient
     public int getWorkloadTarget() {
         return switch (difficulty) {
-            case 1 -> 100; // leicht (was 120 war)
-            case 2 -> 130; // mittel (was 150 war)
-            case 3 -> 160; // schwer (was 180 war)
+            case 1 -> 100; // easy
+            case 2 -> 130; // medium
+            case 3 -> 160; // hard
             default -> 130; // fallback
         };
     }
 
-    // Optional: For gamification/fish mascot scaling
+    // Progress fraction for compatibility with frontend
     @JsonProperty("progressFraction")
     @Transient
     public double getProgressFraction() {

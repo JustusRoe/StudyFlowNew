@@ -22,7 +22,7 @@ public class CourseController {
     }
 
     /**
-     * Erstellt einen neuen Kurs für den eingeloggten Nutzer.
+     * Creates a new course for the logged-in user.
      */
     @PostMapping("/create")
     public ResponseEntity<Course> createCourse(@RequestBody Course course, Principal principal) {
@@ -38,7 +38,7 @@ public class CourseController {
     }
 
     /**
-     * Aktualisiert einen bestehenden Kurs anhand der ID.
+     * Updates an existing course by ID.
      */
     @PostMapping("/update/{id}")
     public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Map<String, Object> updates, Principal principal) {
@@ -58,7 +58,7 @@ public class CourseController {
             }
 
             Course course = courseService.getById(id).orElseThrow(() -> new RuntimeException("Course not found"));
-            // Prüfe, ob der Kurs dem Benutzer gehört
+            // Check if the course belongs to the user
             if (!course.getUser().getEmail().equals(email)) {
                 return ResponseEntity.status(403).body("Access denied");
             }
@@ -68,7 +68,7 @@ public class CourseController {
             course.setDifficulty(difficultyHolder[0]);
             courseService.updateCourse(id, name, color, email);
 
-            // Save difficulty (optional, falls updateCourse das nicht übernimmt)
+            // Save difficulty (optional, in case updateCourse does not handle it)
             courseService.getById(id).ifPresent(c -> {
                 c.setDifficulty(difficultyHolder[0]);
                 courseService.updateCourse(c.getId(), c.getName(), c.getColor(), email);
@@ -77,13 +77,12 @@ public class CourseController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             e.printStackTrace();
-            // Fehlertext nur im Fehlerfall
             return ResponseEntity.status(500).body("Update failed: " + e.getMessage());
         }
     }
 
     /**
-     * Gibt für den eingeloggten Nutzer alle Kurse mit Details und Fortschritt zurück.
+     * Returns all courses with details and progress for the logged-in user.
      */
     @GetMapping("/user")
     public ResponseEntity<List<Map<String, Object>>> getUserCourses(Principal principal) {
@@ -105,7 +104,7 @@ public class CourseController {
     }
 
     /**
-     * Gibt Kursdetails anhand der Kurs-ID zurück.
+     * Returns course details by course ID.
      */
     @GetMapping("/description/{id}")
     public ResponseEntity<Course> getDescription(@PathVariable Long id, Principal principal) {
@@ -118,7 +117,7 @@ public class CourseController {
     }
 
     /**
-     * Gibt Kursdetails inkl. Fortschritt und Self-Study-Infos für die Sidebar zurück.
+     * Returns course details including progress and self-study info for the sidebar.
      */
     @GetMapping("/details/{id}")
     public ResponseEntity<Course> getCourseDetails(@PathVariable Long id, Principal principal) {
@@ -131,7 +130,7 @@ public class CourseController {
     }
 
     /**
-     * Löscht einen Kurs anhand der ID, wenn er dem eingeloggten Nutzer gehört.
+     * Deletes a course by ID if it belongs to the logged-in user.
      */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteCourse(@PathVariable Long id, Principal principal) {
@@ -145,7 +144,7 @@ public class CourseController {
     }
 
     /**
-     * Gibt alle Kalender-Events zurück, die einem Kurs zugeordnet sind.
+     * Returns all calendar events assigned to a course.
      */
     @GetMapping("/events/{courseId}")
     public ResponseEntity<?> getCourseEvents(@PathVariable Long courseId, Principal principal) {
@@ -159,7 +158,7 @@ public class CourseController {
     }
 
     /**
-     * Entfernt ein Kalender-Event aus einem Kurs.
+     * Removes a calendar event from a course.
      */
     @PostMapping("/events/remove")
     public ResponseEntity<?> removeEventFromCourse(@RequestBody Map<String, Long> request, Principal principal) {
@@ -176,7 +175,7 @@ public class CourseController {
     }
 
     /**
-     * Fügt einem Kurs ein neues Kalender-Event hinzu.
+     * Adds a new calendar event to a course.
      */
     @PostMapping("/events/add")
     public ResponseEntity<?> addEventToCourse(@RequestBody Map<String, String> request, Principal principal) {
@@ -200,7 +199,7 @@ public class CourseController {
     }
 
     /**
-     * Führt die automatische Planung von Selfstudy-Sessions für eine Deadline durch.
+     * Runs the automatic planning of self-study sessions for a deadline.
      */
     @PostMapping("/{id}/autoplan")
     public ResponseEntity<?> autoPlanSelfstudy(@PathVariable Long id,
@@ -217,7 +216,7 @@ public class CourseController {
     }
 
     /**
-     * Gibt alle Deadline-Events eines Kurses zurück.
+     * Returns all deadline events for a course.
      */
     @GetMapping("/{id}/deadlines")
     public ResponseEntity<?> getDeadlines(@PathVariable Long id, Principal principal) {
@@ -231,7 +230,7 @@ public class CourseController {
     }
 
     /**
-     * Fügt eine manuelle Selfstudy-Session zu einem Kurs hinzu.
+     * Adds a manual self-study session to a course.
      */
     @PostMapping("/{id}/add-selfstudy")
     public ResponseEntity<?> addSelfstudy(@PathVariable Long id,
@@ -257,7 +256,7 @@ public class CourseController {
     }
 
     /**
-     * Gibt Fortschrittsinformationen zu einem Kurs zurück.
+     * Returns progress information for a course.
      */
     @GetMapping("/{id}/progress")
     public ResponseEntity<?> getProgress(@PathVariable Long id, Principal principal) {
@@ -268,4 +267,5 @@ public class CourseController {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Could not load progress: " + e.getMessage());
         }
-    }}
+    }
+}
