@@ -1,27 +1,35 @@
 // static/js/forgot-password.js
 
+// Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('forgotPasswordForm');
-    const messageEl = document.getElementById('message');
-  
-    // Ensure the form will post to the normal controller
-    form.setAttribute('action', '/forgot-password');
-    form.setAttribute('method', 'post');
-  
-    form.addEventListener('submit', (e) => {
-      // Clear any previous messages
+  // Get the form and message element
+  const form = document.getElementById('forgotPasswordForm');
+  const messageEl = document.getElementById('message');
+
+  // Ensure the form posts to the correct controller
+  form.setAttribute('action', '/forgot-password');
+  form.setAttribute('method', 'post');
+
+  // Handle form submission
+  form.addEventListener('submit', (e) => {
+    // Clear any previous messages
+    if (messageEl) {
       messageEl.textContent = '';
       messageEl.style.color = '';
-  
-      const email = form.email.value.trim();
-      // Basic client-side validation
-      if (!email) {
-        e.preventDefault();
+    }
+
+    // Get the email value and trim whitespace
+    const email = form.email.value.trim();
+
+    // Basic client-side validation
+    if (!email) {
+      e.preventDefault();
+      if (messageEl) {
         messageEl.textContent = 'Please enter your email address.';
-        messageEl.style.color = 'red';
-        return;
+        messageEl.style.color = '#e74c3c';
       }
-      // if email present, allow the form to submit normally and let the controller render the next view
-    });
+      return;
+    }
+    // If email is present, allow the form to submit and let the controller handle the rest
   });
-  
+});

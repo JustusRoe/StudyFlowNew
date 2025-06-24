@@ -1,5 +1,4 @@
-// src/main/resources/static/js/login.js
-
+// loads login form into backend
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     const user = document.getElementById('username').value.trim();
     const pass = document.getElementById('password').value;

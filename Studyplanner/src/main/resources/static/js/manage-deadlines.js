@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-    // --- Load course info and update mascot/progress ---
+    // --- Load course info and update progress ---
     fetch(`/courses/details/${courseId}`)
         .then(res => res.json())
         .then(course => {
@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             document.getElementById("progressBarInner").style.width = `${course.progressPercent}%`;
             document.getElementById("progressLabel").textContent = `${course.progressPercent}%`;
-            // document.getElementById("mascotFish").style.transform = ...; // (falls noch vorhanden)
         });
 
     // --- Deadlines ---
@@ -82,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!title || !date || !points || !studyStart) return;
 
-        // Start- und Endzeitpunkt identisch
+        // Start/End time are the same for deadlines
         const startTime = date;
         const endTime = date;
 
@@ -90,13 +89,13 @@ document.addEventListener("DOMContentLoaded", function () {
             title,
             startTime,
             endTime,
-            type: "deadline", // <--- set type to "deadline"
+            type: "deadline",
             isDeadline: true,
             points,
-            studyStart // neues Feld
+            studyStart
         };
 
-        // courseId aus URL holen
+        // fetch courseId from URL
         const urlParams = new URLSearchParams(window.location.search);
         const courseId = urlParams.get("courseId");
 
