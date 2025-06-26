@@ -51,7 +51,9 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-The app will be available at [http://localhost:8080](http://localhost:8080). 
+The app will be available at [http://localhost:8080](http://localhost:8080).
+It will also be available at [https://studyflow.up.railway.app/](https://studyflow.up.railway.app/), but this
+service as well as the database connection will be shut down on 26 July 2025.
 
 ### Database
 
