@@ -1,277 +1,477 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StudyFlow Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/dashboard.css" />
-</head>
-<body>
-  <!-- Navigation Bar -->
-  <nav class="navbar" style="background: #2474a6; align-items: center;">
-    <span class="brand" style="font-weight: bold; font-size: 1.5rem; letter-spacing: -1px; display: flex; align-items: center;">
-      <img src="/images/studyflow-white.png" alt="StudyFlow Logo" style="height: 38px; vertical-align: middle; margin-right: 0.7rem;">
-    </span>
-    <div class="nav-links" style="display: flex; align-items: center; gap: 1.2rem;">
-      <a href="/user_settings" style="display: flex; align-items: center;">Profile</a>
-      <a href="/logout" style="display: flex; align-items: center;">Logout</a>
-    </div>
-  </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StudyFlow Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar" style="background: #2474a6; align-items: center">
+      <span
+        class="brand"
+        style="
+          font-weight: bold;
+          font-size: 1.5rem;
+          letter-spacing: -1px;
+          display: flex;
+          align-items: center;
+        "
+      >
+        <img
+          src="/images/studyflow-white.png"
+          alt="StudyFlow Logo"
+          style="height: 38px; vertical-align: middle; margin-right: 0.7rem"
+        />
+      </span>
+      <div
+        class="nav-links"
+        style="display: flex; align-items: center; gap: 1.2rem"
+      >
+        <a href="/user_settings" style="display: flex; align-items: center"
+          >Profile</a
+        >
+        <a href="/logout" style="display: flex; align-items: center">Logout</a>
+      </div>
+    </nav>
 
-  <div class="main-container">
-    <div class="calendar-area">
-      <div class="dashboard-header">
-        <img src="/images/studyflow.png" alt="StudyFlow Logo" class="dashboard-header-logo" />
-        <div>
-          <h1 class="dashboard-title">Welcome to StudyFlow</h1>
-          <div class="dashboard-subtitle">Your smart study planner for lectures, deadlines, and self-study.</div>
+    <div class="main-container">
+      <div class="calendar-area">
+        <div class="dashboard-header">
+          <div>
+            <h1 class="dashboard-title">Welcome to StudyFlow</h1>
+            <div class="dashboard-subtitle">
+              Your smart study planner for lectures, deadlines, and self-study.
+            </div>
+          </div>
+        </div>
+        <!-- Filter Switches -->
+        <div
+          class="filter-switch-group"
+          id="filter-controls"
+          style="display: flex; width: 96%"
+        >
+          <label class="filter-switch" style="flex: 1; justify-content: center">
+            <span>Lecture</span>
+            <label class="switch">
+              <input type="checkbox" value="lecture" checked />
+              <span class="slider"></span>
+            </label>
+          </label>
+          <label class="filter-switch" style="flex: 1; justify-content: center">
+            <span>Deadline</span>
+            <label class="switch">
+              <input type="checkbox" value="deadline" checked />
+              <span class="slider"></span>
+            </label>
+          </label>
+          <label class="filter-switch" style="flex: 1; justify-content: center">
+            <span>Self-Study</span>
+            <label class="switch">
+              <input type="checkbox" value="self-study" checked />
+              <span class="slider"></span>
+            </label>
+          </label>
+          <label class="filter-switch" style="flex: 1; justify-content: center">
+            <span>Custom</span>
+            <label class="switch">
+              <input type="checkbox" value="custom" checked />
+              <span class="slider"></span>
+            </label>
+          </label>
+        </div>
+        <div id="calendar"></div>
+      </div>
+
+      <!-- Sidebar -->
+      <aside
+        class="sidebar"
+        style="
+          margin-top: 24px;
+          margin-bottom: 24px;
+          padding-top: 0px;
+          padding-bottom: 16px;
+        "
+      >
+        <div class="section">
+          <h2>Tools</h2>
+          <button
+            class="manage-deadlines-btn"
+            id="manage-deadlines-btn"
+            style="width: 100%; margin-bottom: 0.7rem"
+          >
+            📅 Manage Deadlines
+          </button>
+          <button
+            id="import-button"
+            class="btn"
+            style="
+              background: #33bbee;
+              color: #fff;
+              font-weight: 600;
+              border-radius: 7px;
+              padding: 0.5rem 1.2rem;
+              width: 100%;
+              margin-bottom: 0.7rem;
+            "
+          >
+            📥 Import Calendar (.ics)
+          </button>
+          <input type="file" id="file" accept=".ics" style="display: none" />
+          <div
+            id="loadingPopup"
+            style="
+              display: none;
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100vw;
+              height: 100vh;
+              z-index: 9999;
+              background: rgba(255, 255, 255, 0.7);
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <div
+              style="
+                background: #fff;
+                padding: 2rem 2.5rem;
+                border-radius: 12px;
+                box-shadow: 0 2px 12px rgba(44, 62, 80, 0.09);
+                font-size: 1.2rem;
+                color: #2474a6;
+              "
+            >
+              Importing calendar...
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <h2>Upcoming Events</h2>
+          <ul id="upcoming-events-list">
+            <li class="placeholder">No upcoming events.</li>
+          </ul>
+        </div>
+        <div class="section">
+          <h2>Courses</h2>
+          <ul id="course-list"></ul>
+          <button id="create-course-btn">+ Create Course</button>
+        </div>
+      </aside>
+
+      <!-- Course Creation Sidebar -->
+      <div class="overlay" id="courseSidebar">
+        <div class="course-form">
+          <span
+            class="close-sidebar"
+            id="closeCourseSidebarBtn"
+            style="
+              position: absolute;
+              top: 10px;
+              right: 15px;
+              font-size: 24px;
+              cursor: pointer;
+            "
+            >×</span
+          >
+          <h2>Create New Course</h2>
+          <div class="form-row">
+            <label for="courseName">Title</label>
+            <input type="text" id="courseName" />
+          </div>
+          <div class="form-row">
+            <label for="courseColor">Color</label>
+            <input type="color" id="courseColor" />
+          </div>
+          <button id="saveCourseBtn">Save</button>
+          <button id="cancelCourseBtn">Cancel</button>
         </div>
       </div>
-      <!-- Filter Switches -->
-      <div class="filter-switch-group" id="filter-controls" style="display: flex; width: 96%;">
-        <label class="filter-switch" style="flex:1; justify-content:center;">
-          <span>Lecture</span>
-          <label class="switch">
-            <input type="checkbox" value="lecture" checked>
-            <span class="slider"></span>
-          </label>
-        </label>
-        <label class="filter-switch" style="flex:1; justify-content:center;">
-          <span>Deadline</span>
-          <label class="switch">
-            <input type="checkbox" value="deadline" checked>
-            <span class="slider"></span>
-          </label>
-        </label>
-        <label class="filter-switch" style="flex:1; justify-content:center;">
-          <span>Self-Study</span>
-          <label class="switch">
-            <input type="checkbox" value="self-study" checked>
-            <span class="slider"></span>
-          </label>
-        </label>
-        <label class="filter-switch" style="flex:1; justify-content:center;">
-          <span>Custom</span>
-          <label class="switch">
-            <input type="checkbox" value="custom" checked>
-            <span class="slider"></span>
-          </label>
-        </label>
-      </div>
-      <div id="calendar"></div>
-    </div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="section">
-        <h2>Tools</h2>
-        <button class="manage-deadlines-btn" id="manage-deadlines-btn" style="width:100%;margin-bottom:0.7rem;">
-          📅 Manage Deadlines
-        </button>
-        <button id="import-button" class="btn" style="background:#33bbee; color:#fff; font-weight:600; border-radius:7px; padding:0.5rem 1.2rem; width:100%;margin-bottom:0.7rem;">
-          📥 Import Calendar (.ics)
-        </button>
-        <input type="file" id="file" accept=".ics" style="display:none;">
-        <div id="loadingPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(255,255,255,0.7);align-items:center;justify-content:center;">
-          <div style="background:#fff;padding:2rem 2.5rem;border-radius:12px;box-shadow:0 2px 12px rgba(44,62,80,0.09);font-size:1.2rem;color:#2474a6;">
-            Importing calendar...
+      <!-- Course Editing Sidebar (Details & Edit) -->
+      <div class="overlay" id="editCourseSidebar">
+        <div class="course-form modern-sidebar">
+          <span
+            class="close-sidebar"
+            id="closeEditCourseSidebarBtn"
+            style="
+              position: absolute;
+              top: 10px;
+              right: 15px;
+              font-size: 24px;
+              cursor: pointer;
+            "
+            >×</span
+          >
+          <h2>Edit Course</h2>
+          <div class="sidebar-tabs">
+            <button class="tab-btn active" data-tab="overview" type="button">
+              Overview
+            </button>
+            <button class="tab-btn" data-tab="deadlines" type="button">
+              Deadlines
+            </button>
+            <button class="tab-btn" data-tab="lectures" type="button">
+              Lectures
+            </button>
+            <button class="tab-btn" data-tab="settings" type="button">
+              Settings
+            </button>
+          </div>
+          <!-- Overview Tab: Only show info, no editing -->
+          <div class="tab-content" id="tab-overview" style="display: block">
+            <div style="margin-bottom: 1rem">
+              <strong>Course Name:</strong>
+              <span id="overviewCourseName">-</span><br />
+              <strong>Color:</strong>
+              <span
+                id="overviewCourseColorBox"
+                style="
+                  display: inline-block;
+                  width: 18px;
+                  height: 18px;
+                  border-radius: 4px;
+                  vertical-align: middle;
+                  background: #eee;
+                "
+              ></span>
+              <span id="overviewCourseColor">-</span><br />
+              <strong>Difficulty:</strong>
+              <span id="overviewCourseDifficulty">-</span><br />
+              <strong>Progress:</strong>
+              <div
+                class="progress-bar"
+                style="margin: 0.5rem 0; position: relative"
+              >
+                <div
+                  class="progress-bar-inner"
+                  id="overviewCourseProgressBar"
+                  style="width: 0%"
+                ></div>
+                <span
+                  class="progress-label"
+                  id="overviewCourseProgressLabel"
+                  style="
+                    position: absolute;
+                    left: 50%;
+                    top: 0;
+                    transform: translateX(-50%);
+                    color: #222;
+                    font-weight: bold;
+                  "
+                  >0%</span
+                >
+              </div>
+              <!-- Removed self-study stats -->
+            </div>
+            <button
+              id="deleteCourseButtonOverview"
+              class="btn btn-danger"
+              style="margin-top: 1rem; background: #e74c3c"
+            >
+              Delete Course
+            </button>
+          </div>
+          <!-- Deadlines Tab: List deadlines in a table -->
+          <div class="tab-content" id="tab-deadlines" style="display: none">
+            <h3>Deadlines</h3>
+            <table
+              class="table-fancy"
+              id="deadlinesTable"
+              style="width: 100%; margin-top: 1rem"
+            >
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Date</th>
+                  <th>Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+          </div>
+          <!-- Lectures Tab: List lectures in a table -->
+          <div class="tab-content" id="tab-lectures" style="display: none">
+            <h3>Lectures</h3>
+            <table
+              class="table-fancy"
+              id="lecturesTable"
+              style="width: 100%; margin-top: 1rem"
+            >
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Start</th>
+                  <th>End</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+          </div>
+          <!-- Settings Tab: Only here editing is possible -->
+          <div class="tab-content" id="tab-settings" style="display: none">
+            <h3>Course Settings</h3>
+            <form id="editCourseSettingsForm" autocomplete="off">
+              <div class="form-row">
+                <label for="editCourseNameSettings">Title</label>
+                <input
+                  type="text"
+                  id="editCourseNameSettings"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="form-row">
+                <label for="editCourseColorSettings">Color</label>
+                <input
+                  type="color"
+                  id="editCourseColorSettings"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="form-row">
+                <label for="editCourseDifficultySettings">Difficulty</label>
+                <select id="editCourseDifficultySettings">
+                  <option value="1">Easy</option>
+                  <option value="2">Medium</option>
+                  <option value="3">Hard</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                id="saveCourseSettingsBtn"
+                class="btn"
+                onclick="saveCourseSettings()"
+              >
+                Save Settings
+              </button>
+            </form>
+            <button
+              id="deleteCourseButton"
+              class="btn btn-danger"
+              style="margin-top: 1rem; display: none"
+            >
+              Delete Course
+            </button>
           </div>
         </div>
       </div>
-      <div class="section">
-        <h2>Upcoming Events</h2>
-        <ul id="upcoming-events-list">
-          <li class="placeholder">No upcoming events.</li>
-        </ul>
-      </div>
-      <div class="section">
-        <h2>Courses</h2>
-        <ul id="course-list"></ul>
-        <button id="create-course-btn">+ Create Course</button>
-      </div>
-    </aside>
 
-    <!-- Course Creation Sidebar -->
-    <div class="overlay" id="courseSidebar">
-      <div class="course-form">
-        <span class="close-sidebar" id="closeCourseSidebarBtn" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-        <h2>Create New Course</h2>
-        <div class="form-row">
-          <label for="courseName">Title</label>
-          <input type="text" id="courseName" />
-        </div>
-        <div class="form-row">
-          <label for="courseColor">Color</label>
-          <input type="color" id="courseColor" />
-        </div>
-        <button id="saveCourseBtn">Save</button>
-        <button id="cancelCourseBtn">Cancel</button>
-      </div>
-    </div>
+      <!-- Sidebar for Adding Event -->
+      <div class="overlay" id="addEventSidebar">
+        <div class="course-form">
+          <span
+            class="close-sidebar"
+            id="closeAddEventSidebarBtn"
+            style="
+              position: absolute;
+              top: 10px;
+              right: 15px;
+              font-size: 24px;
+              cursor: pointer;
+            "
+            >×</span
+          >
+          <h2>Add New Event</h2>
+          <label>Title</label><input type="text" id="addEventTitle" />
+          <label>Start Time</label
+          ><input type="datetime-local" id="addEventStart" />
+          <label>End Time</label
+          ><input type="datetime-local" id="addEventEnd" />
+          <label>Location (optional)</label
+          ><input type="text" id="addEventLocation" />
+          <label>Type</label>
 
-    <!-- Course Editing Sidebar (Details & Edit) -->
-    <div class="overlay" id="editCourseSidebar">
-      <div class="course-form modern-sidebar">
-        <span class="close-sidebar" id="closeEditCourseSidebarBtn" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-        <h2>Edit Course</h2>
-        <div class="sidebar-tabs">
-          <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
-          <button class="tab-btn" data-tab="deadlines" type="button">Deadlines</button>
-          <button class="tab-btn" data-tab="lectures" type="button">Lectures</button>
-          <button class="tab-btn" data-tab="settings" type="button">Settings</button>
-        </div>
-        <!-- Overview Tab: Only show info, no editing -->
-        <div class="tab-content" id="tab-overview" style="display: block;">
-          <div style="margin-bottom:1rem;">
-            <strong>Course Name:</strong> <span id="overviewCourseName">-</span><br>
-            <strong>Color:</strong>
-            <span id="overviewCourseColorBox" style="display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:middle;background:#eee;"></span>
-            <span id="overviewCourseColor">-</span><br>
-            <strong>Difficulty:</strong> <span id="overviewCourseDifficulty">-</span><br>
-            <strong>Progress:</strong>
-            <div class="progress-bar" style="margin:0.5rem 0; position:relative;">
-              <div class="progress-bar-inner" id="overviewCourseProgressBar" style="width:0%"></div>
-              <span class="progress-label" id="overviewCourseProgressLabel" style="position:absolute;left:50%;top:0;transform:translateX(-50%);color:#222;font-weight:bold;">0%</span>
-            </div>
-            <!-- Removed self-study stats -->
-          </div>
-          <button id="deleteCourseButtonOverview" class="btn btn-danger" style="margin-top: 1rem; background:#e74c3c;">
-            Delete Course
-          </button>
-        </div>
-        <!-- Deadlines Tab: List deadlines in a table -->
-        <div class="tab-content" id="tab-deadlines" style="display: none;">
-          <h3>Deadlines</h3>
-          <table class="table-fancy" id="deadlinesTable" style="width:100%;margin-top:1rem;">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Filled by JS -->
-            </tbody>
-          </table>
-        </div>
-        <!-- Lectures Tab: List lectures in a table -->
-        <div class="tab-content" id="tab-lectures" style="display: none;">
-          <h3>Lectures</h3>
-          <table class="table-fancy" id="lecturesTable" style="width:100%;margin-top:1rem;">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Start</th>
-                <th>End</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Filled by JS -->
-            </tbody>
-          </table>
-        </div>
-        <!-- Settings Tab: Only here editing is possible -->
-        <div class="tab-content" id="tab-settings" style="display: none;">
-          <h3>Course Settings</h3>
-          <form id="editCourseSettingsForm" autocomplete="off">
-            <div class="form-row">
-              <label for="editCourseNameSettings">Title</label>
-              <input type="text" id="editCourseNameSettings" autocomplete="off">
-            </div>
-            <div class="form-row">
-              <label for="editCourseColorSettings">Color</label>
-              <input type="color" id="editCourseColorSettings" autocomplete="off">
-            </div>
-            <div class="form-row">
-              <label for="editCourseDifficultySettings">Difficulty</label>
-              <select id="editCourseDifficultySettings">
-                <option value="1">Easy</option>
-                <option value="2">Medium</option>
-                <option value="3">Hard</option>
-              </select>
-            </div>
-            <button type="button" id="saveCourseSettingsBtn" class="btn" onclick="saveCourseSettings()">Save Settings</button>
-          </form>
-          <button id="deleteCourseButton" class="btn btn-danger" style="margin-top: 1rem; display: none;">
-            Delete Course
-          </button>
-        </div>
-      </div>
-    </div>
+          <select id="addEventType">
+            <option value="lecture">Lecture</option>
+            <option value="assignment">Assignment</option>
+            <option value="exam">Exam</option>
+            <option value="self-study">Self-Study</option>
+            <option value="custom" selected>Custom</option>
+          </select>
 
-    <!-- Sidebar for Adding Event -->
-    <div class="overlay" id="addEventSidebar">
-      <div class="course-form">
-        <span class="close-sidebar" id="closeAddEventSidebarBtn" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-        <h2>Add New Event</h2>
-        <label>Title</label><input type="text" id="addEventTitle" />
-        <label>Start Time</label><input type="datetime-local" id="addEventStart" />
-        <label>End Time</label><input type="datetime-local" id="addEventEnd" />
-        <label>Location (optional)</label><input type="text" id="addEventLocation" />
-        <label>Type</label>
-
-        <select id="addEventType">
-          <option value="lecture">Lecture</option>
-          <option value="assignment">Assignment</option>
-          <option value="exam">Exam</option>
-          <option value="self-study">Self-Study</option>
-          <option value="custom" selected>Custom</option>
-        </select>
-
-        <div id="fillTypeWrapper" style="display: none; margin-top: 0.5rem;">
-          <label for="addEventFillType">Fill Style</label>
-          <select id="addEventFillType">
+          <div id="fillTypeWrapper" style="display: none; margin-top: 0.5rem">
+            <label for="addEventFillType">Fill Style</label>
+            <select id="addEventFillType">
               <option value="partial-fill">Partial Fill</option>
               <option value="complete-fill">Complete Fill</option>
+            </select>
+          </div>
+
+          <label>Course (optional)</label>
+
+          <select id="addEventCourse"></select>
+          <label>Color</label
+          ><input type="color" id="addEventColor" value="#aaaaaa" />
+          <div style="display: flex; justify-content: space-between">
+            <div>
+              <button id="cancelNewEvent">Cancel</button>
+              <button id="saveNewEvent">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar for Editing Event -->
+      <div class="overlay" id="editEventSidebar">
+        <div class="course-form">
+          <span
+            class="close-sidebar"
+            id="closeEditEventSidebarBtn"
+            style="
+              position: absolute;
+              top: 10px;
+              right: 15px;
+              font-size: 24px;
+              cursor: pointer;
+            "
+            >×</span
+          >
+          <h2>Edit Event</h2>
+          <input type="hidden" id="editEventId" />
+          <label>Title</label><input type="text" id="editEventTitle" />
+          <label>Start Time</label
+          ><input type="datetime-local" id="editEventStart" />
+          <label>End Time</label
+          ><input type="datetime-local" id="editEventEnd" />
+          <label>Location (optional)</label
+          ><input type="text" id="editEventLocation" />
+          <label>Type</label>
+          <select id="editEventType">
+            <option value="lecture">Lecture</option>
+            <option value="assignment">Assignment</option>
+            <option value="exam">Exam</option>
+            <option value="self-study">Self-Study</option>
+            <option value="custom">Custom</option>
           </select>
-        </div>
-
-        <label>Course (optional)</label>
-        
-        <select id="addEventCourse"></select>
-        <label>Color</label><input type="color" id="addEventColor" value="#aaaaaa" />
-        <div style="display:flex; justify-content:space-between;">
-          <div>
-            <button id="cancelNewEvent">Cancel</button>
-            <button id="saveNewEvent">Save</button>
+          <label>Color</label
+          ><input type="color" id="editEventColor" value="#aaaaaa" />
+          <div style="display: flex; justify-content: space-between">
+            <button
+              id="deleteEvent"
+              style="background-color: #e74c3c; color: white"
+            >
+              Delete
+            </button>
+            <div>
+              <button id="cancelEditEvent">Cancel</button>
+              <button id="saveEditedEvent">Save</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Sidebar for Editing Event -->
-    <div class="overlay" id="editEventSidebar">
-      <div class="course-form">
-        <span class="close-sidebar" id="closeEditEventSidebarBtn" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
-        <h2>Edit Event</h2>
-        <input type="hidden" id="editEventId" />
-        <label>Title</label><input type="text" id="editEventTitle" />
-        <label>Start Time</label><input type="datetime-local" id="editEventStart" />
-        <label>End Time</label><input type="datetime-local" id="editEventEnd" />
-        <label>Location (optional)</label><input type="text" id="editEventLocation" />
-        <label>Type</label>
-        <select id="editEventType">
-          <option value="lecture">Lecture</option>
-          <option value="assignment">Assignment</option>
-          <option value="exam">Exam</option>
-          <option value="self-study">Self-Study</option>
-          <option value="custom">Custom</option>
-        </select>
-        <label>Color</label><input type="color" id="editEventColor" value="#aaaaaa" />
-        <div style="display:flex; justify-content:space-between;">
-          <button id="deleteEvent" style="background-color: #e74c3c; color: white;">Delete</button>
-          <div>
-            <button id="cancelEditEvent">Cancel</button>
-            <button id="saveEditedEvent">Save</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-  <script src="/js/calendar.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="/js/calendar.js"></script>
+  </body>
 </html>
