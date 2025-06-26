@@ -887,4 +887,7 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = "/manage-deadlines";
         });
     }
+
+    // Make saveCourseSettings globally available for the button onclick
+    window.saveCourseSettings = window.saveCourseSettings;
 });

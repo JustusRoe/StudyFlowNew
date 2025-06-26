@@ -9,6 +9,6 @@ public class StudyflowApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(StudyflowApplication.class, args);
-    }
+    } 
 }
 
