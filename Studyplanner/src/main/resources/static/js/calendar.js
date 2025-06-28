@@ -629,6 +629,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
                 const overviewTab = document.getElementById("tab-overview");
                 if (overviewTab) overviewTab.style.display = "block";
+                // Overview fields
                 const nameInput = document.getElementById("editCourseName");
                 if (nameInput) nameInput.value = course.name || "";
                 const colorInput = document.getElementById("editCourseColor");
@@ -655,6 +656,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (overviewProgressLabel) overviewProgressLabel.textContent = `${progress}%`;
                 const overviewStats = document.getElementById("overviewCourseStats");
                 if (overviewStats) overviewStats.innerHTML = "";
+
+                // --- Voreinstellung für Settings-Tab ---
+                const nameSettings = document.getElementById("editCourseNameSettings");
+                if (nameSettings) nameSettings.value = course.name || "";
+                const colorSettings = document.getElementById("editCourseColorSettings");
+                if (colorSettings) colorSettings.value = course.color || "#4287f5";
+                const diffSettings = document.getElementById("editCourseDifficultySettings");
+                if (diffSettings) diffSettings.value = course.difficulty ? String(course.difficulty) : "1";
             });
     };
 
