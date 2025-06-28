@@ -172,7 +172,7 @@ ul {
   display: block;
   margin-top: 1rem;
   padding: 0.6rem;
-  background-color: #4873a2;
+  background-color: #2474a6;
   color: white;
   border: none;
   border-radius: 6px;
@@ -183,7 +183,7 @@ ul {
 }
 
 #create-course-btn:hover {
-  background-color: #1a252f;
+  background-color: #1a4e6e;
 }
 
 /* Overlay for course form (slide in right sidebar) */
