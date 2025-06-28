@@ -17,7 +17,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -52,7 +54,16 @@ public class CalendarController {
     @ResponseBody
     public ResponseEntity<String> uploadCalendar(@RequestParam("file") MultipartFile file, Principal principal) {
         try {
-            InputStream inputStream = file.getInputStream();
+            // Preprocessing: Clean up ICS content before parsing
+            String icsContent = new String(file.getBytes(), StandardCharsets.UTF_8);
+            // Replace all occurrences of ;VALUE=DATE;VALUE=DATE: with ;VALUE=DATE:
+            icsContent = icsContent.replaceAll(";VALUE=DATE;VALUE=DATE:", ";VALUE=DATE:");
+            // Optionally, remove any other duplicate VALUE=DATE
+            icsContent = icsContent.replaceAll(";VALUE=DATE(;VALUE=DATE)+:", ";VALUE=DATE:");
+            // Entferne alles nach END:VCALENDAR (inklusive nachfolgender Zeichen)
+            icsContent = cleanIcsContent(icsContent);
+
+            InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes(StandardCharsets.UTF_8));
             String email = principal.getName();
             User user = userRepository.findByEmail(email);
             Long userId = user.getId();
@@ -66,9 +77,20 @@ public class CalendarController {
 
             return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body("success");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).contentType(MediaType.TEXT_PLAIN)
                     .body("error: " + e.getMessage());
         }
+    }
+
+    // Hilfsmethode: Entfernt alles nach END:VCALENDAR
+    private String cleanIcsContent(String icsContent) {
+        String endTag = "END:VCALENDAR";
+        int idx = icsContent.indexOf(endTag);
+        if (idx != -1) {
+            return icsContent.substring(0, idx + endTag.length());
+        }
+        return icsContent;
     }
 
     /**
