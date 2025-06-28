@@ -123,6 +123,7 @@ body {
   min-width: 250px;
   max-width: 300px;
   margin-top: 0.2rem;
+  overflow-y: auto;
 }
 
 .section {
