@@ -24,7 +24,7 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Controller
+@RestController
 @RequestMapping("/calendar")
 public class CalendarController {
 
@@ -173,11 +173,11 @@ public class CalendarController {
     /**
      * Updates an existing calendar event for the current user.
      */
-    @PostMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     @ResponseBody
-    public CalendarEvent updateEvent(@PathVariable Long id,
-                                     @RequestBody CalendarEvent updated,
-                                     Principal principal) {
+    public CalendarEvent updateEventRestful(@PathVariable Long id,
+                                            @RequestBody CalendarEvent updated,
+                                            Principal principal) {
         CalendarEvent existing = calendarEventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
 

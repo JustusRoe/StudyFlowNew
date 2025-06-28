@@ -198,17 +198,18 @@ document.addEventListener('DOMContentLoaded', function () {
         saveBtn.onclick = function () {
             const title = document.getElementById("addEventTitle").value.trim();
             const startTime = document.getElementById("addEventStart").value;
+            const endTime = document.getElementById("addEventEnd").value;
             const type = document.getElementById("addEventType").value;
 
-            if (!title || !startTime || !type) {
-                alert("Please fill in all required fields: Title, Start Time, and Type.");
+            if (!title || !startTime || !endTime || !type) {
+                alert("Please fill in all required fields: Title, Start/End Time, and Type.");
                 return;
             }
 
             const newEvent = {
                 title: title,
                 startTime: startTime,
-                endTime: document.getElementById("addEventEnd").value,
+                endTime: endTime,
                 location: document.getElementById("addEventLocation").value,
                 type: type,
                 color: document.getElementById("addEventColor").value,
@@ -234,6 +235,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function openEditEventSidebar(event) {
         const sidebar = document.getElementById("editEventSidebar");
         sidebar.classList.add("open");
+        
+        const getValue = (val, fallback = "") => val !== undefined && val !== null ? val : fallback;
 
         // Populate form fields with event data
         document.getElementById("editEventId").value = event.id;
@@ -267,26 +270,29 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Save edited event handler
-        saveBtn.onclick = () => {
-            const title = document.getElementById("addEventTitle").value.trim();
-            const startTime = document.getElementById("addEventStart").value;
-            const type = document.getElementById("addEventType").value;
+        saveBtn.onclick = function () {
+            const title = document.getElementById("editEventTitle").value.trim();
+            const startTime = document.getElementById("editEventStart").value;
+            const endTime = document.getElementById("editEventEnd").value;
+            const type = document.getElementById("editEventType").value;
 
-            if (!title || !startTime || !type) {
-                alert("Please fill in all required fields: Title, Start Time, and Type.");
+            if (!title || !startTime || !endTime || !type) {
+                console.warn("Missing values!", { title, startTime, endTime, type });
+                alert("Please fill in all required fields.");
                 return;
             }
-
-            fetch(`/calendar/update/${event.id}`, {
-                method: "POST",
+            const eventId = document.getElementById("editEventId").value;
+            fetch(`/calendar/update/${eventId}`, {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     title: title,
                     startTime: startTime,
-                    endTime: document.getElementById("editEventEnd").value,
+                    endTime: endTime,
                     location: document.getElementById("editEventLocation").value,
+                    type: type,
                     color: document.getElementById("editEventColor").value,
-                    type: type
+                    courseId: document.getElementById("editEventCourse").value || null
                 })
             }).then(() => {
                 closeSidebarAndUnselect();
