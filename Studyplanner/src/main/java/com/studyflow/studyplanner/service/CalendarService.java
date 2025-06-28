@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.HashSet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +23,6 @@ public class CalendarService {
     // Fixed number of lecture hours used for workload calculation
     private static final int LECTURE_HOURS = 33;
 
-    @Autowired
     public CalendarService(CalendarEventRepository eventRepository) {
         this.eventRepository = eventRepository;
     }
