@@ -10,11 +10,9 @@ import com.studyflow.studyplanner.repository.CourseRepository;
 import com.studyflow.studyplanner.service.CourseService;
 import com.studyflow.studyplanner.model.Course;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,7 +33,6 @@ public class CalendarController {
     private final CourseRepository courseRepository;
     private final CourseService courseService;
 
-    @Autowired
     public CalendarController(CalendarService calendarService,
                               UserRepository userRepository,
                               CalendarEventRepository calendarEventRepository,
