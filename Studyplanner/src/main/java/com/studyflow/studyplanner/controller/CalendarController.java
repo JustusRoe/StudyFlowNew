@@ -60,6 +60,8 @@ public class CalendarController {
             icsContent = icsContent.replaceAll(";VALUE=DATE;VALUE=DATE:", ";VALUE=DATE:");
             // Optionally, remove any other duplicate VALUE=DATE
             icsContent = icsContent.replaceAll(";VALUE=DATE(;VALUE=DATE)+:", ";VALUE=DATE:");
+            // Entferne alles nach END:VCALENDAR (inklusive nachfolgender Zeichen)
+            icsContent = cleanIcsContent(icsContent);
 
             InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes(StandardCharsets.UTF_8));
             String email = principal.getName();
@@ -75,9 +77,20 @@ public class CalendarController {
 
             return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body("success");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).contentType(MediaType.TEXT_PLAIN)
                     .body("error: " + e.getMessage());
         }
+    }
+
+    // Hilfsmethode: Entfernt alles nach END:VCALENDAR
+    private String cleanIcsContent(String icsContent) {
+        String endTag = "END:VCALENDAR";
+        int idx = icsContent.indexOf(endTag);
+        if (idx != -1) {
+            return icsContent.substring(0, idx + endTag.length());
+        }
+        return icsContent;
     }
 
     /**

@@ -46,24 +46,30 @@ public class IcsParser {
         // goes through all events inside the .ics file
         for (Component component :  components) {
             if (component instanceof VEvent vevent) {
-                System.out.println("Processing event: " + vevent.getSummary());              
-                // extracts the summary, description, and location fields
                 String summary = vevent.getSummary() != null ? vevent.getSummary().getValue() : "Untitled";
-
-                // checks [xxxxxx]
-                if (!(summary.contains("[") && summary.contains("]"))) {
-                    System.out.println("Skipping event: no [xxxxxx] found in summary: " + summary);
+                String courseId = null;
+                String courseName = null;
+                int firstSpace = summary.indexOf(' ');
+                if (firstSpace == 8) {
+                    courseId = summary.substring(0, 8);
+                    // Suche nach "Frankfurt am Main" (case-insensitive)
+                    String lower = summary.toLowerCase();
+                    int frankfurtIdx = lower.indexOf("frankfurt am main");
+                    if (frankfurtIdx > 9) {
+                        // Hole den Bereich zwischen den ersten 8 Zeichen und "Frankfurt am Main"
+                        String between = summary.substring(9, frankfurtIdx).trim();
+                        courseName = between;
+                    } else {
+                        // Fallback: alles nach den ersten 8 Zeichen
+                        courseName = summary.substring(9).trim();
+                    }
+                } else {
+                    System.out.println("Skipping event: SUMMARY does not have exactly 8 chars before first space: " + summary);
                     continue;
                 }
-                
+
                 String description = vevent.getDescription() != null ? vevent.getDescription().getValue() : "";
                 String location = vevent.getLocation() != null ? vevent.getLocation().getValue() : "";
-
-                // parses the course name, instructor, and courseid from summary
-                String[] parts = summary.split(",");
-                String courseName = parts[0].trim();
-                String instructor = parts.length > 1 ? parts[1].trim() : "";
-                String courseId = summary.substring(summary.indexOf("[") + 1, summary.indexOf("]"));
 
                 // find or creates the course in the DB
                 Optional<Course> optionalCourse = courseRepo.findByCourseIdentifierAndUser(courseId, user);
