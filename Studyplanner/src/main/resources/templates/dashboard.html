@@ -93,7 +93,7 @@
       <aside
         class="sidebar"
         style="
-          margin-top: 191px;
+          margin-top: 24px;
           margin-bottom: 24px;
           padding-top: 0px;
           padding-bottom: 16px;
@@ -124,6 +124,96 @@
             📥 Import Calendar (.ics)
           </button>
           <input type="file" id="file" accept=".ics" style="display: none" />
+
+          <!-- Popup für Import-Hinweise -->
+          <div
+            id="importInfoPopup"
+            style="
+              display: none;
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100vw;
+              height: 100vh;
+              z-index: 10000;
+              background: rgba(0, 0, 0, 0.3);
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <div
+              style="
+                background: #fff;
+                padding: 2rem 2.5rem;
+                border-radius: 12px;
+                box-shadow: 0 2px 12px rgba(44, 62, 80, 0.09);
+                font-size: 1.1rem;
+                color: #222;
+                max-width: 480px;
+                width: 90vw;
+                position: relative;
+              "
+            >
+              <button
+                id="closeImportInfoPopup"
+                style="
+                  position: absolute;
+                  top: 10px;
+                  right: 15px;
+                  font-size: 22px;
+                  background: none;
+                  border: none;
+                  cursor: pointer;
+                "
+              >
+                ×
+              </button>
+              <h2 style="margin-top: 0">Hinweise zum Kalender-Import</h2>
+              <ul style="margin-bottom: 1.2rem">
+                <li>
+                  Die Datei muss im <b>.ics/iCalendar-Format</b> vorliegen.
+                </li>
+                <li>
+                  Jede Zeile muss mit <code>\n</code> oder <code>\r\n</code> enden.
+                </li>
+                <li>
+                  Nach <b>END:VCALENDAR</b> dürfen keine weiteren Zeichen oder
+                  Zeilen stehen.
+                </li>
+                <li>
+                  Jeder Termin muss ein <b>SUMMARY</b> Feld haben, das mit einer
+                  <b>8-stelligen Kurs-ID</b> beginnt, z.B. <code>MGT50053
+                  Strategy and Organization Frankfurt am Main ...</code>
+                </li>
+                <li>
+                  Der Kursname wird automatisch aus dem Bereich zwischen der
+                  Kurs-ID und <b>"Frankfurt am Main"</b> erkannt.
+                </li>
+                <li>
+                  Die Datei darf keine Anführungszeichen (&quot;) oder
+                  Sonderzeichen im Property-Namen enthalten.
+                </li>
+                <li>
+                  Empfohlen: Datei mit UTF-8 Encoding speichern.
+                </li>
+              </ul>
+              <div style="text-align: right">
+                <button
+                  id="continueImportBtn"
+                  class="btn"
+                  style="
+                    background: #33bbee;
+                    color: #fff;
+                    padding: 0.5rem 1.2rem;
+                    border-radius: 7px;
+                  "
+                >
+                  Weiter zum Upload
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div
             id="loadingPopup"
             style="
@@ -167,7 +257,10 @@
           >
             + Create Course
           </button>
-          <ul id="course-list"></ul>
+          <ul
+            id="course-list"
+            style="max-height: 260px; overflow-y: auto; padding-right: 4px"
+          ></ul>
         </div>
       </aside>
 

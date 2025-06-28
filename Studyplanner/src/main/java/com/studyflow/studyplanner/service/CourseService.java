@@ -340,9 +340,9 @@ public class CourseService {
         }
 
         int workloadTotal = switch (course.getDifficulty()) {
-            case 1 -> 100; // was 120
-            case 2 -> 130; // was 150
-            case 3 -> 160; // was 180
+            case 1 -> 100; 
+            case 2 -> 130; 
+            case 3 -> 160;
             default -> 130;
         };
 
@@ -365,7 +365,7 @@ public class CourseService {
         List<TimeSlot> freeSlots = calculateFreeSlots(user, allUserEvents, studyStart, studyEnd.minusMinutes(1));
 
         // Distribute sessions evenly
-        int sessionsNeeded = (int) Math.ceil(targetHours / 2.0); // max 2h per session
+        int sessionsNeeded = (int) Math.ceil(targetHours / 1.0); // max 1h per session
         int hoursLeft = targetHours;
         int planned = 0;
 
