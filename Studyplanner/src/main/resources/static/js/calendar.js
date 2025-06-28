@@ -550,10 +550,9 @@ document.addEventListener('DOMContentLoaded', function () {
     loadUpcomingEvents();
 
     // --- Course creation sidebar logic ---
+    // Reference to the course creation sidebar
     const sidebar = document.getElementById('courseSidebar');
     const courseList = document.getElementById('course-list');
-    const saveCourseBtn = document.getElementById('saveCourseBtn');
-    const cancelCourseBtn = document.getElementById('cancelCourseBtn');
 
     // Open course creation sidebar when button is clicked
     const createCourseBtn = document.getElementById('create-course-btn');
@@ -564,55 +563,47 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Close course creation sidebar and reset fields
-    function closeSidebar() {
+    window.closeSidebar = function () {
         sidebar.classList.remove('open');
         document.getElementById('courseName').value = "";
-        if (document.getElementById('courseColor')) {
-            document.getElementById('courseColor').value = "#4287f5";
-        }
-    }
-    if (cancelCourseBtn) {
-        cancelCourseBtn.onclick = closeSidebar;
-    }
-    if (document.getElementById('closeCourseSidebarBtn')) {
-        document.getElementById('closeCourseSidebarBtn').onclick = closeSidebar;
-    }
+        document.getElementById('courseDescription').value = "";
+    };
 
     // Save a new course to the backend
-    if (saveCourseBtn) {
-        saveCourseBtn.onclick = function () {
-            const nameInput = document.getElementById('courseName');
-            const colorInput = document.getElementById('courseColor');
-            const name = nameInput.value.trim();
-            const color = colorInput ? colorInput.value : "#4287f5";
+    window.saveCourse = function () {
+        const nameInput = document.getElementById('courseName');
+        const descInput = document.getElementById('courseDescription');
 
-            if (!name) {
-                alert("Please enter a course name.");
-                return;
-            }
+        const name = nameInput.value.trim();
+        const description = descInput.value.trim();
 
-            fetch('/courses/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: name,
-                    color: color
-                })
+        if (!name) {
+            alert("Please enter a course name.");
+            return;
+        }
+
+        fetch('/courses/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                description: description,
+                color: '#4287f5'
             })
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to create course");
-                return res.json();
-            })
-            .then(() => {
-                closeSidebar();
-                loadCourses();
-            })
-            .catch(error => {
-                console.error("Error creating course:", error);
-                alert("Could not create course.");
-            });
-        };
-    }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to create course");
+            return res.json();
+        })
+        .then(() => {
+            closeSidebar();
+            loadCourses();
+        })
+        .catch(error => {
+            console.error("Error creating course:", error);
+            alert("Could not create course.");
+        });
+    };
 
     // --- Course editing sidebar logic ---
     // Open the course detail sidebar and show the overview tab
@@ -629,7 +620,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = "none");
                 const overviewTab = document.getElementById("tab-overview");
                 if (overviewTab) overviewTab.style.display = "block";
-                // Overview fields
                 const nameInput = document.getElementById("editCourseName");
                 if (nameInput) nameInput.value = course.name || "";
                 const colorInput = document.getElementById("editCourseColor");
@@ -656,14 +646,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (overviewProgressLabel) overviewProgressLabel.textContent = `${progress}%`;
                 const overviewStats = document.getElementById("overviewCourseStats");
                 if (overviewStats) overviewStats.innerHTML = "";
-
-                // --- Voreinstellung für Settings-Tab ---
-                const nameSettings = document.getElementById("editCourseNameSettings");
-                if (nameSettings) nameSettings.value = course.name || "";
-                const colorSettings = document.getElementById("editCourseColorSettings");
-                if (colorSettings) colorSettings.value = course.color || "#4287f5";
-                const diffSettings = document.getElementById("editCourseDifficultySettings");
-                if (diffSettings) diffSettings.value = course.difficulty ? String(course.difficulty) : "1";
             });
     };
 

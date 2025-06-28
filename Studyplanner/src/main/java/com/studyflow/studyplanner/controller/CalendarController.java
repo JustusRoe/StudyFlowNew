@@ -8,11 +8,12 @@ import com.studyflow.studyplanner.service.CalendarService;
 import com.studyflow.studyplanner.service.IcsParser;
 import com.studyflow.studyplanner.repository.CourseRepository;
 import com.studyflow.studyplanner.service.CourseService;
-import com.studyflow.studyplanner.model.Course;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +34,7 @@ public class CalendarController {
     private final CourseRepository courseRepository;
     private final CourseService courseService;
 
+    @Autowired
     public CalendarController(CalendarService calendarService,
                               UserRepository userRepository,
                               CalendarEventRepository calendarEventRepository,
@@ -165,34 +167,7 @@ public class CalendarController {
         }
         event.setPoints(event.getPoints());
         event.setGeneratedByEngine(event.isGeneratedByEngine());
-        CalendarEvent savedEvent = calendarService.saveEvent(event);
-
-        // --- NEU: Event auch in course_event_ids eintragen, falls courseId gesetzt ---
-        if (savedEvent.getCourseId() != null && !savedEvent.getCourseId().isEmpty()) {
-            try {
-                Long courseIdLong = null;
-                // courseId kann numerisch (Long) oder als String-Identifier sein
-                try {
-                    courseIdLong = Long.parseLong(savedEvent.getCourseId());
-                } catch (NumberFormatException e) {
-                    // Suche nach Course anhand des Identifiers
-                    Course course = courseRepository.findByCourseIdentifierAndUser(savedEvent.getCourseId(), user).orElse(null);
-                    if (course != null) {
-                        courseIdLong = course.getId();
-                    }
-                }
-                if (courseIdLong != null) {
-                    Course course = courseRepository.findById(courseIdLong).orElse(null);
-                    if (course != null) {
-                        course.addEventId(savedEvent.getId());
-                        courseRepository.save(course);
-                    }
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-        return savedEvent;
+        return calendarService.saveEvent(event);
     }
 
     /**

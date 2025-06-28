@@ -2,6 +2,7 @@ package com.studyflow.studyplanner.controller;
 
 import com.studyflow.studyplanner.model.Course;
 import com.studyflow.studyplanner.service.CourseService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ public class CourseController {
 
     private final CourseService courseService;
 
+    @Autowired
     public CourseController(CourseService courseService) {
         this.courseService = courseService;
     }

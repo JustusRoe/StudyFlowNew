@@ -1,5 +1,7 @@
 package com.studyflow.studyplanner.model;
 
+import com.studyflow.studyplanner.model.CalendarEvent;
+
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
