@@ -1,67 +1,95 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login – Study Planner</title>
-  <!-- Font Awesome for eye icon -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" th:href="@{/css/login.css}" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login – Study Planner</title>
+    <!-- Font Awesome for eye icon -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/login.css}" />
+    <link rel="icon" href="/images/faviconStudyFlow.png" type="image/png" />
+  </head>
+  <body>
+    <!-- Frankfurt School Logo -->
+    <div style="position: absolute; top: 20px; left: 20px">
+      <img
+        th:src="@{/images/fslogo-2.png}"
+        alt="Frankfurt School Logo"
+        style="height: 40px"
+      />
+    </div>
 
-  <!-- Frankfurt School Logo -->
-  <div style="position: absolute; top: 20px; left: 20px;">
-    <img th:src="@{/images/fslogo-2.png}" alt="Frankfurt School Logo" style="height: 40px;" />
-  </div>
+    <div class="login-container">
+      <!-- StudyFlow Logo -->
+      <img
+        th:src="@{/images/studyflow.png}"
+        alt="StudyFlow Logo"
+        class="logo"
+      />
 
-  <div class="login-container">
-    <!-- StudyFlow Logo -->
-    <img th:src="@{/images/studyflow.png}" alt="StudyFlow Logo" class="logo" />
+      <form
+        id="loginForm"
+        th:action="@{/login}"
+        method="post"
+        class="login-form"
+      >
+        <h2>Welcome Back</h2>
 
-    <form id="loginForm" th:action="@{/login}" method="post" class="login-form">
-      <h2>Welcome Back</h2>
+        <p th:if="${msg}" th:text="${msg}" class="msg"></p>
+        <p th:if="${error}" th:text="${error}" class="error"></p>
 
-      <p th:if="${msg}" th:text="${msg}" class="msg"></p>
-      <p th:if="${error}" th:text="${error}" class="error"></p>
+        <div class="input-group input-wrapper">
+          <label for="username">E-mail</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Enter your email"
+            required
+          />
+        </div>
 
-      <div class="input-group input-wrapper">
-        <label for="username">E-mail</label>
-        <input type="text" id="username" name="username" placeholder="Enter your email" required />
-      </div>
+        <div class="input-group password-wrapper">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+          />
+          <span class="toggle-password" onclick="togglePasswordVisibility()">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </span>
+        </div>
 
-      <div class="input-group password-wrapper">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter your password" required />
-        <span class="toggle-password" onclick="togglePasswordVisibility()">
-          <i class="fas fa-eye" id="eyeIcon"></i>
-        </span>
-      </div>
+        <button type="submit" class="btn">Log In</button>
 
-      <button type="submit" class="btn">Log In</button>
+        <p class="switch">
+          <a th:href="@{/index.html}">Home</a> |
+          <a th:href="@{/signup}">Sign Up</a> |
+          <a th:href="@{/forgot-password}">Forgot Password</a>
+        </p>
+      </form>
+    </div>
 
-      <p class="switch">
-        <a th:href="@{/index.html}">Home</a> |
-        <a th:href="@{/signup}">Sign Up</a> |
-        <a th:href="@{/forgot-password}">Forgot Password</a>
-      </p>
-    </form>
-  </div>
-
-  <script>
-    function togglePasswordVisibility() {
-      const passwordField = document.getElementById("password");
-      const eyeIcon = document.getElementById("eyeIcon");
-      if (passwordField.type === "password") {
-        passwordField.type = "text";
-        eyeIcon.classList.remove("fa-eye");
-        eyeIcon.classList.add("fa-eye-slash");
-      } else {
-        passwordField.type = "password";
-        eyeIcon.classList.remove("fa-eye-slash");
-        eyeIcon.classList.add("fa-eye");
+    <script>
+      function togglePasswordVisibility() {
+        const passwordField = document.getElementById("password");
+        const eyeIcon = document.getElementById("eyeIcon");
+        if (passwordField.type === "password") {
+          passwordField.type = "text";
+          eyeIcon.classList.remove("fa-eye");
+          eyeIcon.classList.add("fa-eye-slash");
+        } else {
+          passwordField.type = "password";
+          eyeIcon.classList.remove("fa-eye-slash");
+          eyeIcon.classList.add("fa-eye");
+        }
       }
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>

@@ -1,279 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Deadlines & Plan Self-Study</title>
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <style>
-    .main-container {
-      margin-top: 0;
-    }
-    .flex-row {
-      display: flex;
-      gap: 2rem;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      justify-content: flex-start;
-    }
-    .flex-col {
-      flex: 1;
-      min-width: 260px;
-      max-width: 400px;
-    }
-    .section-card {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 2px 12px rgba(44,62,80,0.07);
-      padding: 1.5rem 2rem;
-      margin-bottom: 2rem;
-      min-height: 400px;
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-    }
-    .section-title {
-      margin-bottom: 0.7rem;
-      font-size: 1.2em;
-      font-weight: 700;
-      color: #2474a6;
-      letter-spacing: -0.5px;
-    }
-    #courseButtonBar .btn {
-      border-radius: 6px;
-      padding: 0.5rem 1.2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-right: 0.5rem;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      transition: background 0.2s;
-    }
-    #courseButtonBar .btn:disabled {
-      outline: 3px solid #222;
-      opacity: 1;
-      cursor: default;
-    }
-    .form-row {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .form-row label {
-      min-width: 90px;
-      font-weight: 500;
-      color: #2e3a78;
-    }
-    .form-row input, .form-row select {
-      flex: 1;
-      padding: 0.4rem 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #bbb;
-      font-size: 1rem;
-      background: #f9f9fb;
-    }
-    .btn {
-      background: #2474a6;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 0.5rem 1.2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-right: 0.5rem;
-      margin-bottom: 0.5rem;
-      transition: background 0.2s;
-      font-weight: 600;
-      box-shadow: 0 1px 4px rgba(44,62,80,0.07);
-      display: inline-block;
-    }
-    .btn:hover {
-      background: #1a4e6e;
-    }
-    .btn-danger {
-      background: #e74c3c;
-    }
-    .btn-danger:hover {
-      background: #c0392b;
-    }
-    .table-fancy {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      background: #f9f9f9;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(44,62,80,0.07);
-    }
-    .table-fancy th, .table-fancy td {
-      padding: 0.7rem 0.5rem;
-      border-bottom: 1px solid #e0e0e0;
-      text-align: left;
-    }
-    .table-fancy th {
-      background: #f0f4fa;
-      font-weight: 600;
-      color: #2e3a78;
-    }
-    .progress-bar {
-      background: #eee;
-      border-radius: 8px;
-      overflow: hidden;
-      height: 18px;
-      margin-bottom: 0.5rem;
-      position: relative;
-    }
-    .progress-bar-inner {
-      background: #33e1ed;
-      height: 100%;
-      width: 0%;
-      transition: width 0.5s;
-    }
-    .progress-label {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #222;
-      font-weight: bold;
-      font-size: 0.95em;
-    }
-    .deadline-layout {
-      display: flex;
-      max-width: 1200px;
-      margin: 0 auto;
-      width: 100%;
-      gap: 2rem;
-    }
-    .course-sidebar {
-      flex: 0 0 260px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-    }
-    .sidebar-title {
-      font-size: 1.2em;
-      font-weight: 600;
-      color: #2e3a78;
-      margin-bottom: 1rem;
-    }
-    .course-sidebar-item {
-      padding: 0.7rem 1rem;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .course-sidebar-item:hover {
-      background: #f0f4fa;
-    }
-    .course-sidebar-item.selected {
-      background: #2e3a78;
-      color: #fff;
-      font-weight: bold;
-    }
-    .deadline-main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    /* Button alignment for forms */
-    .form-actions {
-      display: flex;
-      gap: 0.7rem;
-      justify-content: flex-end;
-      margin-top: 0.5rem;
-    }
-    /* Center the auto-plan section */
-    .auto-plan-section {
-      margin: 1.2rem 0 0.5rem 0;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-      align-items: center;
-    }
-    .auto-plan-section label {
-      font-weight: 500;
-      color: #2e3a78;
-    }
-    .auto-plan-section select {
-      padding: 0.4rem 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #bbb;
-      font-size: 1rem;
-      background: #f9f9fb;
-      margin-left: 0.5rem;
-      margin-right: 0.5rem;
-    }
-    .auto-plan-section .btn {
-      margin: 0;
-      min-width: 120px;
-    }
-    /* Planned sessions list */
-    #sessionList {
-      margin: 0.7rem 0 0 0;
-      padding: 0;
-      list-style: none;
-    }
-    #sessionList li {
-      background: #f4f4f4;
-      padding: 0.5rem 0.75rem;
-      border-radius: 5px;
-      margin-bottom: 0.4rem;
-      font-size: 0.97rem;
-      color: #2e3a78;
-    }
-    /* Header styling to match dashboard */
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #2474a6;
-      padding: 1rem 2rem;
-      color: white;
-    }
-    .navbar .brand {
-      font-weight: bold;
-      font-size: 1.5rem;
-      letter-spacing: -1px;
-      display: flex;
-      align-items: center;
-    }
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-    }
-    .navbar a {
-      color: white;
-      text-decoration: none;
-      margin-left: 1rem;
-      display: flex;
-      align-items: center;
-      height: 100%;
-    }
-    @media (max-width: 900px) {
-      .main-container, .deadline-layout, .flex-row {
-        flex-direction: column;
-        gap: 1.5rem;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Deadlines & Plan Self-Study</title>
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="icon" href="/images/faviconStudyFlow.png" type="image/png" />
+    <style>
+      .main-container {
+        margin-top: 0;
+      }
+      .flex-row {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: flex-start;
+      }
+      .flex-col {
+        flex: 1;
+        min-width: 260px;
+        max-width: 400px;
       }
       .section-card {
-        padding: 1.2rem 0.7rem;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(44, 62, 80, 0.07);
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
       }
-    }
-  </style>
-</head>
-<body>
+      .section-title {
+        margin-bottom: 0.7rem;
+        font-size: 1.2em;
+        font-weight: 700;
+        color: #2474a6;
+        letter-spacing: -0.5px;
+      }
+      #courseButtonBar .btn {
+        border-radius: 6px;
+        padding: 0.5rem 1.2rem;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+        transition: background 0.2s;
+      }
+      #courseButtonBar .btn:disabled {
+        outline: 3px solid #222;
+        opacity: 1;
+        cursor: default;
+      }
+      .form-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .form-row label {
+        min-width: 90px;
+        font-weight: 500;
+        color: #2e3a78;
+      }
+      .form-row input,
+      .form-row select {
+        flex: 1;
+        padding: 0.4rem 0.7rem;
+        border-radius: 6px;
+        border: 1px solid #bbb;
+        font-size: 1rem;
+        background: #f9f9fb;
+      }
+      .btn {
+        background: #2474a6;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.5rem 1.2rem;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: background 0.2s;
+        font-weight: 600;
+        box-shadow: 0 1px 4px rgba(44, 62, 80, 0.07);
+        display: inline-block;
+      }
+      .btn:hover {
+        background: #1a4e6e;
+      }
+      .btn-danger {
+        background: #e74c3c;
+      }
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+      .table-fancy {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: #f9f9f9;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(44, 62, 80, 0.07);
+      }
+      .table-fancy th,
+      .table-fancy td {
+        padding: 0.7rem 0.5rem;
+        border-bottom: 1px solid #e0e0e0;
+        text-align: left;
+      }
+      .table-fancy th {
+        background: #f0f4fa;
+        font-weight: 600;
+        color: #2e3a78;
+      }
+      .progress-bar {
+        background: #eee;
+        border-radius: 8px;
+        overflow: hidden;
+        height: 18px;
+        margin-bottom: 0.5rem;
+        position: relative;
+      }
+      .progress-bar-inner {
+        background: #33e1ed;
+        height: 100%;
+        width: 0%;
+        transition: width 0.5s;
+      }
+      .progress-label {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #222;
+        font-weight: bold;
+        font-size: 0.95em;
+      }
+      .deadline-layout {
+        display: flex;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+        gap: 2rem;
+      }
+      .course-sidebar {
+        flex: 0 0 260px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #2e3a78;
+        margin-bottom: 1rem;
+      }
+      .course-sidebar-item {
+        padding: 0.7rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .course-sidebar-item:hover {
+        background: #f0f4fa;
+      }
+      .course-sidebar-item.selected {
+        background: #2e3a78;
+        color: #fff;
+        font-weight: bold;
+      }
+      .deadline-main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      /* Button alignment for forms */
+      .form-actions {
+        display: flex;
+        gap: 0.7rem;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+      }
+      /* Center the auto-plan section */
+      .auto-plan-section {
+        margin: 1.2rem 0 0.5rem 0;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        align-items: center;
+      }
+      .auto-plan-section label {
+        font-weight: 500;
+        color: #2e3a78;
+      }
+      .auto-plan-section select {
+        padding: 0.4rem 0.7rem;
+        border-radius: 6px;
+        border: 1px solid #bbb;
+        font-size: 1rem;
+        background: #f9f9fb;
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+      }
+      .auto-plan-section .btn {
+        margin: 0;
+        min-width: 120px;
+      }
+      /* Planned sessions list */
+      #sessionList {
+        margin: 0.7rem 0 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      #sessionList li {
+        background: #f4f4f4;
+        padding: 0.5rem 0.75rem;
+        border-radius: 5px;
+        margin-bottom: 0.4rem;
+        font-size: 0.97rem;
+        color: #2e3a78;
+      }
+      /* Header styling to match dashboard */
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #2474a6;
+        padding: 1rem 2rem;
+        color: white;
+      }
+      .navbar .brand {
+        font-weight: bold;
+        font-size: 1.5rem;
+        letter-spacing: -1px;
+        display: flex;
+        align-items: center;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+      }
+      .navbar a {
+        color: white;
+        text-decoration: none;
+        margin-left: 1rem;
+        display: flex;
+        align-items: center;
+        height: 100%;
+      }
+      @media (max-width: 900px) {
+        .main-container,
+        .deadline-layout,
+        .flex-row {
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+        .section-card {
+          padding: 1.2rem 0.7rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
     <nav class="navbar">
       <span class="brand">
-        <img src="/images/studyflow-white.png" alt="StudyFlow Logo" style="height: 38px; vertical-align: middle; margin-right: 0.7rem;">
+        <img
+          src="/images/studyflow-white.png"
+          alt="StudyFlow Logo"
+          style="height: 38px; vertical-align: middle; margin-right: 0.7rem"
+        />
       </span>
       <div class="nav-links">
         <a href="/dashboard">Dashboard</a>
@@ -281,18 +290,48 @@
         <a href="/logout">Logout</a>
       </div>
     </nav>
-    <div id="courseButtonBarWrapper" style="width:100%;max-width:1200px;margin:0 auto;">
-      <div id="courseButtonBar" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.2rem;padding:0.5rem 0;"></div>
-      <div id="noCourseSelectedMsg" style="display:none; margin:2rem auto 0 auto; text-align:center; color:#2e3a78; font-size:1.2rem; background:#f9f9fb; border-radius:12px; padding:2.5rem 1rem;">
-        <span>Please select a course to manage deadlines and self-study sessions.</span>
+    <div
+      id="courseButtonBarWrapper"
+      style="width: 100%; max-width: 1200px; margin: 0 auto"
+    >
+      <div
+        id="courseButtonBar"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1.2rem;
+          padding: 0.5rem 0;
+        "
+      ></div>
+      <div
+        id="noCourseSelectedMsg"
+        style="
+          display: none;
+          margin: 2rem auto 0 auto;
+          text-align: center;
+          color: #2e3a78;
+          font-size: 1.2rem;
+          background: #f9f9fb;
+          border-radius: 12px;
+          padding: 2.5rem 1rem;
+        "
+      >
+        <span
+          >Please select a course to manage deadlines and self-study
+          sessions.</span
+        >
       </div>
     </div>
-    <div class="main-container" style="max-width:1200px;margin:0 auto;">
+    <div class="main-container" style="max-width: 1200px; margin: 0 auto">
       <!-- Only show the rest if a course is selected -->
-      <div id="manageContent" style="display:none;">
-        <div class="flex-row" style="gap:2rem;align-items:flex-start;">
+      <div id="manageContent" style="display: none">
+        <div class="flex-row" style="gap: 2rem; align-items: flex-start">
           <!-- Course Info Column -->
-          <div class="flex-col section-card" style="min-width:260px;max-width:320px;">
+          <div
+            class="flex-col section-card"
+            style="min-width: 260px; max-width: 320px"
+          >
             <div class="section-title">Course Info</div>
             <div id="deadlineCourseInfo"></div>
             <div class="progress-bar">
@@ -301,28 +340,50 @@
             </div>
           </div>
           <!-- Deadlines Column -->
-          <div class="flex-col section-card" style="min-width:320px;">
+          <div class="flex-col section-card" style="min-width: 320px">
             <div class="section-title">Deadlines</div>
             <form id="deadlineForm" autocomplete="off">
               <div class="form-row">
                 <label for="deadlineTitle">Title</label>
-                <input type="text" id="deadlineTitle" required autocomplete="off">
+                <input
+                  type="text"
+                  id="deadlineTitle"
+                  required
+                  autocomplete="off"
+                />
               </div>
               <div class="form-row">
                 <label for="deadlineDate">Date</label>
-                <input type="datetime-local" id="deadlineDate" required autocomplete="off">
+                <input
+                  type="datetime-local"
+                  id="deadlineDate"
+                  required
+                  autocomplete="off"
+                />
               </div>
               <div class="form-row">
                 <label for="deadlinePoints">Points</label>
-                <input type="number" id="deadlinePoints" min="1" value="10" required autocomplete="off">
+                <input
+                  type="number"
+                  id="deadlinePoints"
+                  min="1"
+                  value="10"
+                  required
+                  autocomplete="off"
+                />
               </div>
               <div class="form-row">
                 <label for="deadlineStudyStart">Study Start</label>
-                <input type="datetime-local" id="deadlineStudyStart" required autocomplete="off">
+                <input
+                  type="datetime-local"
+                  id="deadlineStudyStart"
+                  required
+                  autocomplete="off"
+                />
               </div>
               <div class="form-actions">
                 <button type="submit" class="btn">Add Deadline</button>
-                <input type="hidden" id="editingDeadlineId" value="">
+                <input type="hidden" id="editingDeadlineId" value="" />
               </div>
             </form>
             <table class="table-fancy" id="deadlineTable">
@@ -340,20 +401,39 @@
             </table>
           </div>
           <!-- Plan Self-Study Column -->
-          <div class="flex-col section-card" style="min-width:320px;">
+          <div class="flex-col section-card" style="min-width: 320px">
             <div class="section-title">Plan Self-Study</div>
             <form id="selfstudyForm" autocomplete="off">
               <div class="form-row">
                 <label for="selfstudyTitle">Title</label>
-                <input type="text" id="selfstudyTitle" placeholder="Session title" required autocomplete="off">
+                <input
+                  type="text"
+                  id="selfstudyTitle"
+                  placeholder="Session title"
+                  required
+                  autocomplete="off"
+                />
               </div>
               <div class="form-row">
                 <label for="selfstudyDate">Date</label>
-                <input type="datetime-local" id="selfstudyDate" required autocomplete="off">
+                <input
+                  type="datetime-local"
+                  id="selfstudyDate"
+                  required
+                  autocomplete="off"
+                />
               </div>
               <div class="form-row">
                 <label for="selfstudyDuration">Duration (h)</label>
-                <input type="number" id="selfstudyDuration" min="1" max="8" value="1" required autocomplete="off">
+                <input
+                  type="number"
+                  id="selfstudyDuration"
+                  min="1"
+                  max="8"
+                  value="1"
+                  required
+                  autocomplete="off"
+                />
               </div>
               <div class="form-actions">
                 <button type="submit" class="btn">Add Session</button>
@@ -367,7 +447,9 @@
               </div>
             </div>
             <div>
-              <div class="section-title" style="margin-top:1.5rem;">Planned Sessions</div>
+              <div class="section-title" style="margin-top: 1.5rem">
+                Planned Sessions
+              </div>
               <ul id="sessionList"></ul>
             </div>
           </div>
@@ -378,18 +460,20 @@
       // Sidebar-Kursauswahl
       document.addEventListener("DOMContentLoaded", function () {
         fetch("/courses/user")
-          .then(res => res.json())
-          .then(courses => {
+          .then((res) => res.json())
+          .then((courses) => {
             const bar = document.getElementById("courseButtonBar");
             bar.innerHTML = "";
             const urlParams = new URLSearchParams(window.location.search);
             const courseId = urlParams.get("courseId");
-            courses.forEach(course => {
+            courses.forEach((course) => {
               const btn = document.createElement("button");
               btn.textContent = course.name;
               btn.className = "btn course-btn";
               btn.style.background = course.color || "#2e3a78";
-              btn.style.color = getContrastingTextColor(course.color || "#2e3a78");
+              btn.style.color = getContrastingTextColor(
+                course.color || "#2e3a78"
+              );
               btn.style.whiteSpace = "nowrap";
               btn.style.overflow = "hidden";
               btn.style.textOverflow = "ellipsis";
@@ -403,14 +487,16 @@
                 btn.style.opacity = "1";
               }
               btn.onclick = function () {
-                window.location.href = "/manage-deadlines?courseId=" + course.id;
+                window.location.href =
+                  "/manage-deadlines?courseId=" + course.id;
               };
               bar.appendChild(btn);
             });
             // Show content if courseId is present
             if (courseId) {
               document.getElementById("manageContent").style.display = "";
-              document.getElementById("noCourseSelectedMsg").style.display = "none";
+              document.getElementById("noCourseSelectedMsg").style.display =
+                "none";
             } else {
               document.getElementById("manageContent").style.display = "none";
               document.getElementById("noCourseSelectedMsg").style.display = "";
@@ -431,7 +517,7 @@
         const g = parseInt(color.substring(2, 4), 16);
         const b = parseInt(color.substring(4, 6), 16);
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-        return (brightness > 128) ? "black" : "white";
+        return brightness > 128 ? "black" : "white";
       }
     </script>
     <script src="/js/manage-deadlines.js"></script>
