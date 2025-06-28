@@ -344,7 +344,7 @@
             <div class="section-title">Deadlines</div>
             <form id="deadlineForm" autocomplete="off">
               <div class="form-row">
-                <label for="deadlineTitle">Title</label>
+                <label for="deadlineTitle">Deadline Name</label>
                 <input
                   type="text"
                   id="deadlineTitle"
@@ -353,7 +353,7 @@
                 />
               </div>
               <div class="form-row">
-                <label for="deadlineDate">Date</label>
+                <label for="deadlineDate">Deadline Date</label>
                 <input
                   type="datetime-local"
                   id="deadlineDate"
@@ -373,7 +373,7 @@
                 />
               </div>
               <div class="form-row">
-                <label for="deadlineStudyStart">Study Start</label>
+                <label for="deadlineStudyStart">Study Start Date</label>
                 <input
                   type="datetime-local"
                   id="deadlineStudyStart"
@@ -381,10 +381,10 @@
                   autocomplete="off"
                 />
               </div>
-              <div class="form-actions">
+              <div class="form-actions" style="text-align: right;">
                 <button type="submit" class="btn">Add Deadline</button>
-                <input type="hidden" id="editingDeadlineId" value="" />
               </div>
+              <input type="hidden" id="editingDeadlineId" value="" />
             </form>
             <table class="table-fancy" id="deadlineTable">
               <thead>
@@ -405,11 +405,10 @@
             <div class="section-title">Plan Self-Study</div>
             <form id="selfstudyForm" autocomplete="off">
               <div class="form-row">
-                <label for="selfstudyTitle">Title</label>
+                <label for="selfstudyTitle">Session Title</label>
                 <input
                   type="text"
                   id="selfstudyTitle"
-                  placeholder="Session title"
                   required
                   autocomplete="off"
                 />

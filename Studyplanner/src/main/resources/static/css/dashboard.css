@@ -728,8 +728,9 @@ ul {
   font-weight: bold;
   font-size: 1.08rem;
   border-radius: 8px;
-  margin-bottom: 1.5rem;
-  padding: 0.7rem 1.2rem;
+  margin-bottom: 0rem;
+  margin-right: 0rem !important;
+  padding-right: 0rem !important;
   border: none;
   cursor: pointer;
   transition: background 0.2s;
@@ -740,6 +741,7 @@ ul {
 }
 .sidebar .section {
   margin-bottom: 0rem;
+  margin-right: 0rem !important;
 }
 .sidebar .section h2 {
   margin-bottom: 0.7rem;
@@ -802,4 +804,66 @@ ul {
 .fc .fc-scrollgrid-liquid {
     height: 100%;
     color: #2474a6 !important;
+}
+
+.section-card {
+  min-height: unset !important;
+}
+
+#deadlineCourseInfo {
+  margin-bottom: 1.5rem !important;
+}
+
+.flex-col.section-card .section-title {
+  margin-bottom: 0rem !important;
+}
+
+.flex-col.section-card {
+  max-height: 700px !important;
+  overflow-y: auto !important;
+}
+
+#deadlineTable td {
+  text-align: center;
+}
+
+.empty-row {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+#sessionList li {
+  text-align: center;
+}
+
+#sessionList li.empty-session {
+  color: #888;
+  font-style: italic;
+}
+
+#deadlineForm {
+  width: 100% !important;
+}
+
+#deadlineForm .form-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: right !important;
+  width: 100% !important;
+  margin-top: 1.5rem !important;
+  margin-right: 0rem !important;
+  margin-bottom: 0rem !important;
+  padding: 0rem !important;
+  box-sizing: border-box !important;
+}
+
+#deadlineForm .form-actions .btn {
+  margin: 0 !important;
+  display: inline-block;
+  width: auto;
+}
+
+#deadlineTable {
+  margin-top: 0.3rem !important;
 }

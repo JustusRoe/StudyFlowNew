@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const selector = document.getElementById("autoDeadlineSelector");
                 selector.innerHTML = '<option value="" disabled selected>Select a deadline</option>';
                 if (!Array.isArray(deadlines) || deadlines.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='4'>No deadlines yet.</td></tr>";
+                    tbody.innerHTML = '<td class="empty-row" colspan="4">No deadlines yet.</td>';
                     return;
                 }
                 deadlines.forEach(dl => {
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const list = document.getElementById("sessionList");
                 list.innerHTML = "";
                 if (!Array.isArray(events) || events.length === 0) {
-                    list.innerHTML = "<li>No planned self-study sessions.</li>";
+                    list.innerHTML = '<li class="empty-session">No planned self-study sessions yet.</li>';
                     return;
                 }
                 events.forEach(ev => {
