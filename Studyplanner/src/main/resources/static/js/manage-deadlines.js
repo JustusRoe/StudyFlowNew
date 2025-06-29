@@ -76,14 +76,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const title = document.getElementById("deadlineTitle").value.trim();
         const date = document.getElementById("deadlineDate").value;
         const studyTimeNeeded = parseInt(document.getElementById("deadlineStudyTime").value, 10);
-        const studyStart = document.getElementById("deadlineStudyStart").value;
+        // changed: studyStart is now a date (yyyy-MM-dd)
+        const studyStartDate = document.getElementById("deadlineStudyStart").value;
         const editingId = document.getElementById("editingDeadlineId").value;
 
-        if (!title || !date || !studyTimeNeeded || !studyStart) return;
+        if (!title || !date || !studyTimeNeeded || !studyStartDate) return;
 
         // Start/End time are the same for deadlines
         const startTime = date;
         const endTime = date;
+
+        // Convert studyStartDate (yyyy-MM-dd) to yyyy-MM-ddT00:00
+        const studyStart = studyStartDate + "T00:00";
 
         const payload = {
             title,

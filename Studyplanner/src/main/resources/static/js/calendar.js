@@ -733,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     tr.innerHTML = `
                         <td>${dl.title}</td>
                         <td>${(dl.startTime || "").slice(0,16).replace("T", " ")}</td>
-                        <td>${dl.points ?? ""}</td>
+                        <td>${dl.studyTimeNeeded ?? ""}</td>
                     `;
                     tbody.appendChild(tr);
                 });
