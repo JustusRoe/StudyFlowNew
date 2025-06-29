@@ -33,9 +33,9 @@ body {
 .main-container {
   display: flex;
   flex-direction: row;
+  max-width: 1200px;
   align-items: flex-start;
   justify-content: space-between;
-  max-width: 1200px;
   margin: 2rem auto;
   gap: 2rem;
   padding: 0 1rem;
@@ -585,6 +585,7 @@ ul {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1 1 0;
+  min-height: 40px;
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
@@ -608,6 +609,7 @@ ul {
   #courseButtonBar .course-btn {
     font-size: clamp(0.65rem, 1vw, 0.95rem);
     padding: 0.32em 0.5em;
+    min-height: 40px;
   }
 }
 @media (max-width: 900px) {
