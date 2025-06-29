@@ -92,17 +92,10 @@ public class CalendarService {
     }
 
     /**
-     * Calculates the workload weight for a deadline event based on its points and the course's total points/workload.
-     */
-    public int calculateDeadlineWorkload(CalendarEvent deadline, int totalWorkload, int totalPoints) {
-        if (deadline.getPoints() <= 0 || totalPoints <= 0) return 0;
-        return (int) ((deadline.getPoints() / (double) totalPoints) * totalWorkload);
-    }
-
-    /**
      * Calculates and returns a list of self-study session events for a deadline, based on user preferences and available slots.
+     * Uses deadline.studyTimeNeeded and user.preferredStudySessionDuration.
      */
-    public List<CalendarEvent> calculateStudySlotsForDeadline(User user, CalendarEvent deadline, List<CalendarEvent> existingEvents, int hoursToPlan) {
+    public List<CalendarEvent> calculateStudySlotsForDeadline(User user, CalendarEvent deadline, List<CalendarEvent> existingEvents) {
         List<CalendarEvent> sessions = new ArrayList<>();
 
         Set<DayOfWeek> preferredDays = new HashSet<>();
@@ -112,49 +105,80 @@ public class CalendarService {
 
         LocalTime start = LocalTime.parse(user.getPreferredStartTime());
         LocalTime end = LocalTime.parse(user.getPreferredEndTime());
-        Duration breakDuration = Duration.parse("PT" + user.getPreferredBreakTime().replace(":", "H") + "M");
 
-        LocalDate currentDate = LocalDate.now();
-        LocalDate deadlineDate = deadline.getStartTime().toLocalDate();
-        int plannedHours = 0;
+        // Parse break duration (HH:mm)
+        Duration breakDuration;
+        try {
+            String[] parts = user.getPreferredBreakTime().split(":");
+            breakDuration = Duration.ofHours(Long.parseLong(parts[0])).plusMinutes(Long.parseLong(parts[1]));
+        } catch (Exception e) {
+            breakDuration = Duration.ofMinutes(10); // fallback
+        }
 
-        while (!currentDate.isAfter(deadlineDate) && plannedHours < hoursToPlan) {
-            final LocalDate loopDate = currentDate;
-            if (preferredDays.contains(currentDate.getDayOfWeek())) {
-                LocalDateTime slotStart = currentDate.atTime(start);
-                LocalDateTime slotEnd = currentDate.atTime(end);
-                List<CalendarEvent> dayEvents = existingEvents.stream()
-                    .filter(e -> !e.getStartTime().toLocalDate().isAfter(loopDate) &&
-                                 !e.getEndTime().toLocalDate().isBefore(loopDate))
-                    .collect(Collectors.toList());
+        int sessionDuration = user.getPreferredStudySessionDuration() > 0 ? user.getPreferredStudySessionDuration() : 1;
+        int hoursToPlan = deadline.getStudyTimeNeeded();
 
-                LocalDateTime currentSlot = slotStart;
-                while (currentSlot.plusHours(1).isBefore(slotEnd) && plannedHours < hoursToPlan) {
-                    final LocalDateTime slotStartForCheck = currentSlot;
-                    boolean overlaps = dayEvents.stream().anyMatch(e ->
-                        !(slotStartForCheck.plusHours(1).isBefore(e.getStartTime()) || slotStartForCheck.isAfter(e.getEndTime()))
-                    );
+        if (hoursToPlan <= 0) return sessions;
 
-                    if (!overlaps) {
-                        CalendarEvent session = new CalendarEvent();
-                        session.setTitle("Self-Study for " + deadline.getTitle());
-                        session.setStartTime(currentSlot);
-                        session.setEndTime(currentSlot.plusHours(1));
-                        session.setUserId(deadline.getUserId());
-                        session.setCourseId(deadline.getCourseId());
-                        session.setColor(deadline.getColor());
-                        session.setType("self-study");
-                        session.setGeneratedByEngine(true);
+        LocalDateTime studyStart = deadline.getStudyStart() != null ? deadline.getStudyStart() : LocalDateTime.now();
+        LocalDateTime studyEnd = deadline.getStartTime();
 
-                        sessions.add(session);
-                        plannedHours++;
+        // Build all possible session slots between studyStart and studyEnd
+        List<LocalDateTime> possibleStarts = new ArrayList<>();
+        LocalDateTime current = studyStart;
+        while (!current.isAfter(studyEnd.minusMinutes(1))) {
+            if (preferredDays.contains(current.getDayOfWeek())) {
+                LocalDateTime dayStart = current.withHour(start.getHour()).withMinute(start.getMinute());
+                LocalDateTime dayEnd = current.withHour(end.getHour()).withMinute(end.getMinute());
+                LocalDateTime initialSlotStart = dayStart.isAfter(current) ? dayStart : current;
+                LocalDateTime slotStart = initialSlotStart;
+                while (slotStart.plusHours(sessionDuration).isBefore(dayEnd) || slotStart.plusHours(sessionDuration).equals(dayEnd)) {
+                    if (!slotStart.plusHours(sessionDuration).isAfter(studyEnd)) {
+                        // Check for overlap with existing events
+                        boolean overlaps = false;
+                        for (CalendarEvent e : existingEvents) {
+                            if (!(slotStart.plusHours(sessionDuration).isBefore(e.getStartTime()) || slotStart.isAfter(e.getEndTime()))) {
+                                overlaps = true;
+                                break;
+                            }
+                        }
+                        if (!overlaps) {
+                            possibleStarts.add(slotStart);
+                        }
                     }
-
-                    currentSlot = currentSlot.plusHours(1);
+                    slotStart = slotStart.plusHours(sessionDuration).plus(breakDuration);
                 }
             }
+            current = current.plusDays(1).withHour(0).withMinute(0);
+        }
 
-            currentDate = currentDate.plusDays(1);
+        int planned = 0;
+        int used = 0;
+        int sessionsNeeded = (int) Math.ceil(hoursToPlan / (double)sessionDuration);
+        int i = 0;
+        while (planned < hoursToPlan && i < possibleStarts.size() && used < sessionsNeeded) {
+            LocalDateTime sessionStart = possibleStarts.get(i);
+            int duration = Math.min(sessionDuration, hoursToPlan - planned);
+            LocalDateTime sessionEnd = sessionStart.plusHours(duration);
+            if (sessionEnd.isAfter(studyEnd)) {
+                sessionEnd = studyEnd;
+                duration = (int) Duration.between(sessionStart, sessionEnd).toHours();
+                if (duration <= 0) { i++; continue; }
+            }
+            CalendarEvent session = new CalendarEvent();
+            session.setTitle("Self-Study for " + deadline.getTitle());
+            session.setStartTime(sessionStart);
+            session.setEndTime(sessionEnd);
+            session.setUserId(deadline.getUserId());
+            session.setCourseId(deadline.getCourseId());
+            session.setColor(deadline.getColor());
+            session.setType("self-study");
+            session.setGeneratedByEngine(true);
+            session.setRelatedDeadlineId(deadline.getId());
+            sessions.add(session);
+            planned += duration;
+            used++;
+            i++;
         }
 
         return sessions;

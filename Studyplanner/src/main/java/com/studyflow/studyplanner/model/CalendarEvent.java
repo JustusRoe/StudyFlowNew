@@ -35,7 +35,7 @@ public class CalendarEvent {
     private String fillType;
 
     private boolean isDeadline = false;
-    private int points = 0;
+    private int studyTimeNeeded = 0; // in hours, for deadlines
     private boolean generatedByEngine = false;
 
     private Long relatedDeadlineId;
@@ -146,12 +146,12 @@ public class CalendarEvent {
         this.isDeadline = isDeadline;
     }
 
-    public int getPoints() {
-        return points;
+    public int getStudyTimeNeeded() {
+        return studyTimeNeeded;
     }
 
-    public void setPoints(int points) {
-        this.points = points;
+    public void setStudyTimeNeeded(int studyTimeNeeded) {
+        this.studyTimeNeeded = studyTimeNeeded;
     }
 
     public boolean isGeneratedByEngine() {

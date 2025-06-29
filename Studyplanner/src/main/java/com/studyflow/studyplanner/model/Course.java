@@ -29,7 +29,7 @@ public class Course {
     private String color;
 
     @Column(unique = false)
-    private String courseIdentifier; // stores the ICS courseId like [xxxxxx]
+    private String courseIdentifier;
 
     @Column(name = "difficulty")
     private int difficulty; // 1 = easy, 2 = medium, 3 = hard

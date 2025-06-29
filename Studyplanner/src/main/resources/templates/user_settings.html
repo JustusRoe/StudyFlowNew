@@ -216,11 +216,22 @@
           <label>End Time</label>
           <input type="time" th:field="*{preferredEndTime}" />
         </div>
-
         <div class="form-group">
           <label>Break Duration</label>
           <input type="time" th:field="*{preferredBreakTime}" />
           <small>Duration of your break in HH:mm</small>
+        </div>
+        <div class="form-group">
+          <label>Preferred Study Session Duration (hours)</label>
+          <input
+            type="number"
+            min="1"
+            max="8"
+            th:field="*{preferredStudySessionDuration}"
+          />
+          <small
+            >How long should each self-study session be? (default: 1 hour)</small
+          >
         </div>
 
         <div class="settings-section-title">Preferred Study Days</div>

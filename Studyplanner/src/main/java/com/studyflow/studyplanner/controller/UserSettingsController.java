@@ -62,6 +62,7 @@ public class UserSettingsController {
         user.setPreferredEndTime(formUser.getPreferredEndTime());
         user.setPreferredBreakTime(formUser.getPreferredBreakTime());
         user.setPreferredStudyDays(formUser.getPreferredStudyDays());
+        user.setPreferredStudySessionDuration(formUser.getPreferredStudySessionDuration());
 
         userService.save(user);
         return "redirect:/user_settings?success";

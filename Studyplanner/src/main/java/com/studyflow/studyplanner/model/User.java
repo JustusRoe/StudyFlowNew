@@ -109,6 +109,9 @@ public class User {
     @Column(name = "preferred_study_days")
     private String preferredStudyDays = "MONDAY,TUESDAY, WEDNESDAY, THURSDAY, FRIDAY";
 
+    @Column(name = "preferred_study_session_duration")
+    private int preferredStudySessionDuration = 1; // in hours, default 1
+
     public String getPreferredStartTime() {
         return preferredStartTime;
     }
@@ -125,6 +128,10 @@ public class User {
         return preferredBreakTime;
     }
 
+    public int getPreferredStudySessionDuration() {
+        return preferredStudySessionDuration;
+    }
+
     public void setPreferredStartTime(String preferredStartTime) {
         this.preferredStartTime = preferredStartTime;
     }
@@ -139,5 +146,9 @@ public class User {
     
     public void setPreferredBreakTime(String preferredBreakTime) {
         this.preferredBreakTime = preferredBreakTime;
+    }
+
+    public void setPreferredStudySessionDuration(int preferredStudySessionDuration) {
+        this.preferredStudySessionDuration = preferredStudySessionDuration;
     }
 }

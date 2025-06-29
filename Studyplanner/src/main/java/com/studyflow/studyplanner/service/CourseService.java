@@ -37,7 +37,7 @@ public class CourseService {
     /**
      * Calculates all free time slots for a user between two dates, considering existing events and user preferences.
      */
-    private List<TimeSlot> calculateFreeSlots(User user, List<CalendarEvent> existingEvents, LocalDateTime from, LocalDateTime to) {
+    private List<TimeSlot> calculateFreeSlots(User user, List<CalendarEvent> existingEvents, LocalDateTime from, LocalDateTime to, java.time.Duration breakDuration) {
         List<TimeSlot> slots = new ArrayList<>();
 
         Set<DayOfWeek> preferredDays = Arrays.stream(user.getPreferredStudyDays().split(","))
@@ -70,7 +70,7 @@ public class CourseService {
                             slots.add(new TimeSlot(slotStart, slotEnd));
                         }
                     }
-                    slotStart = e.getEndTime().isAfter(slotStart) ? e.getEndTime() : slotStart;
+                    slotStart = e.getEndTime().isAfter(slotStart) ? e.getEndTime().plus(breakDuration) : slotStart;
                 }
 
                 if (slotStart.isBefore(dayEnd)) {
@@ -323,79 +323,58 @@ public class CourseService {
     public void autoPlanSelfstudySessions(Long courseId, Long deadlineId, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
         if (user == null) throw new RuntimeException("User not found");
-
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
-
         if (!course.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Access denied");
         }
-
         List<CalendarEvent> events = eventRepository.findAllById(course.getEventIds());
         CalendarEvent deadline = eventRepository.findById(deadlineId)
                 .orElseThrow(() -> new RuntimeException("Deadline event not found"));
-
         if (!deadline.isDeadline()) {
             throw new RuntimeException("Event is not a deadline");
         }
-
-        int workloadTotal = switch (course.getDifficulty()) {
-            case 1 -> 100; 
-            case 2 -> 130; 
-            case 3 -> 160;
-            default -> 130;
-        };
-
-        int lectureHours = 33;
-        int remainingWorkload = workloadTotal - lectureHours;
-
-        // Total points for deadlines are always 120
-        int totalPoints = 120;
-
-        double share = (double) deadline.getPoints() / totalPoints;
-        int targetHours = (int) Math.round(remainingWorkload * share);
-
+        int targetHours = deadline.getStudyTimeNeeded();
+        if (targetHours <= 0) throw new RuntimeException("No study time set for this deadline");
         List<CalendarEvent> allUserEvents = eventRepository.findByUserId(user.getId());
-
-        // --- Adjustment: Consider StudyStart ---
         LocalDateTime studyStart = deadline.getStudyStart() != null ? deadline.getStudyStart() : LocalDateTime.now();
         LocalDateTime studyEnd = deadline.getStartTime();
-
-        // All free slots in the period [studyStart, studyEnd)
-        List<TimeSlot> freeSlots = calculateFreeSlots(user, allUserEvents, studyStart, studyEnd.minusMinutes(1));
-
-        // Distribute sessions evenly
-        int sessionsNeeded = (int) Math.ceil(targetHours / 1.0); // max 1h per session
-        int hoursLeft = targetHours;
-        int planned = 0;
-
-        // Flat list of all possible hour slots in the free time windows
+        // Parse break duration
+        java.time.Duration breakDuration = java.time.Duration.ZERO;
+        try {
+            String[] parts = user.getPreferredBreakTime().split(":");
+            breakDuration = java.time.Duration.ofHours(Long.parseLong(parts[0])).plusMinutes(Long.parseLong(parts[1]));
+        } catch (Exception e) {
+            breakDuration = java.time.Duration.ofMinutes(10); // fallback
+        }
+        int sessionDuration = user.getPreferredStudySessionDuration() > 0 ? user.getPreferredStudySessionDuration() : 1;
+        List<TimeSlot> freeSlots = calculateFreeSlots(user, allUserEvents, studyStart, studyEnd.minusMinutes(1), breakDuration);
+        // Flat list of all possible session slots in the free time windows
         List<LocalDateTime> possibleStarts = new ArrayList<>();
         for (TimeSlot slot : freeSlots) {
             LocalDateTime slotStart = slot.start();
-            while (slotStart.plusHours(1).isBefore(slot.end()) || slotStart.plusHours(1).equals(slot.end())) {
-                if (!slotStart.plusHours(1).isAfter(studyEnd)) {
+            while (slotStart.plusHours(sessionDuration).isBefore(slot.end()) || slotStart.plusHours(sessionDuration).equals(slot.end())) {
+                if (!slotStart.plusHours(sessionDuration).isAfter(studyEnd)) {
                     possibleStarts.add(slotStart);
                 }
-                slotStart = slotStart.plusHours(1);
+                slotStart = slotStart.plusHours(sessionDuration).plus(breakDuration);
             }
         }
-
-        // Distribute evenly
-        int interval = possibleStarts.size() >= sessionsNeeded ? possibleStarts.size() / sessionsNeeded : 1;
+        int sessionsNeeded = (int) Math.ceil(targetHours / (double)sessionDuration);
+        int planned = 0;
         int used = 0;
-        for (int i = 0; i < possibleStarts.size() && planned < targetHours; i += interval) {
+        int i = 0;
+        while (planned < targetHours && i < possibleStarts.size() && used < sessionsNeeded) {
             LocalDateTime sessionStart = possibleStarts.get(i);
-            int duration = Math.min(2, targetHours - planned);
+            int duration = Math.min(sessionDuration, targetHours - planned);
             LocalDateTime sessionEnd = sessionStart.plusHours(duration);
             if (sessionEnd.isAfter(studyEnd)) {
                 sessionEnd = studyEnd;
                 duration = (int) java.time.Duration.between(sessionStart, sessionEnd).toHours();
-                if (duration <= 0) continue;
+                if (duration <= 0) { i++; continue; }
             }
-
             CalendarEvent session = new CalendarEvent();
-            session.setTitle("📖 Selfstudy for " + deadline.getTitle());
+            session.setTitle("📖 Selfstudy for " + deadline.getTitle() + ", " + course.getName());
             session.setStartTime(sessionStart);
             session.setEndTime(sessionEnd);
             session.setUserId(user.getId());
@@ -405,15 +384,18 @@ public class CourseService {
             session.setCourseId(course.getId().toString());
             session.setGeneratedByEngine(true);
             session.setRelatedDeadlineId(deadlineId);
-
             CalendarEvent saved = eventRepository.save(session);
-            course.addEventId(saved.getId());
+
+            // Ensure the event ID is added to the course_event_ids join table
+            if (!course.getEventIds().contains(saved.getId())) {
+                course.getEventIds().add(saved.getId());
+            }
 
             planned += duration;
             used++;
-            if (used >= sessionsNeeded) break;
+            i++;
         }
-
+        // Save the course after all event IDs have been added
         courseRepository.save(course);
     }
 
@@ -463,7 +445,12 @@ public class CourseService {
         event.setGeneratedByEngine(false);
 
         CalendarEvent saved = eventRepository.save(event);
-        course.addEventId(saved.getId());
+
+        // Ensure the event ID is added to the course_event_ids join table
+        if (!course.getEventIds().contains(saved.getId())) {
+            course.getEventIds().add(saved.getId());
+        }
+
         courseRepository.save(course);
     }
 
@@ -485,7 +472,7 @@ public class CourseService {
                 map.put("id", e.getId());
                 map.put("title", e.getTitle());
                 map.put("startTime", e.getStartTime() != null ? e.getStartTime().toString() : "");
-                map.put("points", e.getPoints());
+                map.put("studyTimeNeeded", e.getStudyTimeNeeded());
                 return map;
             })
             .toList();

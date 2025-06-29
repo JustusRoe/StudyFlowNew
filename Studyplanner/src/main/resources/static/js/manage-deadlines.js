@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     tr.innerHTML = `
                         <td>${dl.title}</td>
                         <td>${(dl.startTime || "").slice(0,16).replace("T", " ")}</td>
-                        <td>${dl.points ?? ""}</td>
+                        <td>${dl.studyTimeNeeded ?? ""}</td>
                         <td>
                             <button class="btn btn-small btn-danger delete-btn">🗑️</button>
                         </td>
@@ -75,11 +75,11 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         const title = document.getElementById("deadlineTitle").value.trim();
         const date = document.getElementById("deadlineDate").value;
-        const points = parseInt(document.getElementById("deadlinePoints").value, 10);
-        const studyStart = document.getElementById("deadlineStudyStart").value; // neues Feld
+        const studyTimeNeeded = parseInt(document.getElementById("deadlineStudyTime").value, 10);
+        const studyStart = document.getElementById("deadlineStudyStart").value;
         const editingId = document.getElementById("editingDeadlineId").value;
 
-        if (!title || !date || !points || !studyStart) return;
+        if (!title || !date || !studyTimeNeeded || !studyStart) return;
 
         // Start/End time are the same for deadlines
         const startTime = date;
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
             endTime,
             type: "deadline",
             isDeadline: true,
-            points,
+            studyTimeNeeded,
             studyStart
         };
 

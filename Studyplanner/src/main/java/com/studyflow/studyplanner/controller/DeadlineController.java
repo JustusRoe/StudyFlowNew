@@ -66,7 +66,7 @@ public class DeadlineController {
                 map.put("id", ev.getId());
                 map.put("title", ev.getTitle());
                 map.put("startTime", ev.getStartTime() != null ? ev.getStartTime().toString() : "");
-                map.put("points", ev.getPoints());
+                map.put("studyTimeNeeded", ev.getStudyTimeNeeded());
                 return map;
             })
             .toList();
@@ -87,10 +87,19 @@ public class DeadlineController {
         event.setTitle((String) payload.get("title"));
         event.setStartTime(java.time.LocalDateTime.parse((String) payload.get("startTime")));
         event.setEndTime(java.time.LocalDateTime.parse((String) payload.get("endTime")));
-        // Always set type to "deadline"
         event.setType("deadline");
         event.setDeadline(true);
-        event.setPoints((Integer) payload.get("points"));
+        // Use studyTimeNeeded from payload
+        Object studyTimeObj = payload.get("studyTimeNeeded");
+        int studyTimeNeeded = 0;
+        if (studyTimeObj instanceof Integer) {
+            studyTimeNeeded = (Integer) studyTimeObj;
+        } else if (studyTimeObj instanceof String) {
+            try {
+                studyTimeNeeded = Integer.parseInt((String) studyTimeObj);
+            } catch (Exception ignored) {}
+        }
+        event.setStudyTimeNeeded(studyTimeNeeded);
         event.setUserId(user.getId());
         event.setCourseId(String.valueOf(courseId));
         // Set studyStart if provided
@@ -118,7 +127,7 @@ public class DeadlineController {
         existing.setTitle(updated.getTitle());
         existing.setStartTime(updated.getStartTime());
         existing.setEndTime(updated.getEndTime());
-        existing.setPoints(updated.getPoints());
+        existing.setStudyTimeNeeded(updated.getStudyTimeNeeded());
         existing.setColor(updated.getColor());
         existing.setType(updated.getType());
         existing.setDescription(updated.getDescription());

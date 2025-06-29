@@ -115,7 +115,7 @@ public class CalendarController {
             json.put("courseId", event.getCourseId());
             json.put("completed", event.isCompleted());
             json.put("isDeadline", event.isDeadline());
-            json.put("points", event.getPoints());
+            json.put("studyTimeNeeded", event.getStudyTimeNeeded());
             json.put("generatedByEngine", event.isGeneratedByEngine());
             json.put("duration", event.getDurationInHours());
             json.put("fillType", event.getFillType());
@@ -165,7 +165,9 @@ public class CalendarController {
                 event.setDeadline(true);
             }
         }
-        event.setPoints(event.getPoints());
+        // Use studyTimeNeeded for deadlines (ignore points)
+        // event.setPoints(event.getPoints()); // REMOVE
+        event.setStudyTimeNeeded(event.getStudyTimeNeeded());
         event.setGeneratedByEngine(event.isGeneratedByEngine());
         return calendarService.saveEvent(event);
     }
@@ -194,7 +196,8 @@ public class CalendarController {
         existing.setType(updated.getType());
         existing.setCourseId(updated.getCourseId());
         existing.setDeadline(updated.isDeadline());
-        existing.setPoints(updated.getPoints());
+        // existing.setPoints(updated.getPoints()); // REMOVE
+        existing.setStudyTimeNeeded(updated.getStudyTimeNeeded());
         existing.setGeneratedByEngine(updated.isGeneratedByEngine());
         existing.setFillType(updated.getFillType());
 
