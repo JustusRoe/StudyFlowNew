@@ -164,6 +164,19 @@ public class DeadlineController {
                 map.put("title", e.getTitle());
                 map.put("startTime", e.getStartTime() != null ? e.getStartTime().toString() : "");
                 map.put("endTime", e.getEndTime() != null ? e.getEndTime().toString() : "");
+                map.put("relatedDeadlineId", e.getRelatedDeadlineId());
+                // Optionally add deadline title if available
+                if (e.getRelatedDeadlineId() != null) {
+                    CalendarEvent deadline = null;
+                    try {
+                        deadline = courseService.getCourseEvents(courseId, email).stream()
+                            .filter(ev -> ev.getId().equals(e.getRelatedDeadlineId()))
+                            .findFirst().orElse(null);
+                    } catch (Exception ignored) {}
+                    if (deadline != null) {
+                        map.put("relatedDeadlineTitle", deadline.getTitle());
+                    }
+                }
                 return map;
             })
             .toList();
@@ -184,11 +197,26 @@ public class DeadlineController {
         String color = (String) payload.getOrDefault("color", "#F4B400");
         String startTimeStr = (String) payload.get("startTime");
         String endTimeStr = (String) payload.get("endTime");
+        Long relatedDeadlineId = null;
+        if (payload.get("relatedDeadlineId") != null) {
+            try {
+                relatedDeadlineId = Long.parseLong(payload.get("relatedDeadlineId").toString());
+            } catch (Exception ignored) {}
+        }
 
         java.time.LocalDateTime startTime = java.time.LocalDateTime.parse(startTimeStr);
         java.time.LocalDateTime endTime = java.time.LocalDateTime.parse(endTimeStr);
 
-        courseService.addManualSelfstudySession(courseId, title, description, color, startTime, endTime, email);
+        CalendarEvent event = new CalendarEvent();
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setColor(color);
+        event.setStartTime(startTime);
+        event.setEndTime(endTime);
+        event.setType("self-study");
+        event.setRelatedDeadlineId(relatedDeadlineId);
+
+        courseService.addManualSelfstudySession(courseId, event.getTitle(), event.getDescription(), event.getColor(), event.getStartTime(), event.getEndTime(), email);
         return ResponseEntity.ok().build();
     }
 

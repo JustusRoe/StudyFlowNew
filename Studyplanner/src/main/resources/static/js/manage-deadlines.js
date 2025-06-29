@@ -131,9 +131,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                 }
                 events.forEach(ev => {
-                    const li = document.createElement("li");
-                    li.textContent = `${ev.title} (${ev.startTime.slice(0, 16)} - ${ev.endTime.slice(0, 16)})`;
-                    list.appendChild(li);
+                    const deadlineInfo = ev.relatedDeadlineTitle ? ` [${ev.relatedDeadlineTitle}]` : "";
+                    list.innerHTML += `<li>${ev.title} (${ev.startTime.slice(0, 16)} - ${ev.endTime.slice(0, 16)})${deadlineInfo}</li>`;
                 });
             });
     }
@@ -142,14 +141,29 @@ document.addEventListener("DOMContentLoaded", function () {
     // Manual self-study session
     document.getElementById("selfstudyForm").onsubmit = function (e) {
         e.preventDefault();
-        const title = document.getElementById("selfstudyTitle").value.trim();
-        const date = document.getElementById("selfstudyDate").value;
-        const duration = parseInt(document.getElementById("selfstudyDuration").value, 10);
-        if (!title || !date || !duration) return;
+        // Use selected deadline for title and relation
+        const deadlineSelector = document.getElementById("autoDeadlineSelector");
+        const deadlineOption = deadlineSelector.options[deadlineSelector.selectedIndex];
+        const deadlineTitle = deadlineOption && deadlineOption.value ? deadlineOption.textContent.split(' (')[0] : "";
+        const deadlineId = deadlineSelector.value;
 
-        const startTime = date;
-        const endTime = new Date(new Date(date).getTime() + duration * 60 * 60 * 1000)
-            .toISOString().slice(0, 16);
+        const start = document.getElementById("selfstudyStart").value;
+        const end = document.getElementById("selfstudyEnd").value;
+        if (!start || !end) return;
+
+        if (!deadlineId) {
+            alert("Please select a deadline for this session.");
+            return;
+        }
+
+        // Validate: end must be after start
+        if (new Date(end) <= new Date(start)) {
+            alert("End time must be after start time.");
+            return;
+        }
+
+        // Default title as in autoplan
+        const title = "📖 Selfstudy for " + deadlineTitle;
 
         fetch(`/courses/${courseId}/add-selfstudy`, {
             method: "POST",
@@ -158,8 +172,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 title,
                 description: "Manual self-study session",
                 color: "#F4B400",
-                startTime,
-                endTime
+                startTime: start,
+                endTime: end,
+                relatedDeadlineId: deadlineId
             })
         }).then(() => {
             document.getElementById("selfstudyForm").reset();
