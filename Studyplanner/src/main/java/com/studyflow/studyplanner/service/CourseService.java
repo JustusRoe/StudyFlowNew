@@ -374,22 +374,22 @@ public class CourseService {
 
         // Build a list of all possible session slots (start, end) on preferred days, respecting session duration and break
         List<TimeSlot> possibleSlots = new ArrayList<>();
-        LocalDateTime current = studyStart.withHour(preferredStart.getHour()).withMinute(preferredStart.getMinute()).withSecond(0).withNano(0);
+        LocalDateTime current = studyStart.withHour(0).withMinute(0).withSecond(0).withNano(0);
 
-        while (!current.isBefore(studyEnd)) {
-            // This loop will not run if studyStart >= studyEnd, so fix the condition:
-            break;
-        }
         while (current.isBefore(studyEnd)) {
             if (preferredDays.contains(current.getDayOfWeek())) {
+                // Calculate the latest possible session start so that session ends within preferredEnd
                 LocalDateTime dayStart = current.withHour(preferredStart.getHour()).withMinute(preferredStart.getMinute());
                 LocalDateTime dayEnd = current.withHour(preferredEnd.getHour()).withMinute(preferredEnd.getMinute());
                 // Make sure dayEnd does not exceed studyEnd
                 if (dayEnd.isAfter(studyEnd)) {
                     dayEnd = studyEnd;
                 }
+                // The latest possible session start is dayEnd - sessionDuration
+                LocalDateTime latestSessionStart = dayEnd.minus(sessionDuration);
                 LocalDateTime slotStart = dayStart.isAfter(current) ? dayStart : current;
-                while (!slotStart.plus(sessionDuration).isAfter(dayEnd) && !slotStart.plus(sessionDuration).isAfter(studyEnd)) {
+                // Ensure slotStart is not after latestSessionStart
+                while (!slotStart.isAfter(latestSessionStart) && !slotStart.plus(sessionDuration).isAfter(dayEnd) && !slotStart.plus(sessionDuration).isAfter(studyEnd)) {
                     // Check for overlap with existing events
                     boolean overlaps = false;
                     for (CalendarEvent e : allUserEvents) {
@@ -404,7 +404,7 @@ public class CourseService {
                     slotStart = slotStart.plus(sessionDuration).plus(breakDuration);
                 }
             }
-            current = current.plusDays(1).withHour(preferredStart.getHour()).withMinute(preferredStart.getMinute());
+            current = current.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
         }
 
         if (possibleSlots.isEmpty()) throw new RuntimeException("No available time slots for self-study sessions.");
