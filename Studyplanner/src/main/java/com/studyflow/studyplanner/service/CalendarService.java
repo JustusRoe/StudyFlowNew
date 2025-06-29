@@ -115,9 +115,17 @@ public class CalendarService {
             breakDuration = Duration.ofMinutes(10); // fallback
         }
 
-        int sessionDuration = user.getPreferredStudySessionDuration() > 0 ? user.getPreferredStudySessionDuration() : 1;
-        int hoursToPlan = deadline.getStudyTimeNeeded();
+        // Parse session duration (HH:mm)
+        Duration sessionDuration;
+        try {
+            String[] parts = user.getPreferredStudySessionDuration().split(":");
+            sessionDuration = Duration.ofHours(Long.parseLong(parts[0])).plusMinutes(Long.parseLong(parts[1]));
+            if (sessionDuration.isZero() || sessionDuration.isNegative()) sessionDuration = Duration.ofHours(1);
+        } catch (Exception e) {
+            sessionDuration = Duration.ofHours(1);
+        }
 
+        int hoursToPlan = deadline.getStudyTimeNeeded();
         if (hoursToPlan <= 0) return sessions;
 
         LocalDateTime studyStart = deadline.getStudyStart() != null ? deadline.getStudyStart() : LocalDateTime.now();
@@ -132,12 +140,12 @@ public class CalendarService {
                 LocalDateTime dayEnd = current.withHour(end.getHour()).withMinute(end.getMinute());
                 LocalDateTime initialSlotStart = dayStart.isAfter(current) ? dayStart : current;
                 LocalDateTime slotStart = initialSlotStart;
-                while (slotStart.plusHours(sessionDuration).isBefore(dayEnd) || slotStart.plusHours(sessionDuration).equals(dayEnd)) {
-                    if (!slotStart.plusHours(sessionDuration).isAfter(studyEnd)) {
+                while (slotStart.plus(sessionDuration).isBefore(dayEnd) || slotStart.plus(sessionDuration).equals(dayEnd)) {
+                    if (!slotStart.plus(sessionDuration).isAfter(studyEnd)) {
                         // Check for overlap with existing events
                         boolean overlaps = false;
                         for (CalendarEvent e : existingEvents) {
-                            if (!(slotStart.plusHours(sessionDuration).isBefore(e.getStartTime()) || slotStart.isAfter(e.getEndTime()))) {
+                            if (!(slotStart.plus(sessionDuration).isBefore(e.getStartTime()) || slotStart.isAfter(e.getEndTime()))) {
                                 overlaps = true;
                                 break;
                             }
@@ -146,19 +154,23 @@ public class CalendarService {
                             possibleStarts.add(slotStart);
                         }
                     }
-                    slotStart = slotStart.plusHours(sessionDuration).plus(breakDuration);
+                    slotStart = slotStart.plus(sessionDuration).plus(breakDuration);
                 }
             }
             current = current.plusDays(1).withHour(0).withMinute(0);
         }
 
+        // Calculate sessions needed based on minutes
+        long totalMinutes = hoursToPlan * 60L;
+        long sessionMinutes = sessionDuration.toMinutes();
+        int sessionsNeeded = (int) Math.ceil(totalMinutes / (double) sessionMinutes);
+
         int planned = 0;
         int used = 0;
-        int sessionsNeeded = (int) Math.ceil(hoursToPlan / (double)sessionDuration);
         int i = 0;
         while (planned < hoursToPlan && i < possibleStarts.size() && used < sessionsNeeded) {
             LocalDateTime sessionStart = possibleStarts.get(i);
-            int duration = Math.min(sessionDuration, hoursToPlan - planned);
+            int duration = Math.min((int) sessionDuration.toHours(), hoursToPlan - planned);
             LocalDateTime sessionEnd = sessionStart.plusHours(duration);
             if (sessionEnd.isAfter(studyEnd)) {
                 sessionEnd = studyEnd;

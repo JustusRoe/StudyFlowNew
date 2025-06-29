@@ -224,16 +224,13 @@
           <small>Duration of your break in HH:mm</small>
         </div>
         <div class="form-group">
-          <label>Preferred Study Session Duration (hours)</label>
+          <label>Preferred Study Session Duration</label>
           <input
-            type="number"
-            min="1"
-            max="8"
+            type="time"
+            step="60"
             th:field="*{preferredStudySessionDuration}"
           />
-          <small
-            >How long should each self-study session be? (default: 1 hour)</small
-          >
+          <small>How long should each self-study session be? (default: 01:00)</small>
         </div>
 
         <div class="settings-section-title">Preferred Study Days</div>
@@ -305,6 +302,9 @@
 
         <button type="submit" class="button">Save Settings</button>
       </form>
+    </div>
+  </body>
+</html>
     </div>
   </body>
 </html>

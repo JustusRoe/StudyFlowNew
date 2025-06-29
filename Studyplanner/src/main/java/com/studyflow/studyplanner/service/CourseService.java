@@ -318,6 +318,7 @@ public class CourseService {
 
     /**
      * Automatically plans self-study sessions for a deadline, distributing sessions in available slots.
+     * Study hours are distributed as evenly as possible between studyStart and deadline, respecting preferred study days, session duration, and break time.
      */
     @Transactional
     public void autoPlanSelfstudySessions(Long courseId, Long deadlineId, String userEmail) {
@@ -339,6 +340,10 @@ public class CourseService {
         List<CalendarEvent> allUserEvents = eventRepository.findByUserId(user.getId());
         LocalDateTime studyStart = deadline.getStudyStart() != null ? deadline.getStudyStart() : LocalDateTime.now();
         LocalDateTime studyEnd = deadline.getStartTime();
+
+        // Exclude the deadline day itself from planning
+        studyEnd = studyEnd.toLocalDate().atStartOfDay();
+
         // Parse break duration
         java.time.Duration breakDuration = java.time.Duration.ZERO;
         try {
@@ -347,31 +352,101 @@ public class CourseService {
         } catch (Exception e) {
             breakDuration = java.time.Duration.ofMinutes(10); // fallback
         }
-        int sessionDuration = user.getPreferredStudySessionDuration() > 0 ? user.getPreferredStudySessionDuration() : 1;
-        List<TimeSlot> freeSlots = calculateFreeSlots(user, allUserEvents, studyStart, studyEnd.minusMinutes(1), breakDuration);
-        // Flat list of all possible session slots in the free time windows
-        List<LocalDateTime> possibleStarts = new ArrayList<>();
-        for (TimeSlot slot : freeSlots) {
-            LocalDateTime slotStart = slot.start();
-            while (slotStart.plusHours(sessionDuration).isBefore(slot.end()) || slotStart.plusHours(sessionDuration).equals(slot.end())) {
-                if (!slotStart.plusHours(sessionDuration).isAfter(studyEnd)) {
-                    possibleStarts.add(slotStart);
-                }
-                slotStart = slotStart.plusHours(sessionDuration).plus(breakDuration);
-            }
+        // Parse session duration (now string "hh:mm")
+        java.time.Duration sessionDuration;
+        try {
+            String[] parts = user.getPreferredStudySessionDuration().split(":");
+            sessionDuration = java.time.Duration.ofHours(Long.parseLong(parts[0])).plusMinutes(Long.parseLong(parts[1]));
+            if (sessionDuration.isZero() || sessionDuration.isNegative()) sessionDuration = java.time.Duration.ofHours(1);
+        } catch (Exception e) {
+            sessionDuration = java.time.Duration.ofHours(1);
         }
-        int sessionsNeeded = (int) Math.ceil(targetHours / (double)sessionDuration);
-        int planned = 0;
-        int used = 0;
-        int i = 0;
-        while (planned < targetHours && i < possibleStarts.size() && used < sessionsNeeded) {
-            LocalDateTime sessionStart = possibleStarts.get(i);
-            int duration = Math.min(sessionDuration, targetHours - planned);
-            LocalDateTime sessionEnd = sessionStart.plusHours(duration);
+
+        // 1. Collect all possible study slots between studyStart and studyEnd that match preferredStudyDays
+        Set<DayOfWeek> preferredDays = Arrays.stream(user.getPreferredStudyDays().split(","))
+            .map(String::trim)
+            .map(String::toUpperCase)
+            .map(DayOfWeek::valueOf)
+            .collect(Collectors.toSet());
+
+        LocalTime preferredStart = LocalTime.parse(user.getPreferredStartTime());
+        LocalTime preferredEnd = LocalTime.parse(user.getPreferredEndTime());
+
+        // Build a list of all possible session slots (start, end) on preferred days, respecting session duration and break
+        List<TimeSlot> possibleSlots = new ArrayList<>();
+        LocalDateTime current = studyStart.withHour(preferredStart.getHour()).withMinute(preferredStart.getMinute()).withSecond(0).withNano(0);
+
+        while (!current.isBefore(studyEnd)) {
+            // This loop will not run if studyStart >= studyEnd, so fix the condition:
+            break;
+        }
+        while (current.isBefore(studyEnd)) {
+            if (preferredDays.contains(current.getDayOfWeek())) {
+                LocalDateTime dayStart = current.withHour(preferredStart.getHour()).withMinute(preferredStart.getMinute());
+                LocalDateTime dayEnd = current.withHour(preferredEnd.getHour()).withMinute(preferredEnd.getMinute());
+                // Make sure dayEnd does not exceed studyEnd
+                if (dayEnd.isAfter(studyEnd)) {
+                    dayEnd = studyEnd;
+                }
+                LocalDateTime slotStart = dayStart.isAfter(current) ? dayStart : current;
+                while (!slotStart.plus(sessionDuration).isAfter(dayEnd) && !slotStart.plus(sessionDuration).isAfter(studyEnd)) {
+                    // Check for overlap with existing events
+                    boolean overlaps = false;
+                    for (CalendarEvent e : allUserEvents) {
+                        if (!(slotStart.plus(sessionDuration).isBefore(e.getStartTime()) || slotStart.isAfter(e.getEndTime()))) {
+                            overlaps = true;
+                            break;
+                        }
+                    }
+                    if (!overlaps) {
+                        possibleSlots.add(new TimeSlot(slotStart, slotStart.plus(sessionDuration)));
+                    }
+                    slotStart = slotStart.plus(sessionDuration).plus(breakDuration);
+                }
+            }
+            current = current.plusDays(1).withHour(preferredStart.getHour()).withMinute(preferredStart.getMinute());
+        }
+
+        if (possibleSlots.isEmpty()) throw new RuntimeException("No available time slots for self-study sessions.");
+
+        // 2. Distribute study hours as evenly as possible over the available slots (spread across the whole period)
+        long totalMinutes = targetHours * 60L;
+        long sessionMinutes = sessionDuration.toMinutes();
+        int sessionsNeeded = (int) Math.ceil(totalMinutes / (double) sessionMinutes);
+        int slotsToUse = Math.min(sessionsNeeded, possibleSlots.size());
+
+        // Calculate indices for evenly distributed sessions
+        List<Integer> slotIndices = new ArrayList<>();
+        for (int i = 0; i < slotsToUse; i++) {
+            int idx = (int) Math.round(i * (possibleSlots.size() - 1) / (double) (slotsToUse - 1));
+            slotIndices.add(idx);
+        }
+        // If only one session, just pick the first slot
+        if (slotsToUse == 1) slotIndices.set(0, 0);
+
+        // Distribute hours as evenly as possible
+        List<Long> sessionMinutesList = new ArrayList<>();
+        long base = totalMinutes / slotsToUse;
+        long remainder = totalMinutes % slotsToUse;
+        for (int i = 0; i < slotsToUse; i++) {
+            sessionMinutesList.add(base + (i < remainder ? 1 : 0));
+        }
+
+        // 3. Create events for each planned session, using the selected slots
+        for (int i = 0; i < slotsToUse; i++) {
+            long durationMin = sessionMinutesList.get(i);
+            TimeSlot slot = possibleSlots.get(slotIndices.get(i));
+            LocalDateTime sessionStart = slot.start();
+            LocalDateTime sessionEnd = sessionStart.plusMinutes(durationMin);
+            if (sessionEnd.isAfter(slot.end())) {
+                sessionEnd = slot.end();
+                durationMin = java.time.Duration.between(sessionStart, sessionEnd).toMinutes();
+                if (durationMin <= 0) continue;
+            }
             if (sessionEnd.isAfter(studyEnd)) {
                 sessionEnd = studyEnd;
-                duration = (int) java.time.Duration.between(sessionStart, sessionEnd).toHours();
-                if (duration <= 0) { i++; continue; }
+                durationMin = java.time.Duration.between(sessionStart, sessionEnd).toMinutes();
+                if (durationMin <= 0) continue;
             }
             CalendarEvent session = new CalendarEvent();
             session.setTitle("📖 Selfstudy for " + deadline.getTitle() + ", " + course.getName());
@@ -386,16 +461,10 @@ public class CourseService {
             session.setRelatedDeadlineId(deadlineId);
             CalendarEvent saved = eventRepository.save(session);
 
-            // Ensure the event ID is added to the course_event_ids join table
             if (!course.getEventIds().contains(saved.getId())) {
                 course.getEventIds().add(saved.getId());
             }
-
-            planned += duration;
-            used++;
-            i++;
         }
-        // Save the course after all event IDs have been added
         courseRepository.save(course);
     }
 
