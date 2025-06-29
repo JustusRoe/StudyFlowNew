@@ -235,8 +235,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function openEditEventSidebar(event) {
         const sidebar = document.getElementById("editEventSidebar");
         sidebar.classList.add("open");
-        
-        const getValue = (val, fallback = "") => val !== undefined && val !== null ? val : fallback;
 
         // Populate form fields with event data
         document.getElementById("editEventId").value = event.id;
@@ -247,8 +245,73 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("editEventColor").value = event.backgroundColor;
         document.getElementById("editEventType").value = event.extendedProps.type || "custom";
 
-        // Populate course dropdown
-        loadCoursesForDropdown("editEventCourse");
+        const eventId = event.id;
+
+        fetch("/courses/user")
+            .then(res => {
+                if (!res.ok) {
+                    console.error("Fetch /courses/user failed:", res.status, res.statusText);
+                    return [];
+                }
+                return res.json();
+            })
+            .then(courses => {
+                let foundCourseId = "";
+                for (const course of courses) {
+                
+                    if (!Array.isArray(course.eventIds)) {
+                        course._needsEventIds = true;
+                    }
+                }
+                // Collect all courses that need eventIds
+                const coursesNeedingEventIds = courses.filter(c => c._needsEventIds);
+                if (coursesNeedingEventIds.length > 0) {
+                    // Fetch details for all courses in parallel
+                    Promise.all(
+                        coursesNeedingEventIds.map(c =>
+                            fetch(`/courses/details/${c.id}`).then(r => r.json())
+                        )
+                    ).then(detailsArr => {
+                        // Attach eventIds to the original courses array
+                        detailsArr.forEach((details, idx) => {
+                            const orig = coursesNeedingEventIds[idx];
+                            orig.eventIds = details.eventIds;
+                        });
+                        // Now do the matching
+                        selectCourseForEvent(courses, eventId);
+                    });
+                } else {
+                    // All courses already have eventIds
+                    selectCourseForEvent(courses, eventId);
+                }
+
+                function selectCourseForEvent(courses, eventId) {
+                    let foundCourseId = "";
+                    for (const course of courses) {
+                        if (Array.isArray(course.eventIds)) {
+                            if (course.eventIds.some(eid => String(eid) === String(eventId))) {
+                                foundCourseId = course.id;
+                                break;
+                            }
+                        }
+                    }
+                    loadCoursesForDropdown("editEventCourse", function() {
+                        const dropdown = document.getElementById("editEventCourse");
+                        if (dropdown) {
+                            if (foundCourseId) {
+                                const exists = Array.from(dropdown.options).some(opt => String(opt.value) === String(foundCourseId));
+                                if (exists) {
+                                    dropdown.value = String(foundCourseId);
+                                } else {
+                                    dropdown.value = "";
+                                }
+                            } else {
+                                dropdown.value = "";
+                            }
+                        }
+                    });
+                }
+            });
 
         // Button references
         const saveBtn = document.getElementById("saveEditedEvent");
@@ -373,8 +436,8 @@ document.addEventListener('DOMContentLoaded', function () {
         calendar.refetchEvents();
     };
 
-    // Populate a select dropdown with all user courses
-    function loadCoursesForDropdown(selectId) {
+    // Populate a select dropdown with all user courses, and optionally run a callback after
+    function loadCoursesForDropdown(selectId, callback) {
         fetch("/courses/user")
         .then(res => res.json())
         .then(courses => {
@@ -387,6 +450,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 opt.textContent = course.name;
                 dropdown.appendChild(opt);
             });
+            if (typeof callback === "function") callback();
         });
     }
 
@@ -646,6 +710,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (overviewProgressLabel) overviewProgressLabel.textContent = `${progress}%`;
                 const overviewStats = document.getElementById("overviewCourseStats");
                 if (overviewStats) overviewStats.innerHTML = "";
+
+                // Prefill settings tab fields
+                const nameSettings = document.getElementById("editCourseNameSettings");
+                if (nameSettings) nameSettings.value = course.name || "";
+                const colorSettings = document.getElementById("editCourseColorSettings");
+                if (colorSettings) colorSettings.value = course.color || "#4287f5";
+                const diffSettings = document.getElementById("editCourseDifficultySettings");
+                if (diffSettings) diffSettings.value = course.difficulty || 1;
             });
     };
 
