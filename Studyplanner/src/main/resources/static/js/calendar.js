@@ -152,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Add Event Sidebar logic ---
     // Opens the sidebar for adding a new event
     function openAddEventSidebar(info) {
-        console.log("Opening add sidebar", info);
         const sidebar = document.getElementById("addEventSidebar");
         sidebar.classList.add("open");
 
@@ -160,10 +159,13 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("addEventTitle").value = "";
         document.getElementById("addEventStart").value = info.startStr.slice(0, 16);
         document.getElementById("addEventEnd").value = info.endStr.slice(0, 16);
-        document.getElementById("addEventLocation").value = "";
-        document.getElementById("addEventColor").value = "#4285F4";
-        document.getElementById("addEventType").value = "custom";
-        document.getElementById("addEventType").addEventListener("change", function () {
+        var locationInput = document.getElementById("addEventLocation");
+        if (locationInput) locationInput.value = "";
+        var colorInput = document.getElementById("addEventColor");
+        if (colorInput) colorInput.value = "#4285F4";
+        var typeInput = document.getElementById("addEventType");
+        if (typeInput) typeInput.value = "custom";
+        if (typeInput) typeInput.addEventListener("change", function () {
             const fillTypeWrapper = document.getElementById("fillTypeWrapper");
             if (this.value === "custom") {
                 fillTypeWrapper.style.display = "block";
@@ -172,20 +174,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Populate course dropdown
         loadCoursesForDropdown("addEventCourse");
 
-        // Button references
         const saveBtn = document.getElementById("saveNewEvent");
         const cancelBtn = document.getElementById("cancelNewEvent");
         const closeBtn = sidebar.querySelector(".close-sidebar");
 
-        // Remove previous handlers
         saveBtn.onclick = null;
         cancelBtn.onclick = null;
         if (closeBtn) closeBtn.onclick = null;
 
-        // Helper to close sidebar and refresh calendar
         function closeSidebarAndUnselect() {
             sidebar.classList.remove("open");
             calendar.unselect();
@@ -194,7 +192,6 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => calendar.setOption('selectable', true), 0);
         }
 
-        // Save new event handler
         saveBtn.onclick = function () {
             const title = document.getElementById("addEventTitle").value.trim();
             const startTime = document.getElementById("addEventStart").value;
@@ -210,7 +207,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: title,
                 startTime: startTime,
                 endTime: endTime,
-                location: document.getElementById("addEventLocation").value,
                 type: type,
                 color: document.getElementById("addEventColor").value,
                 courseId: document.getElementById("addEventCourse").value || null
@@ -225,7 +221,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         };
 
-        // Cancel and close handlers
         cancelBtn.onclick = closeSidebarAndUnselect;
         if (closeBtn) closeBtn.onclick = closeSidebarAndUnselect;
     }
@@ -241,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("editEventTitle").value = event.title;
         document.getElementById("editEventStart").value = event.startStr.slice(0, 16);
         document.getElementById("editEventEnd").value = event.endStr.slice(0, 16);
-        document.getElementById("editEventLocation").value = event.extendedProps.location || "";
         document.getElementById("editEventColor").value = event.backgroundColor;
         document.getElementById("editEventType").value = event.extendedProps.type || "custom";
 
