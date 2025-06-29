@@ -620,48 +620,54 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Close course creation sidebar and reset fields
-    window.closeSidebar = function () {
-        sidebar.classList.remove('open');
-        document.getElementById('courseName').value = "";
-        document.getElementById('courseDescription').value = "";
-    };
+    // Save and Cancel buttons in create course sidebar
+    const saveCourseBtn = document.getElementById('saveCourseBtn');
+    const cancelCourseBtn = document.getElementById('cancelCourseBtn');
 
-    // Save a new course to the backend
-    window.saveCourse = function () {
-        const nameInput = document.getElementById('courseName');
-        const descInput = document.getElementById('courseDescription');
-
-        const name = nameInput.value.trim();
-        const description = descInput.value.trim();
-
-        if (!name) {
-            alert("Please enter a course name.");
-            return;
-        }
-
-        fetch('/courses/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: name,
-                description: description,
-                color: '#4287f5'
+    if (saveCourseBtn) {
+        saveCourseBtn.onclick = function () {
+            const nameInput = document.getElementById('courseName');
+            const colorInput = document.getElementById('courseColor');
+            const name = nameInput.value.trim();
+            const color = colorInput.value || '#4287f5';
+            if (!name) {
+                alert("Please enter a course name.");
+                return;
+            }
+            fetch('/courses/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    color: color
+                })
             })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Failed to create course");
-            return res.json();
-        })
-        .then(() => {
-            closeSidebar();
-            loadCourses();
-        })
-        .catch(error => {
-            console.error("Error creating course:", error);
-            alert("Could not create course.");
-        });
-    };
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to create course");
+                return res.json();
+            })
+            .then(() => {
+                sidebar.classList.remove('open');
+                nameInput.value = "";
+                colorInput.value = "#4287f5";
+                loadCourses();
+            })
+            .catch(error => {
+                console.error("Error creating course:", error);
+                alert("Could not create course.");
+            });
+        };
+    }
+
+    if (cancelCourseBtn) {
+        cancelCourseBtn.onclick = function () {
+            sidebar.classList.remove('open');
+            const nameInput = document.getElementById('courseName');
+            const colorInput = document.getElementById('courseColor');
+            if (nameInput) nameInput.value = "";
+            if (colorInput) colorInput.value = "#4287f5";
+        };
+    }
 
     // --- Course editing sidebar logic ---
     // Open the course detail sidebar and show the overview tab
