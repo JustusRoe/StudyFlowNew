@@ -68,8 +68,6 @@ public class SecurityConfig {
               .invalidateHttpSession(true)
               .permitAll()
           )
-
-          // Allow frameOptions for H2 Database
           .headers(headers -> headers
               .frameOptions(frame -> frame.sameOrigin())
           )
