@@ -151,6 +151,10 @@ public class IcsParser {
 
     // automatically generates a color from the courseId string
     private static String generateDefaultColor(String input) {
-        return "#AAAAAA";
+        int hash = input != null ? input.hashCode() : new java.util.Random().nextInt();
+        int r = (hash >> 16) & 0xFF;
+        int g = (hash >> 8) & 0xFF;
+        int b = hash & 0xFF;
+        return String.format("#%02X%02X%02X70", r, g, b);
     }
 }

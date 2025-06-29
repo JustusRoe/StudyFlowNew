@@ -225,9 +225,9 @@ public class CalendarController {
     private String getColorForEventType(String type) {
         return switch (type == null ? "" : type.toLowerCase()) {
             case "lecture" -> "#4285F4";
-            case "assignment" -> "#0F9D58";
-            case "exam" -> "#DB4437";
-            case "self-study" -> "#F4B400";
+            case "deadline" -> "#0F9D58";
+            case "self-study" -> "#DB4437";
+            case "custom" -> "#F4B400";
             default -> "#aaaaaa";
         };
     }
