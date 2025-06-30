@@ -14,14 +14,13 @@
       body {
         font-family: "Segoe UI", Tahoma, sans-serif;
         margin: 0;
-        
+        background: #f5f6fa;
       }
       .navbar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-         background-color: rgb(255 255 255 / 15%);
-  border-radius: 30px;
+        background: #2474a6;
         padding: 1rem 2rem;
         color: white;
       }
@@ -53,8 +52,8 @@
       .settings-container {
         max-width: 520px;
         margin: 2.5rem auto;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 30px;
+        background: #fff;
+        border-radius: 16px;
         box-shadow: 0 4px 32px rgba(44, 62, 80, 0.12);
         padding: 2.5rem 2rem 2rem 2rem;
         display: flex;
@@ -64,7 +63,7 @@
       .settings-title {
         font-size: 2.1rem;
         font-weight: 800;
-        color: #ffffff;
+        color: #2474a6;
         letter-spacing: -1px;
         margin: 0 0 0.5rem 0;
         line-height: 1.1;
@@ -72,7 +71,7 @@
       }
       .settings-section-title {
         font-size: 1.15rem;
-        color: #ffffff;
+        color: #2e3a78;
         font-weight: 700;
         margin-bottom: 0.7rem;
         margin-top: 1.2rem;
@@ -91,7 +90,7 @@
         font-weight: 500;
         font-size: 1rem;
         margin-bottom: 0.1rem;
-        color: #ffffff;
+        color: #2e3a78;
       }
       .form-group input[type="email"],
       .form-group input[type="password"],
@@ -146,7 +145,7 @@
       }
       .settings-form .button {
         padding: 0.7rem 1.5rem;
-        background: linear-gradient(156deg, #121f5d70, #ff00008c);
+        background-color: #2474a6;
         color: white;
         border: none;
         border-radius: 7px;
@@ -163,7 +162,7 @@
       small {
         display: block;
         margin-top: 0.25rem;
-        color: #ffffff;
+        color: #666;
         font-size: 0.95em;
       }
       @media (max-width: 700px) {
@@ -230,7 +229,7 @@
         <div class="form-group">
           <label>Break Duration</label>
           <input type="time" th:field="*{preferredBreakTime}" />
-          <small>How long do you want to rest after each study hour</small>
+          <small>Duration of your break in HH:mm</small>
         </div>
          <!-- Study session duration input -->
         <div class="form-group">
