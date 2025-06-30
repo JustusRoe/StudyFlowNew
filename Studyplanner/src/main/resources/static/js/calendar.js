@@ -159,8 +159,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("addEventTitle").value = "";
         document.getElementById("addEventStart").value = info.startStr.slice(0, 16);
         document.getElementById("addEventEnd").value = info.endStr.slice(0, 16);
-        var locationInput = document.getElementById("addEventLocation");
-        if (locationInput) locationInput.value = "";
         var colorInput = document.getElementById("addEventColor");
         if (colorInput) colorInput.value = "#4285F4";
         var typeInput = document.getElementById("addEventType");
@@ -351,7 +349,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     title: title,
                     startTime: startTime,
                     endTime: endTime,
-                    location: document.getElementById("editEventLocation").value,
                     type: type,
                     color: document.getElementById("editEventColor").value,
                     courseId: document.getElementById("editEventCourse").value || null
