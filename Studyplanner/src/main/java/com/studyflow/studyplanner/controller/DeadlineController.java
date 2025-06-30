@@ -7,7 +7,6 @@ import com.studyflow.studyplanner.repository.UserRepository;
 import com.studyflow.studyplanner.service.CalendarService;
 import com.studyflow.studyplanner.service.CourseService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,6 @@ public class DeadlineController {
     private final CalendarService calendarService;
     private final UserRepository userRepository;
 
-    @Autowired
     public DeadlineController(CourseService courseService, CalendarService calendarService, UserRepository userRepository) {
         this.courseService = courseService;
         this.calendarService = calendarService;

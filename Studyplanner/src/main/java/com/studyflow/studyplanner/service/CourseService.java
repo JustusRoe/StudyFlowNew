@@ -7,7 +7,6 @@ import com.studyflow.studyplanner.repository.CalendarEventRepository;
 import com.studyflow.studyplanner.repository.CourseRepository;
 import com.studyflow.studyplanner.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,7 +24,7 @@ public class CourseService {
     private final UserRepository userRepository;
     private final CalendarEventRepository eventRepository;
 
-    @Autowired
+
     public CourseService(CourseRepository courseRepository,
                          UserRepository userRepository,
                          CalendarEventRepository eventRepository) {
