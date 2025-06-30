@@ -11,17 +11,9 @@
     <link rel="stylesheet" href="/css/dashboard.css" />
     <link rel="icon" href="/images/faviconStudyFlow.png" type="image/png" />
   </head>
-  <body style="height: 140vh">
+  <body>
     <!-- Navigation Bar -->
-    <nav
-      class="navbar"
-      style="
-        background: #2474a6;
-        align-items: center;
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 30px;
-      "
-    >
+    <nav class="navbar" style="background: #2474a6; align-items: center">
       <span
         class="brand"
         style="
@@ -105,7 +97,7 @@
           margin-bottom: 24px;
           padding-top: 0px;
           padding-bottom: 16px;
-          height: 850px;
+          min-height: 850px;
           margin-left: 0px;
           overflow: auto;
         "
@@ -120,7 +112,6 @@
               margin-bottom: 0.7rem;
               padding-bottom: 8px;
               padding-top: 8px;
-              border-radius: 30px;
             "
           >
             📅 Manage Deadlines
@@ -136,7 +127,6 @@
               padding: 0.5rem 1.2rem;
               width: 100%;
               margin-bottom: 0.7rem;
-              border-radius: 30px;
             "
           >
             📥 Import Calendar (.ics)
@@ -248,15 +238,12 @@
         </div>
         <div class="section" style="height: 350px">
           <h2>Courses</h2>
-          <button
-            id="create-course-btn"
-            style="margin-bottom: 16px; border-radius: 30px"
-          >
+          <button id="create-course-btn" style="margin-bottom: 16px">
             + Create Course
           </button>
           <ul
             id="course-list"
-            style="height: 240px; overflow-y: auto; padding-right: 4px"
+            style="max-height: 240px; overflow-y: auto; padding-right: 4px"
           ></ul>
         </div>
       </aside>
