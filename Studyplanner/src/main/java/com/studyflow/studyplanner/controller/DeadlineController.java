@@ -110,7 +110,6 @@ public class DeadlineController {
         Course course = courseService.getById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
         event.setColor(course.getColor());
         CalendarEvent saved = calendarService.saveEvent(event);
-
         // Add event to course
         courseService.addEventToCourse(courseId, saved.getId());
 

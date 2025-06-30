@@ -52,15 +52,15 @@ public class IcsParser {
                 int firstSpace = summary.indexOf(' ');
                 if (firstSpace == 8) {
                     courseId = summary.substring(0, 8);
-                    // Suche nach "Frankfurt am Main" (case-insensitive)
+                    // Searches for "Frankfurt am Main" (case-insensitive)
                     String lower = summary.toLowerCase();
                     int frankfurtIdx = lower.indexOf("frankfurt am main");
                     if (frankfurtIdx > 9) {
-                        // Hole den Bereich zwischen den ersten 8 Zeichen und "Frankfurt am Main"
+                        // Extracts the content between the first 8 numbers and "Frankfurt am Main"
                         String between = summary.substring(9, frankfurtIdx).trim();
                         courseName = between;
                     } else {
-                        // Fallback: alles nach den ersten 8 Zeichen
+                        // Cut out everything after the first 8 numbers
                         courseName = summary.substring(9).trim();
                     }
                 } else {
@@ -121,10 +121,10 @@ public class IcsParser {
         for (Map.Entry<String, List<CalendarEvent>> entry : eventMap.entrySet()) {
             String courseId = entry.getKey();
             List<CalendarEvent> courseEvents = entry.getValue();
-
+            // save all events for this course
             List<CalendarEvent> savedEvents = eventRepo.saveAll(courseEvents);
             events.addAll(savedEvents);
-
+            // add event IDs to the course
             Course course = courseMap.get(courseId);
             for (CalendarEvent event : savedEvents) {
                 course.addEventId(event.getId());

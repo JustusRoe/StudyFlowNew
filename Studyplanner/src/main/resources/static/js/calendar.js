@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const fillType = event.extendedProps.fillType;
             const color = event.backgroundColor;
 
-            // For lectures and self-study, show a colored dot and time
+            // Styling for lectures and self-study
             if (type === "lecture" || type === "self-study") {
                 const dot = document.createElement("span");
                 dot.style.backgroundColor = color;
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return { domNodes: [dot, time, title] };
             }
 
-            // For custom events, apply partial fill style if needed
+            // Styling for custom events
             if (type === "custom") {
                 if (fillType === "partial-fill") {
                     arg.el.style.background = `linear-gradient(to right, ${color} 50%, transparent 50%)`;
@@ -176,14 +176,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         loadCoursesForDropdown("addEventCourse");
 
+        // Button references
         const saveBtn = document.getElementById("saveNewEvent");
         const cancelBtn = document.getElementById("cancelNewEvent");
         const closeBtn = sidebar.querySelector(".close-sidebar");
 
+        // Remove previous handlers
         saveBtn.onclick = null;
         cancelBtn.onclick = null;
         if (closeBtn) closeBtn.onclick = null;
 
+        // Helper to close sidebar and refresh calendar
         function closeSidebarAndUnselect() {
             sidebar.classList.remove("open");
             calendar.unselect();
@@ -192,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => calendar.setOption('selectable', true), 0);
         }
 
+        // Save new event handler
         saveBtn.onclick = function () {
             const title = document.getElementById("addEventTitle").value.trim();
             const startTime = document.getElementById("addEventStart").value;
@@ -221,6 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         };
 
+        // Cancel and close handlers
         cancelBtn.onclick = closeSidebarAndUnselect;
         if (closeBtn) closeBtn.onclick = closeSidebarAndUnselect;
     }

@@ -60,9 +60,10 @@ public class CalendarController {
             icsContent = icsContent.replaceAll(";VALUE=DATE;VALUE=DATE:", ";VALUE=DATE:");
             // Optionally, remove any other duplicate VALUE=DATE
             icsContent = icsContent.replaceAll(";VALUE=DATE(;VALUE=DATE)+:", ";VALUE=DATE:");
-            // Entferne alles nach END:VCALENDAR (inklusive nachfolgender Zeichen)
+            // Clean up ICS content by removing everything after the last END:VCALENDAR
             icsContent = cleanIcsContent(icsContent);
 
+            // Ensures to save events to the correct user's database
             InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes(StandardCharsets.UTF_8));
             String email = principal.getName();
             User user = userRepository.findByEmail(email);
@@ -83,7 +84,7 @@ public class CalendarController {
         }
     }
 
-    // Hilfsmethode: Entfernt alles nach END:VCALENDAR
+    // Clean up ICS content by removing everything after the last END:VCALENDAR
     private String cleanIcsContent(String icsContent) {
         String endTag = "END:VCALENDAR";
         int idx = icsContent.indexOf(endTag);

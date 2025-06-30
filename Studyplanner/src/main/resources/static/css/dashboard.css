@@ -97,7 +97,7 @@ body {
   padding: 0.2rem 0;
 }
 
-/* Real import button */
+/* Import button */
 #import-button {
   background-color: #2c3e50;
   color: white;
@@ -312,6 +312,7 @@ ul {
 .dark-text {
   color: #222 !important;
 }
+
 /* Label styling for all form inputs */
 .course-form label {
   font-weight: bold;
@@ -400,13 +401,12 @@ ul {
   background-color: #216a94;
 }
 
-/* Alignment of dot and text */
+/* Styling of event */
 .fc-event-title {
   display: flex;
   align-items: center;
 }
 
-/* Dot styling */
 .fc-event-dot {
   width: 10px;
   height: 10px;
@@ -794,7 +794,7 @@ ul {
   }
 }
 
-/* FullCalendar Button-Farbe überschreiben */
+/* FullCalendar Button Color */
 .fc .fc-button-primary {
   background-color: #32bbee !important;
   border-color: #32bbee !important;
@@ -811,6 +811,8 @@ ul {
   color: #2474a6 !important;
 }
 
+
+/* Manage Deadlines Page Styles */
 .section-card {
   min-height: unset !important;
 }

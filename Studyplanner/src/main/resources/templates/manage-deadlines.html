@@ -276,8 +276,10 @@
     </style>
   </head>
   <body>
+    <!-- Top navigation bar with StudyFlow logo and page links -->
     <nav class="navbar">
       <span class="brand">
+        <!-- Clickable logo -->
         <a href="/dashboard" style="display:inline-block;margin-left: 0px;">
           <img
             src="/images/studyflow-white.png"
@@ -287,11 +289,13 @@
         </a>
       </span>
       <div class="nav-links">
+         <!-- Navigation links -->
         <a href="/dashboard">Dashboard</a>
         <a href="/user_settings">Profile</a>
         <a href="/logout">Logout</a>
       </div>
     </nav>
+    <!-- Main content wrapper -->
     <div class="main-container" style="flex: 1; margin: 0; height: 900px;">
       <div
       id="courseButtonBarWrapper"
@@ -311,6 +315,7 @@
             height: 100%;
           "
         ></div>
+        <!-- Message shown when no course is selected -->
         <div
           id="noCourseSelectedMsg"
           style="
@@ -336,33 +341,17 @@
         <div
           class="flex-col section-card"
           style="width: 800px !important; max-width: 800px !important; padding-left: 0px;padding-right: 0px; margin-top: 8px;
-    margin-bottom: 8px;
-    border-top-width: 0px;
-    padding-top: 8px;
-    padding-bottom: 8px; gap: unset; height: 140px;"
-        >
-          <div class="section-title" style="
-    margin-left: 24px;
-    margin-right: 24px;
-">Course Info</div>
-          <div id="deadlineCourseInfo" style="
-    margin-left: 24px;
-    margin-right: 24px;     margin-bottom: 0px !important; display: flex;
-    align-items: baseline;
-    justify-content: space-between;;
-
-"></div>
-          <div class="progress-bar" style="
-    margin-left: 24px;
-    margin-right: 24px;
-">
+                margin-bottom: 8px; border-top-width: 0px; padding-top: 8px; padding-bottom: 8px; gap: unset; height: 140px;">
+          <div class="section-title" style="margin-left: 24px; margin-right: 24px;">Course Info</div>
+              <div id="deadlineCourseInfo" style="margin-left: 24px; margin-right: 24px; margin-bottom: 0px !important; display: flex;
+                      align-items: baseline; justify-content: space-between;;"></div>
+        <!-- Progress bar showing percentage of study completion -->
+          <div class="progress-bar" style="margin-left: 24px; margin-right: 24px;">
             <div class="progress-bar-inner" id="progressBarInner"></div>
             <span class="progress-label" id="progressLabel"></span>
           </div>
         </div>
-        <div class="flex-row" style="gap: 2rem; align-items: flex-start; justify-content: flex-start;
-    flex-direction: row; flex-wrap: nowrap;     height: 760px; gap: 8px;
-">
+        <div class="flex-row" style="gap: 2rem; align-items: flex-start; justify-content: flex-start; flex-direction: row; flex-wrap: nowrap; height: 760px; gap: 8px;">
           <!-- Deadlines Column -->
           <div class="flex-col section-card" style="min-width: 320px; height: 100%; padding-top: 8px;padding-bottom: 8px; margin-bottom: 0px;gap: unset;">
             <div class="section-title">Manage Deadlines</div>
@@ -481,7 +470,7 @@
       </div>
     </div>
     <script>
-      // Sidebar-Kursauswahl
+      // Sidebar
       document.addEventListener("DOMContentLoaded", function () {
         fetch("/courses/user")
           .then((res) => res.json())

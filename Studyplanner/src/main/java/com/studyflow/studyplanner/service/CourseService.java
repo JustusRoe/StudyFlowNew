@@ -37,7 +37,8 @@ public class CourseService {
     /**
      * Calculates all free time slots for a user between two dates, considering existing events and user preferences.
      */
-    private List<TimeSlot> calculateFreeSlots(User user, List<CalendarEvent> existingEvents, LocalDateTime from, LocalDateTime to, java.time.Duration breakDuration) {
+    private List<TimeSlot> calculateFreeSlots(User user, List<CalendarEvent> existingEvents, 
+                                              LocalDateTime from, LocalDateTime to, java.time.Duration breakDuration) {
         List<TimeSlot> slots = new ArrayList<>();
 
         Set<DayOfWeek> preferredDays = Arrays.stream(user.getPreferredStudyDays().split(","))
@@ -146,7 +147,6 @@ public class CourseService {
             course.setResolvedEvents(events);
             // Calculate progress in percent (value is dynamically provided via getProgressPercent())
             double progressPercent = course.getProgressPercent();
-            // Optional: If further processing/logging is needed, it can be accessed here.
         }
         return courses;
     }
@@ -169,9 +169,6 @@ public class CourseService {
 
         List<CalendarEvent> events = eventRepository.findAllById(course.getEventIds());
         course.setResolvedEvents(events);
-
-        // These are now available via getters for the sidebar/modal:
-        // course.getProgressPercent(), course.getSelfStudyHours(), course.getWorkloadTarget(), etc.
 
         return course;
     }
@@ -261,7 +258,7 @@ public class CourseService {
     }
 
     /**
-     * Removes an event from a course (with user verification).
+     * Removes an event from a course, with user verification.
      */
     @Transactional
     public void removeEventFromCourse(Long courseId, Long eventId, String userEmail) {
@@ -318,7 +315,8 @@ public class CourseService {
 
     /**
      * Automatically plans self-study sessions for a deadline, distributing sessions in available slots.
-     * Study hours are distributed as evenly as possible between studyStart and deadline, respecting preferred study days, session duration, and break time.
+     * Study hours are distributed as evenly as possible between studyStart and deadline, 
+     * respecting preferred study days, session duration, and break time.
      */
     @Transactional
     public void autoPlanSelfstudySessions(Long courseId, Long deadlineId, String userEmail) {
@@ -362,7 +360,7 @@ public class CourseService {
             sessionDuration = java.time.Duration.ofHours(1);
         }
 
-        // 1. Collect all possible study slots between studyStart and studyEnd that match preferredStudyDays
+        // Collect all possible study slots between studyStart and studyEnd that match preferredStudyDays
         Set<DayOfWeek> preferredDays = Arrays.stream(user.getPreferredStudyDays().split(","))
             .map(String::trim)
             .map(String::toUpperCase)
@@ -409,7 +407,7 @@ public class CourseService {
 
         if (possibleSlots.isEmpty()) throw new RuntimeException("No available time slots for self-study sessions.");
 
-        // 2. Distribute study hours as evenly as possible over the available slots (spread across the whole period)
+        // Distribute study hours as evenly as possible over the available slots (spread across the whole period)
         long totalMinutes = targetHours * 60L;
         long sessionMinutes = sessionDuration.toMinutes();
         int sessionsNeeded = (int) Math.ceil(totalMinutes / (double) sessionMinutes);
@@ -432,7 +430,7 @@ public class CourseService {
             sessionMinutesList.add(base + (i < remainder ? 1 : 0));
         }
 
-        // 3. Create events for each planned session, using the selected slots
+        // Create events for each planned session, using the selected slots
         for (int i = 0; i < slotsToUse; i++) {
             long durationMin = sessionMinutesList.get(i);
             TimeSlot slot = possibleSlots.get(slotIndices.get(i));

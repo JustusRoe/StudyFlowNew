@@ -56,7 +56,6 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             e.printStackTrace();
-            // Optional: throw new RuntimeException("Could not send email", e);
         }
     }
 }

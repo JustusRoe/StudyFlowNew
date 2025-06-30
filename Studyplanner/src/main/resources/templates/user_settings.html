@@ -184,22 +184,26 @@
         <a th:href="@{/logout}">Logout</a>
       </div>
     </nav>
-
+    <!-- Container for the settings form -->
     <div class="settings-container">
       <h1 class="settings-title">Profile Settings</h1>
+      <!-- Profile settings form with Thymeleaf bindings -->
       <form
         th:action="@{/user_settings}"
         th:object="${user}"
         method="post"
         class="settings-form"
       >
+        <!-- CSRF protection token for Spring Security -->
         <input type="hidden" sec:csrf />
 
+        <!-- Display read-only email address -->
         <div class="form-group">
           <label>Email Address</label>
           <input type="email" th:field="*{email}" readonly />
         </div>
 
+        <!-- Input for optional password change -->
         <div class="form-group">
           <label>New Password</label>
           <input
@@ -209,20 +213,25 @@
           />
         </div>
 
+        <!-- Time preferences for self-study -->
         <div class="settings-section-title">Preferred Study Time</div>
+        <!-- Start time input -->
         <div class="form-group">
           <label>Start Time</label>
           <input type="time" th:field="*{preferredStartTime}" />
         </div>
+        <!-- End time input -->
         <div class="form-group">
           <label>End Time</label>
           <input type="time" th:field="*{preferredEndTime}" />
         </div>
+        <!-- Break duration input -->
         <div class="form-group">
           <label>Break Duration</label>
           <input type="time" th:field="*{preferredBreakTime}" />
           <small>Duration of your break in HH:mm</small>
         </div>
+         <!-- Study session duration input -->
         <div class="form-group">
           <label>Preferred Study Session Duration</label>
           <input
@@ -233,8 +242,10 @@
           <small>How long should each self-study session be? (default: 01:00)</small>
         </div>
 
+        <!-- Select preferred study days -->
         <div class="settings-section-title">Preferred Study Days</div>
         <div class="form-group checkbox-group">
+          <!-- Individual checkboxes for each day -->
           <label>
             <input
               type="checkbox"
@@ -299,7 +310,7 @@
             Sunday
           </label>
         </div>
-
+        <!-- Submit button to save all settings -->
         <button type="submit" class="button">Save Settings</button>
       </form>
     </div>
