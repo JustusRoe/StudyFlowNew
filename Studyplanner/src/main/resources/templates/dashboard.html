@@ -11,9 +11,17 @@
     <link rel="stylesheet" href="/css/dashboard.css" />
     <link rel="icon" href="/images/faviconStudyFlow.png" type="image/png" />
   </head>
-  <body>
+  <body style="height: 140vh">
     <!-- Navigation Bar -->
-    <nav class="navbar" style="background: #2474a6; align-items: center">
+    <nav
+      class="navbar"
+      style="
+        background: #2474a6;
+        align-items: center;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 30px;
+      "
+    >
       <span
         class="brand"
         style="
@@ -97,7 +105,7 @@
           margin-bottom: 24px;
           padding-top: 0px;
           padding-bottom: 16px;
-          min-height: 850px;
+          height: 850px;
           margin-left: 0px;
         "
       >
@@ -111,6 +119,7 @@
               margin-bottom: 0.7rem;
               padding-bottom: 8px;
               padding-top: 8px;
+              border-radius: 30px;
             "
           >
             📅 Manage Deadlines
@@ -126,6 +135,7 @@
               padding: 0.5rem 1.2rem;
               width: 100%;
               margin-bottom: 0.7rem;
+              border-radius: 30px;
             "
           >
             📥 Import Calendar (.ics)
@@ -229,7 +239,7 @@
             </div>
           </div>
         </div>
-        <div class="section">
+        <div class="section" style="height: 340px">
           <h2>Upcoming Events</h2>
           <ul id="upcoming-events-list">
             <li class="placeholder">No upcoming events.</li>
@@ -237,12 +247,15 @@
         </div>
         <div class="section">
           <h2>Courses</h2>
-          <button id="create-course-btn" style="margin-bottom: 16px">
+          <button
+            id="create-course-btn"
+            style="margin-bottom: 16px; border-radius: 30px"
+          >
             + Create Course
           </button>
           <ul
             id="course-list"
-            style="max-height: 240px; overflow-y: auto; padding-right: 4px"
+            style="height: 240px; overflow-y: auto; padding-right: 4px"
           ></ul>
         </div>
       </aside>

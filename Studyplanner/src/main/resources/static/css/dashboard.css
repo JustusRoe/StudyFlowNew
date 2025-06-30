@@ -2,7 +2,11 @@
 body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, sans-serif;
-  background: #f5f6fa;
+  background-image: radial-gradient(
+    ellipse farthest-corner at 80vw 15vh,
+    rgb(0 58 122) 5%,
+    rgb(255 140 0 / 58%) 95%
+  );
 }
 
 .navbar {
@@ -10,8 +14,10 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: #2c3e50;
-  color: white;
+  background: rgb(36 116 166);
+  align-items: center;
+  background-color: rgb(255 255 255 / 15%);
+  border-radius: 30px;
 }
 
 .nav-links {
@@ -21,12 +27,12 @@ body {
 }
 
 .navbar a {
-  color: white;
   text-decoration: none;
   margin-left: 1rem;
   display: flex;
   align-items: center;
   height: 100%;
+  color: white;
 }
 
 /* Main container */
@@ -57,18 +63,20 @@ body {
 /* Calendar */
 #calendar {
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 30px;
   padding: 1rem;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Filter controls */
 #filter-controls {
   margin-bottom: 1rem;
   padding: 1rem;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.08);
+  border-radius: 30px;
 }
 
 #filter-controls label {
@@ -596,8 +604,10 @@ ul {
   outline: 3px solid #222;
   opacity: 1;
   cursor: default;
-  background: #e0e0e0 !important;
-  color: #222 !important;
+  background: #e0e0e0;
+  color: #222;
+  box-shadow: 0 0 20px #33bbee, 0 0 40px #33bbee, 0 0 60px #33bbee;
+  transform: translateY(-2px);
 }
 
 /* If too many buttons, they automatically shrink to fit in one row */
@@ -641,14 +651,14 @@ ul {
 .dashboard-title {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #2474a6;
+  color: #ffffff;
   letter-spacing: -1px;
   margin: 0;
   line-height: 1.1;
 }
 .dashboard-subtitle {
   font-size: 1.1rem;
-  color: #4a6fa1;
+  color: #ffffff;
   margin-top: 0.2rem;
   margin-bottom: 0;
   font-weight: 400;
@@ -666,7 +676,7 @@ ul {
   gap: 0.5rem;
   font-size: 1rem;
   font-weight: 500;
-  color: #2e3a78;
+  color: #ffffff;
   user-select: none;
 }
 .switch {
@@ -715,8 +725,10 @@ ul {
   flex-direction: column;
   align-items: stretch;
   padding: 2rem 1.5rem 2rem 1.5rem;
-  background: #f9f9fb;
-  border-radius: 14px;
+  background: rgb(36 116 166);
+  align-items: center;
+  background-color: rgb(255 255 255 / 15%);
+  border-radius: 30px;
   box-shadow: 0 2px 12px rgba(44, 62, 80, 0.07);
   min-width: 270px;
   max-width: 320px;
@@ -753,7 +765,7 @@ ul {
   font-size: 1.15rem;
   border-bottom: 1px solid #cfd8dc;
   padding-bottom: 0.3rem;
-  color: #2474a6;
+  color: #ffffff;
   font-weight: 700;
 }
 .sidebar ul {
@@ -763,12 +775,12 @@ ul {
 }
 .sidebar ul li {
   margin-bottom: 0.5rem;
-  background: #fff;
+  background: linear-gradient(307deg, #110093, #ffde0042);
   padding: 0.7rem 1rem;
-  border-radius: 8px;
+  border-radius: 16px;
   box-shadow: 0 1px 4px rgba(44, 62, 80, 0.07);
   font-size: 1rem;
-  color: #2e3a78;
+  color: #ffffff;
 }
 .sidebar .placeholder {
   color: #b0b8c1;
@@ -803,12 +815,12 @@ ul {
 .fc .fc-toolbar-title {
   font-size: 1.75em !important;
   margin: 0px !important;
-  color: #2474a6 !important;
+  color: #ffffff !important;
 }
 
 .fc .fc-scrollgrid-liquid {
   height: 100%;
-  color: #2474a6 !important;
+  color: #ffffff !important;
 }
 
 /* Manage Deadlines Page Styles */
@@ -827,6 +839,7 @@ ul {
 .flex-col.section-card {
   max-height: 700px !important;
   overflow-y: auto !important;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 #deadlineTable td {
@@ -876,4 +889,31 @@ ul {
 
 .fc-event-main {
   overflow: hidden !important;
+}
+
+::-webkit-scrollbar {
+  width: 8px; /* ширина скроллбара */
+  height: 8px; /* высота для горизонтального */
+}
+
+/* Трек (фон под ползунком) */
+::-webkit-scrollbar-track {
+  background: transparent; /* делаем его прозрачным */
+}
+
+/* Сам ползунок */
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3); /* полупрозрачный белый */
+  border-radius: 4px;
+}
+
+/* При наведении */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Для Firefox */
+html {
+  scrollbar-width: thin; /* тонкий скроллбар */
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
