@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("deadlineStudyTime").value,
       10
     );
-    // changed: studyStart is now a date (yyyy-MM-dd)
+    // studyStart date format (yyyy-MM-dd)
     const studyStartDate = document.getElementById("deadlineStudyStart").value;
     const editingId = document.getElementById("editingDeadlineId").value;
 
