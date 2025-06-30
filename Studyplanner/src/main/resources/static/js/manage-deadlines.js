@@ -244,11 +244,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const btn = document.createElement("button");
         btn.textContent = course.name;
         btn.className = "btn course-btn";
-        btn.style.background = course.color || "#2e3a78";
+        btn.style.background = `linear-gradient(45deg, ${
+          course.color || "#eeeeee"
+        }, #0018ff9c)`;
         btn.style.color = getContrastingTextColor(course.color || "#2e3a78");
         btn.style.whiteSpace = "nowrap";
         btn.style.overflow = "hidden";
         btn.style.textOverflow = "ellipsis";
+        btn.style.fontFamily = "Segoe UI, Tahoma, sans-serif";
         btn.style.maxWidth = "400px";
         btn.style.minWidth = "90px";
         btn.style.minHeight = "40px";
@@ -256,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.style.fontSize = "1rem";
         btn.style.padding = "0.5rem 1.1rem";
         if (courseId && String(course.id) === String(courseId)) {
-          btn.style.outline = "3px solid #222";
+          btn.style.outline = "0px solid #222";
           btn.disabled = true;
           btn.style.opacity = "1";
         }
