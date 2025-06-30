@@ -811,7 +811,6 @@ ul {
   color: #2474a6 !important;
 }
 
-
 /* Manage Deadlines Page Styles */
 .section-card {
   min-height: unset !important;
@@ -873,4 +872,8 @@ ul {
 
 #deadlineTable {
   margin-top: 0.3rem !important;
+}
+
+.fc-event-main {
+  overflow: hidden !important;
 }
