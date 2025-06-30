@@ -23,7 +23,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    @Autowired
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        AuthenticationManager authenticationManager) {
@@ -66,7 +65,7 @@ public class UserService {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
-    @Autowired
+@Autowired
     private EmailService emailService;
 
     /**
